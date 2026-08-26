@@ -9,6 +9,7 @@
 namespace ElasticPress;
 
 use ElasticPress\Utils;
+use ElasticPress\FeatureRequirementsStatus;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -36,6 +37,43 @@ class Features {
 		// hooks order matters, make sure feature activation goes before features setup
 		add_action( 'init', array( $this, 'handle_feature_activation' ), 0 );
 		add_action( 'init', array( $this, 'setup_features' ), 0 );
+	}
+
+	/**
+	 * Get all registered feature groups.
+	 *
+	 * This centralizes group definitions and allows extensibility via a filter.
+	 *
+	 * @since 5.3.0
+	 * @return array Array of group slugs and their labels.
+	 */
+	public function get_feature_groups() {
+		$groups = [
+			'core-search'         => [
+				'label' => esc_html__( 'Core Search', 'elasticpress' ),
+			],
+			'live-search'         => [
+				'label' => esc_html__( 'Live Search', 'elasticpress' ),
+			],
+			'indexing-options'    => [
+				'label' => esc_html__( 'Indexing Options', 'elasticpress' ),
+			],
+			'woocommerce'         => [
+				'label' => esc_html__( 'WooCommerce', 'elasticpress' ),
+			],
+			'third-party-plugins' => [
+				'label' => esc_html__( 'Third Party Plugins', 'elasticpress' ),
+			],
+		];
+		/**
+		 * Filter available groups.
+		 *
+		 * @hook ep_feature_groups
+		 * @since 5.3.0
+		 * @param  {array} $groups Current groups
+		 * @return {array} New groups
+		 */
+		return apply_filters( 'ep_feature_groups', $groups );
 	}
 
 	/**
@@ -177,6 +215,9 @@ class Features {
 
 			$feature->post_activation();
 		}
+		if ( $was_active && ! $is_active && method_exists( $feature, 'post_deactivation' ) ) {
+			$feature->post_deactivation();
+		}
 
 		/**
 		 * If the feature has a setting that requires reindexing, return
@@ -226,16 +267,22 @@ class Features {
 	 */
 	public function handle_feature_activation() {
 		/**
+		 * Give a chance to features to modify each other's requirements status before the activation is handled.
+		 */
+		foreach ( $this->registered_features as $feature ) {
+			$feature->pre_handle_feature_activation();
+		}
+
+		/**
 		 * Save our current requirement statuses for later
 		 */
-
 		$old_requirement_statuses = Utils\get_option( 'ep_feature_requirement_statuses', false );
 
 		$new_requirement_statuses = [];
 
 		foreach ( $this->registered_features as $slug => $feature ) {
 			$status                            = $feature->requirements_status();
-			$new_requirement_statuses[ $slug ] = (int) $status->code;
+			$new_requirement_statuses[ $slug ] = (int) $status->get_code();
 		}
 
 		$is_wp_cli = defined( 'WP_CLI' ) && \WP_CLI;
@@ -254,7 +301,7 @@ class Features {
 			$registered_features = $this->registered_features;
 
 			foreach ( $registered_features as $slug => $feature ) {
-				if ( 0 === $feature->requirements_status()->code ) {
+				if ( FeatureRequirementsStatus::AUTO_ENABLED === $feature->requirements_status()->get_code() ) {
 					$this->activate_feature( $slug );
 				}
 			}
@@ -287,7 +334,7 @@ class Features {
 
 			// This is a new feature
 			if ( ! isset( $old_requirement_statuses[ $slug ] ) ) {
-				if ( 0 === $code ) {
+				if ( FeatureRequirementsStatus::AUTO_ENABLED === $code ) {
 					if ( $feature->requires_install_reindex ) {
 						$activate_feature_target = 'draft';
 						Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
@@ -295,9 +342,16 @@ class Features {
 
 					$this->activate_feature( $slug, $activate_feature_target );
 				}
-			} elseif ( $old_requirement_statuses[ $slug ] !== $code && ( 0 === $code || 2 === $code ) ) {
-				// This feature has a 0 "ok" code when it did not before
-				$active = ( 0 === $code );
+			} elseif (
+				$old_requirement_statuses[ $slug ] !== $code
+					&& in_array(
+						$code,
+						[ FeatureRequirementsStatus::AUTO_ENABLED, FeatureRequirementsStatus::FORCE_DISABLED ],
+						true
+					)
+				) {
+				// This feature has an "ok" code when it did not before
+				$active = ( FeatureRequirementsStatus::AUTO_ENABLED === $code );
 
 				if ( ! $feature->is_active() && $active ) {
 					// Need to activate and maybe set a sync notice
@@ -329,15 +383,36 @@ class Features {
 		 */
 		do_action( 'ep_setup_features' );
 
-		foreach ( $this->registered_features as $feature_slug => $feature ) {
+		foreach ( $this->registered_features as $feature ) {
 			$feature->set_i18n_strings();
 
+			$required_features            = (array) $feature->get_required_feature();
+			$are_required_features_active = true;
+			foreach ( $required_features as $required_feature ) {
+				if ( ! $this->get_registered_feature( $required_feature )->is_active() ) {
+					$are_required_features_active = false;
+					break;
+				}
+			}
+
+			$should_setup = $feature->is_active()
+				&& $are_required_features_active
+				&& ! in_array(
+					$feature->requirements_status()->get_code(),
+					[ FeatureRequirementsStatus::FORCE_DISABLED, FeatureRequirementsStatus::TEMPORARILY_DISABLED ],
+					true
+				);
+
 			/**
-			 * 2 is the code for "not usable".
+			 * Filter whether the feature should be setup.
 			 *
-			 * @see FeatureRequirementsStatus
+			 * @since 5.3.0
+			 * @hook ep_should_setup_feature
+			 * @param {bool} $should_setup Whether the feature should be setup.
+			 * @param {Feature} $feature The feature object.
+			 * @return {bool} New should_setup value.
 			 */
-			if ( $feature->is_active() && 2 !== $feature->requirements_status()->code ) {
+			if ( apply_filters( 'ep_should_setup_feature', $should_setup, $feature ) ) {
 				$feature->setup();
 			}
 		}

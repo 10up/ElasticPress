@@ -568,9 +568,6 @@ class Post extends Indexable {
 		/**
 		 * Filters the image size to use when indexing the post thumbnail.
 		 *
-		 * Defaults to the `woocommerce_thumbnail` size if WooCommerce is in
-		 * use. Otherwise the `thumbnail` size is used.
-		 *
 		 * @hook ep_thumbnail_image_size
 		 * @since 4.0.0
 		 * @param {string|int[]} $image_size Image size. Can be any registered
@@ -582,23 +579,29 @@ class Post extends Indexable {
 		 */
 		$image_size = apply_filters(
 			'ep_post_thumbnail_image_size',
-			function_exists( 'WC' ) ? 'woocommerce_thumbnail' : 'thumbnail',
+			'medium',
 			$post
 		);
 
-		$image_src = wp_get_attachment_image_src( $attachment_id, $image_size );
+		$image     = wp_get_attachment_image_src( $attachment_id, $image_size );
 		$image_alt = trim( wp_strip_all_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) );
 
-		if ( ! $image_src ) {
+		if ( ! $image ) {
 			return null;
 		}
 
+		list( $src, $width, $height ) = $image;
+
+		$image_meta = wp_get_attachment_metadata( $attachment_id );
+		$srcset     = wp_calculate_image_srcset( [ absint( $width ), absint( $height ) ], $src, $image_meta, $attachment_id );
+
 		return [
 			'ID'     => $attachment_id,
-			'src'    => $image_src[0],
-			'width'  => $image_src[1],
-			'height' => $image_src[2],
+			'src'    => $src,
+			'width'  => $width,
+			'height' => $height,
 			'alt'    => $image_alt,
+			'srcset' => $srcset,
 		];
 	}
 
@@ -1483,6 +1486,7 @@ class Post extends Indexable {
 			'meta_query'          => $this->parse_meta_queries( $args ),
 			'post_type'           => $this->parse_post_type( $args ),
 			'post_status'         => $this->parse_post_status( $args ),
+			'painless_script'     => $this->painless_script_query( $args ),
 		];
 
 		/**
@@ -2043,7 +2047,10 @@ class Post extends Indexable {
 				} else {
 					$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
 
-					$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
+					$args_post_mime_type = array_merge(
+						$args_post_mime_type,
+						$filtered_mime_type_by_type[ $mime_type ] ?? [ $mime_type ]
+					);
 				}
 			}
 
@@ -2087,6 +2094,8 @@ class Post extends Indexable {
 
 			if ( array_key_exists( 'and', $date_filter ) ) {
 				return $date_filter['and'];
+			} elseif ( array_key_exists( 'or', $date_filter ) ) {
+				return $date_filter['or'];
 			}
 		}
 	}
@@ -2222,29 +2231,8 @@ class Post extends Indexable {
 					],
 				];
 			}
-		} else {
+		} elseif ( ! is_admin() ) {
 			$statuses = get_post_stati( array( 'public' => true ) );
-
-			if ( is_admin() ) {
-				/**
-				 * In the admin we will add protected and private post statuses to the default query
-				 * per WP default behavior.
-				 */
-				$statuses = array_merge(
-					$statuses,
-					get_post_stati(
-						array(
-							'protected'              => true,
-							'show_in_admin_all_list' => true,
-						)
-					)
-				);
-
-				if ( is_user_logged_in() ) {
-					$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
-				}
-			}
-
 			$statuses = array_values( $statuses );
 
 			$post_status_filter_type = 'terms';
@@ -2257,6 +2245,53 @@ class Post extends Indexable {
 		}
 
 		return [];
+	}
+
+	/**
+	 * Parse the `painless_script` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 5.3.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function painless_script_query( $args ) {
+		$scripts = $args['painless_script'] ?? [];
+
+		if ( empty( $scripts ) ) {
+			return [];
+		}
+
+		$normalized_scripts = array_map(
+			function ( $script_config ) {
+				return is_string( $script_config )
+					? [ 'source' => $script_config ]
+					: $script_config;
+			},
+			$scripts
+		);
+
+		$normalized_scripts = array_filter( $normalized_scripts );
+
+		$filters = [];
+		foreach ( $normalized_scripts as $script_config ) {
+			$script_query = [ 'source' => $script_config['source'] ];
+
+			if ( ! empty( $script_config['params'] ) && is_array( $script_config['params'] ) ) {
+				$script_query['params'] = $script_config['params'];
+			}
+
+			$filters['bool']['must'][] = [
+				'bool' => [
+					'filter' => [
+						'script' => [
+							'script' => $script_query,
+						],
+					],
+				],
+			];
+		}
+
+		return $filters;
 	}
 
 	/**

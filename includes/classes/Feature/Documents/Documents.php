@@ -25,6 +25,8 @@ class Documents extends Feature {
 	public function __construct() {
 		$this->slug = 'documents';
 
+		$this->group = 'indexing-options';
+
 		$this->requires_install_reindex = false;
 
 		parent::__construct();
@@ -39,11 +41,9 @@ class Documents extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Documents', 'elasticpress' );
 
-		$this->group = esc_html__( 'Indexing Options', 'elasticpress' );
-
 		$this->summary = '<p>' . __( 'Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf, csv, txt.', 'elasticpress' ) . '</p>';
 
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#documents', 'elasticpress' );
+		$this->docs_url = __( 'https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#documents', 'elasticpress' );
 	}
 
 	/**
@@ -304,7 +304,7 @@ class Documents extends Feature {
 	 * @return mixed
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 1 );
+		$status = new FeatureRequirementsStatus( 1, null, $this );
 
 		if ( empty( Elasticsearch::factory()->get_elasticsearch_version( false ) ) ) {
 			return $status;
@@ -324,17 +324,6 @@ class Documents extends Feature {
 		}
 
 		return $status;
-	}
-
-	/**
-	 * Output feature box long
-	 *
-	 * @since  2.3
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**

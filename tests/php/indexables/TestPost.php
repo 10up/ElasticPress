@@ -22,6 +22,13 @@ class TestPost extends BaseTestCase {
 	public $is_404 = false;
 
 	/**
+	 * Post with exception.
+	 *
+	 * @var int|null
+	 */
+	protected $post_with_exception = null;
+
+	/**
 	 * Setup each test.
 	 *
 	 * @since 0.1.0
@@ -88,6 +95,20 @@ class TestPost extends BaseTestCase {
 	protected function create_date_query_posts() {
 		$post_date = wp_date( 'U', strtotime( 'January 6th, 2012 11:59PM' ) );
 
+		/**
+		 * Create dummy posts with the following dates.
+		 *
+		 * 2012-01-05 22:59:00
+		 * 2012-01-04 21:59:00
+		 * 2012-01-03 20:59:00
+		 * 2012-01-02 19:59:00
+		 * 2012-01-01 18:59:00
+		 * 2011-12-31 17:59:00
+		 * 2011-12-30 16:59:00
+		 * 2011-12-29 15:59:00
+		 * 2011-12-28 14:59:00
+		 * 2011-12-27 13:59:00
+		 */
 		for ( $i = 0; $i <= 10; ++$i ) {
 			$this->ep_factory->post->create(
 				array(
@@ -455,7 +476,7 @@ class TestPost extends BaseTestCase {
 		$this->assertNotNull( $query->posts[0]->terms );
 		$post = $query->posts[0];
 
-		$terms = $post->terms;
+		$terms = json_decode( $post->terms, true );
 		$this->assertTrue( isset( $terms[ $tax_name ] ) );
 		$this->assertTrue( count( $terms[ $tax_name ] ) === 1 );
 		$indexed_terms  = $terms[ $tax_name ];
@@ -1665,7 +1686,138 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 
-		$this->assertEquals( 1, count( $query->posts[0]->meta['test_key'] ) );
+		$meta = json_decode( $query->posts[0]->meta, true );
+		$this->assertEquals( 1, count( $meta['test_key'] ) );
+	}
+
+	/**
+	 * Test that a narrowed `_source` does not emit PHP warnings.
+	 *
+	 * A query can narrow `_source` via `ep_formatted_args` while leaving `fields`
+	 * at its default, which routes hits to `format_hits_as_posts()`. Every property
+	 * that method copies must tolerate being absent from the document. Any warning
+	 * raised while building the post objects fails this test, as the suite converts
+	 * warnings and notices to exceptions.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function testFormatHitsAsPostsWithNarrowedSource() {
+		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme narrowed source' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$filter_executed = false;
+
+		$narrow_source = function ( $formatted_args ) use ( &$filter_executed ) {
+			$filter_executed = true;
+
+			$formatted_args['_source'] = array( 'post_id' );
+
+			return $formatted_args;
+		};
+
+		add_filter( 'ep_formatted_args', $narrow_source );
+		$query = new \WP_Query( array( 'ep_integrate' => true ) );
+		remove_filter( 'ep_formatted_args', $narrow_source );
+
+		$this->assertTrue( $filter_executed );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+		$this->assertSame( '0', $query->posts[0]->post_author );
+	}
+
+	/**
+	 * Data provider for the testFormatHitsAsPostsWithPostAuthorShape method.
+	 *
+	 * `post_author` is indexed as an object and read through a nested `['id']`
+	 * subscript, so shapes other than the complete one have to be tolerated too.
+	 * A scalar string is fatal when the subscript is unguarded.
+	 *
+	 * Shapes carrying no usable id leave the property unset, exactly as the other
+	 * properties in the same loop do, so `WP_Post` supplies its own default of '0'.
+	 *
+	 * @since 5.3.4
+	 * @return array
+	 */
+	public function postAuthorShapeProvider() {
+		return [
+			[
+				[
+					'login' => 'author_login',
+					'id'    => 5,
+				],
+				5,
+			],
+			[ [ 'id' => 0 ], 0 ],
+			[ [ 'id' => '' ], '' ],
+			[ [ 'id' => null ], '0' ],
+			[ [ 'login' => 'author_login' ], '0' ],
+			[ 1, '0' ],
+			[ '', '0' ],
+		];
+	}
+
+	/**
+	 * Test that post_author is read without error whatever shape it arrives in.
+	 *
+	 * @param mixed $post_author Value to place in the document.
+	 * @param mixed $expected    Expected value on the returned post.
+	 * @since 5.3.4
+	 * @dataProvider postAuthorShapeProvider
+	 * @group post
+	 */
+	public function testFormatHitsAsPostsWithPostAuthorShape( $post_author, $expected ) {
+		$this->ep_factory->post->create( array( 'post_content' => 'findme author shape' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$filter_executed = false;
+
+		$set_author = function ( $document ) use ( $post_author, &$filter_executed ) {
+			$filter_executed = true;
+
+			$document['post_author'] = $post_author;
+
+			return $document;
+		};
+
+		add_filter( 'ep_retrieve_the_post', $set_author );
+		$query = new \WP_Query( array( 'ep_integrate' => true ) );
+		remove_filter( 'ep_retrieve_the_post', $set_author );
+
+		$this->assertTrue( $filter_executed );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( $expected, $query->posts[0]->post_author );
+	}
+
+	/**
+	 * Test that post_author is still populated when it is present in the document.
+	 *
+	 * Companion to testFormatHitsAsPostsWithNarrowedSource: guarding the read must
+	 * not stop the property being set for ordinary queries.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function testFormatHitsAsPostsSetsPostAuthor() {
+		$user_id = $this->factory->user->create( array( 'role' => 'author' ) );
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'findme with author',
+				'post_author'  => $user_id,
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query( array( 'ep_integrate' => true ) );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( $user_id, $query->posts[0]->post_author );
 	}
 
 	/**
@@ -3680,12 +3832,12 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test cache_results is off by default
+	 * Test cache_results is on by default
 	 *
 	 * @since 1.5
 	 * @group post
 	 */
-	public function testCacheResultsDefaultOff() {
+	public function testCacheResultsDefaultOn() {
 		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -3697,7 +3849,7 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
-		$this->assertFalse( $query->query_vars['cache_results'] );
+		$this->assertTrue( $query->query_vars['cache_results'] );
 	}
 
 	/**
@@ -3763,7 +3915,8 @@ class TestPost extends BaseTestCase {
 		wp_cache_flush();
 
 		$args = array(
-			'ep_integrate' => true,
+			'ep_integrate'  => true,
+			'cache_results' => false,
 		);
 
 		$query = new \WP_Query( $args );
@@ -5475,6 +5628,55 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a date query with a range and relation OR
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_date_query_with_range_and_relation_or() {
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'January 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'February 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'March 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'date_query'   => [
+				'relation' => 'OR',
+				[
+					'year'  => 2025,
+					'month' => 2,
+				],
+				[
+					'year'  => 2025,
+					'month' => 3,
+				],
+			],
+		];
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test a date query with multiple eltries
 	 *
 	 * @group post
@@ -5675,6 +5877,65 @@ class TestPost extends BaseTestCase {
 		);
 
 		$this->assertFalse( $valid );
+	}
+
+	/**
+	 * Test date_query with week and dayofyear, expecting specific post counts.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_date_query_week_and_day_of_year() {
+		$this->create_date_query_posts();
+
+		$args  = [
+			's'          => 'findme',
+			'date_query' => [
+				[
+					'week' => 1,
+					'year' => 2012,
+				],
+			],
+		];
+		$query = new \WP_Query( $args );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 5, $query->post_count );
+
+		$args  = [
+			's'          => 'findme',
+			'date_query' => [
+				[
+					'dayofyear' => 5,
+					'year'      => 2012,
+				],
+			],
+		];
+		$query = new \WP_Query( $args );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+	}
+
+	/**
+	 * Test date_query with compare !=.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_date_query_not_equals_compare() {
+		$this->create_date_query_posts();
+		$args  = [
+			's'          => 'findme',
+			'date_query' => [
+				[
+					'compare' => '!=',
+					'year'    => 2012,
+				],
+			],
+		];
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 5, $query->post_count );
 	}
 
 	/**
@@ -5966,6 +6227,199 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 9, $query->post_count );
 		$this->assertEquals( 9, $query->found_posts );
+	}
+
+	/**
+	 * Test date query with OR relation.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_date_query_with_or_relation() {
+		$this->create_date_query_posts();
+
+		$args  = [
+			'ep_integrate' => true,
+			'date_query'   => [
+				'relation' => 'OR',
+				[
+					'before' => 'December 29th 2011 00:00:00',
+				],
+				[
+					'after' => 'January 4th 2012 23:59:00',
+				],
+			],
+		];
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 4, $query->post_count );
+		$this->assertEquals( 4, $query->found_posts );
+	}
+
+	/**
+	 * Test date query with OR relation and year.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_date_query_with_or_relation_with_year() {
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2023-01-01 00:00:00',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2024-01-01 00:00:00',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2025-01-01 00:00:00',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'date_query'   => [
+				'relation' => 'OR',
+				[
+					'year' => 2023,
+				],
+				[
+					'year' => 2025,
+				],
+			],
+		];
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a date query with IN comparison
+	 *
+	 * @group post
+	 */
+	public function test_date_query_compare_in() {
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2023-01-01',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2024-01-01',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2025-01-01',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'date_query'   => [
+					[
+						'year'    => 2023,
+						'compare' => 'IN',
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'date_query'   => [
+					[
+						'year'    => [ 2023, 2025 ],
+						'compare' => 'IN',
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a date query with NOT IN comparison
+	 *
+	 * @group post
+	 */
+	public function test_date_query_compare_not_in() {
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2023-01-01',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2024-01-01',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2025-01-01',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'date_query'   => [
+					[
+						'year'    => 2024,
+						'compare' => 'NOT IN',
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'date_query'   => [
+					[
+						'year'    => [ 2023, 2025 ],
+						'compare' => 'NOT IN',
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 
 	/**
@@ -6752,31 +7206,6 @@ class TestPost extends BaseTestCase {
 		$this->assertSame( 1, $args['query']['function_score']['query']['match_all']['boost'] );
 		$this->assertContains( $sticky_post_id, $args['query']['function_score']['functions'][0]->filter['terms']['_id'] );
 		$this->assertSame( 20, $args['query']['function_score']['functions'][0]->weight );
-	}
-
-	/**
-	 * Tests post statuses for admin in format_args().
-	 *
-	 * @return void
-	 * @group post
-	 */
-	public function testFormatArgsAdminPostStatuses() {
-
-		set_current_screen( 'edit.php' );
-		$this->assertTrue( is_admin() );
-
-		$post = new \ElasticPress\Indexable\Post\Post();
-
-		// This will include statuses besides publish.
-		$args = $post->format_args( [], new \WP_Query() );
-
-		$statuses = $args['post_filter']['bool']['must'][1]['terms']['post_status'];
-
-		$this->assertContains( 'publish', $statuses );
-		$this->assertContains( 'future', $statuses );
-		$this->assertContains( 'draft', $statuses );
-		$this->assertContains( 'pending', $statuses );
-		$this->assertContains( 'private', $statuses );
 	}
 
 	/**
@@ -8288,6 +8717,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Tests the `ep_bypass_exclusion_from_search` filter
+	 *
+	 * @expectedDeprecated ep_bypass_exclusion_from_search
 	 */
 	public function testExcludeFromSearchQueryBypassFilter() {
 		$this->ep_factory->post->create_many(
@@ -8335,7 +8766,6 @@ class TestPost extends BaseTestCase {
 	 * Tests query doesn't return the post in if `ep_exclude_from_search` meta is set.
 	 */
 	public function testExcludeFromSearchQuery() {
-
 		$this->ep_factory->post->create_many(
 			2,
 			array(
@@ -8423,6 +8853,42 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEmpty( get_post_meta( $post_ids[0], 'ep_exclude_from_search', true ) );
 		$this->assertEquals( 1, get_post_meta( $post_ids[1], 'ep_exclude_from_search', true ) );
+	}
+
+	/**
+	 * Tests the `ep_skip_search_exclusion` argument
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_ep_skip_search_exclusion_argument() {
+		$this->ep_factory->post->create_many(
+			2,
+			[
+				'post_content' => 'find me in search',
+				'meta_input'   => [ 'ep_exclude_from_search' => true ],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's'                        => 'search',
+				'ep_skip_search_exclusion' => true,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+
+		$query = new \WP_Query(
+			[
+				's'                        => 'search',
+				'ep_skip_search_exclusion' => false,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 0, $query->post_count );
 	}
 
 	/**
@@ -8657,7 +9123,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test exclude from search filter doesn't apply for admin quries.
+	 * Test exclude from search filter doesn't apply for admin queries.
 	 *
 	 * @since 4.4.0
 	 */
@@ -8930,7 +9396,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Utilitary function to setup data needed by some tests related to the `get_distinct_meta_field_keys_db_per_post_type` method
+	 * Utility function to setup data needed by some tests related to the `get_distinct_meta_field_keys_db_per_post_type` method
 	 *
 	 * @return void
 	 */
@@ -9038,6 +9504,100 @@ class TestPost extends BaseTestCase {
 
 		$ep_post = ElasticPress\Indexables::factory()->get( 'post' )->get( $product_id );
 		$this->assertArrayHasKey( '_thumbnail_id', $ep_post['meta'] );
+	}
+
+	/**
+	 * Test if post thumbnail has all attributes.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_post_thumbnail_has_all_attributes() {
+		$post_id      = $this->ep_factory->post->create();
+		$thumbnail_id = $this->factory->attachment->create_object(
+			'test.jpg',
+			$post_id,
+			[
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			]
+		);
+
+		set_post_thumbnail( $post_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $post_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$ep_post   = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$thumbnail = $ep_post['thumbnail'];
+
+		$this->assertEquals( 6, count( $thumbnail ) );
+
+		$keys = [ 'ID', 'src', 'width', 'height', 'alt', 'srcset' ];
+		foreach ( $keys as $key ) {
+			$this->assertArrayHasKey( $key, $thumbnail );
+		}
+	}
+
+	/**
+	 * Test that post thumbnail index with missing srcset mapping does not throw an error.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_post_thumbnail_index_with_missing_srcset_mapping() {
+		$post_id      = $this->ep_factory->post->create();
+		$thumbnail_id = $this->factory->attachment->create_object(
+			'test.jpg',
+			$post_id,
+			[
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			]
+		);
+
+		set_post_thumbnail( $post_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $post_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
+
+		add_filter(
+			'ep_post_mapping',
+			function ( $mapping ) {
+				unset( $mapping['mappings']['properties']['thumbnail']['properties']['srcset'] );
+				return $mapping;
+			}
+		);
+
+		add_filter(
+			'ep_post_mapping',
+			function ( $mapping ) {
+				$this->assertArrayNotHasKey( 'srcset', $mapping['mappings']['properties']['thumbnail']['properties'] );
+				return $mapping;
+			},
+			15
+		);
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+
+		$indexable = ElasticPress\Indexables::factory()->get( 'post' );
+		$indexable->put_mapping();
+
+		$indexable->index( $post_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$ep_post   = $indexable->get( $post_id );
+		$thumbnail = $ep_post['thumbnail'];
+
+		$this->assertEquals( 6, count( $thumbnail ) );
+
+		$keys = [ 'ID', 'src', 'width', 'height', 'alt', 'srcset' ];
+		foreach ( $keys as $key ) {
+			$this->assertArrayHasKey( $key, $thumbnail );
+		}
 	}
 
 	/**
@@ -9308,6 +9868,75 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `ep_asciifolding` filter
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_mapping_ep_asciifolding_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'post' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$es_version = ElasticPress\Elasticsearch::factory()->get_elasticsearch_version();
+		if ( version_compare( $es_version, '7.0', '<' ) ) {
+			// ES5 format: flattened keys like 'index.analysis.analyzer.default.filter.0', '.1', etc.
+			$default_filter_keys = array_filter(
+				$index_settings,
+				fn( $value, $key ) => str_contains( $key, 'index.analysis.analyzer.default.filter.' ),
+				ARRAY_FILTER_USE_BOTH
+			);
+			$this->assertContains( 'ep_asciifolding', $default_filter_keys );
+
+			$default_search_filter_keys = array_filter(
+				$index_settings,
+				fn( $value, $key ) => str_contains( $key, 'index.analysis.analyzer.default_search.filter.' ),
+				ARRAY_FILTER_USE_BOTH
+			);
+			$this->assertContains( 'ep_asciifolding', $default_search_filter_keys );
+
+		} else {
+			$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default.filter'] );
+			$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default_search.filter'] );
+		}
+	}
+
+	/**
+	 * Test the post returns correct with accented characters
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_search_handles_accented_characters_correctly() {
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_title' => 'Coöperàtîôn' ] );
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_title' => 'Fiancéé' ] );
+
+		// disable fuzziness
+		add_filter( 'ep_fuzziness', '__return_zero' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'coöperàtîôn',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id_1, $query->posts[0]->ID );
+
+		$query = new \WP_Query(
+			[
+				's' => 'fiancee',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id_2, $query->posts[0]->ID );
+	}
+
+	/**
 	 * Test if aggregations are set
 	 *
 	 * @since 5.1.0
@@ -9398,43 +10027,17 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @since 5.2.0
 	 * @group post
+	 * @expectedDeprecated ElasticPress\Indexable\Post\SyncManager::add_admin_bar_status
 	 */
 	public function test_add_admin_bar_status() {
-		global $pagenow;
-
 		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
 
 		$admin_bar    = new \WP_Admin_Bar();
 		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
 		$sync_manager = $indexable->sync_manager;
 
-		// Not displaying. Wrong screen.
+		// Throws deprecated warning.
 		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
-
-		// Not displaying. Right screen, no post.
-		$pagenow = 'post.php';
-		set_current_screen( 'post.php' );
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
-
-		// Not displaying. Right screen, but post type not indexable.
-		$post            = $this->ep_factory->post->create_and_get( [ 'post_type' => 'attachment' ] );
-		$GLOBALS['post'] = $post;
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
-
-		// Displaying.
-		$post            = $this->ep_factory->post->create_and_get();
-		$GLOBALS['post'] = $post;
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertArrayHasKey( 'ep-doc-status', $admin_bar->get_nodes() );
-
-		// Not displaying. No status.
-		add_filter( 'ep_doc_status', '__return_empty_array' );
-		$admin_bar = new \WP_Admin_Bar();
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
 	}
 
 	/**
@@ -9505,6 +10108,7 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @since 5.2.0
 	 * @group post
+	 * @expectedDeprecated ep_formatted_doc_status
 	 */
 	public function test_format_doc_status() {
 		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
@@ -9536,5 +10140,661 @@ class TestPost extends BaseTestCase {
 		add_filter( 'ep_formatted_doc_status', $callback, 10, 4 );
 		$formatted_doc_status = $method->invokeArgs( $sync_manager, [ $custom_status ] );
 		$this->assertSame( $formatted_doc_status, 'Custom message' );
+	}
+
+	/**
+	 * Test the painless script query with simple string.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query() {
+		$this->ep_factory->post->create_many( 10, [] );
+		$post_id = $this->ep_factory->post->create( [ 'post_title' => 'test' ] );
+		$page_id = $this->ep_factory->post->create( [ 'post_type' => 'page' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Test with simple string.
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [ "doc['post_title.raw'].value == 'test'" ],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+
+		// Test with multiple conditions.
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'post_type'       => [ 'page', 'post' ],
+				'painless_script' => [ "doc['post_id'].value == " . $post_id . " || doc['post_type.raw'].value == 'page'" ],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test the `ep_intercept_request` argument.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_ep_intercept_request_argument() {
+		add_filter(
+			'ep_do_intercept_request',
+			function () {
+				return new \WP_Error( 400, 'Error: Request failed.' );
+			}
+		);
+
+		add_action(
+			'ep_remote_request',
+			function ( $query ) {
+				$this->assertTrue( is_wp_error( $query['request'] ) );
+				$this->assertEquals( 'Error: Request failed.', $query['request']->get_error_message() );
+			}
+		);
+
+		$query = new \WP_Query(
+			[
+				's'                    => 'search',
+				'ep_intercept_request' => true,
+			]
+		);
+
+		$this->assertFalse( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test the painless script query with params.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query_with_params() {
+		$this->ep_factory->post->create_many(
+			10,
+			[
+				'meta_input' => [
+					'test_key' => wp_rand( 1, 10 ),
+				],
+			]
+		);
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 15,
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [
+					[
+						'source' => "doc['meta.test_key.long'].size() > 0 && doc['meta.test_key.long'][0] > params.max_value",
+						'params' => [ 'max_value' => 10 ],
+					],
+				],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+	}
+
+	/**
+	 * Test the painless script query with mixed format.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query_with_mixed_format() {
+		$this->ep_factory->post->create_many(
+			10,
+			[
+				'meta_input' => [
+					'test_key' => wp_rand( 1, 20 ),
+				],
+			]
+		);
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 30,
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [
+					"doc['post_type.raw'].value == 'post'",
+					[
+						'source' => "doc['meta.test_key.long'].size() > 0 && doc['meta.test_key.long'][0] > params.max_value",
+						'params' => [ 'max_value' => 25 ],
+					],
+				],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+	}
+
+	/**
+	 * Test the painless script query with multiple params.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query_with_multiple_params() {
+			$this->ep_factory->post->create(
+				[
+					'meta_input' => [
+						'test_key' => 5,
+					],
+				]
+			);
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 30,
+				],
+			]
+		);
+
+			$this->ep_factory->post->create(
+				[
+					'meta_input' => [
+						'test_key' => 50,
+					],
+				]
+			);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [
+					[
+						'source' => "doc['meta.test_key.long'].size() > 0 && doc['meta.test_key.long'][0] >= params.min_value && doc['meta.test_key.long'][0] <= params.max_value",
+						'params' => [
+							'min_value' => 10,
+							'max_value' => 40,
+						],
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+	}
+
+	/**
+	 * Test the `SyncManager::maybe_add_doc_status_to_admin_bar_status` method
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_maybe_add_doc_status_to_admin_bar_status() {
+		global $pagenow;
+
+		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
+		$sync_manager = $indexable->sync_manager;
+
+		$initial_status_and_summary = [
+			'status'  => 'success',
+			'summary' => [
+				'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
+			],
+		];
+
+		// Not changing. Wrong screen.
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		// Not changing. Right screen, no post.
+		$pagenow = 'post.php';
+		set_current_screen( 'post.php' );
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		// Not changing. Right screen, but post type not indexable.
+		$post            = $this->ep_factory->post->create_and_get( [ 'post_type' => 'attachment' ] );
+		$GLOBALS['post'] = $post;
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		// Changing.
+		$post            = $this->ep_factory->post->create_and_get();
+		$GLOBALS['post'] = $post;
+		$this->assertSame(
+			[
+				'status'  => 'success',
+				'summary' => [
+					'doc_status'                     => 'Content in sync: WordPress and Elasticsearch content match.',
+					'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
+				],
+			],
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		$change_doc_status = function () {
+			return [
+				'status'      => 'custom',
+				'message'     => 'Sync required',
+				'explanation' => 'Custom explanation.',
+			];
+		};
+		add_filter( 'ep_doc_status', $change_doc_status, 10, 0 );
+		$this->assertSame(
+			[
+				'status'  => 'custom',
+				'summary' => [
+					'doc_status'                     => 'Sync required: Custom explanation.',
+					'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
+				],
+			],
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+		remove_filter( 'ep_doc_status', $change_doc_status );
+
+		// Not changing. No status.
+		add_filter( 'ep_doc_status', '__return_empty_array' );
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+	}
+
+	/**
+	 * Test the `index` method
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_index() {
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+		$post_id        = $this->ep_factory->post->create();
+		$this->assertIsObject( $post_indexable->index( $post_id, true ) );
+
+		// We should test the object attributes.
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test the `index` method with an exception
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_index_with_exception() {
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+		$this->post_with_exception = $this->ep_factory->post->create();
+		$this->assertFalse( $post_indexable->index( $this->post_with_exception, true ) );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+	}
+
+	/**
+	 * Test the `bulk_index` method
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_bulk_index() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+		$posts          = [ $post_id_1, $post_id_2 ];
+
+		$result = $post_indexable->bulk_index( $posts );
+		$this->assertIsArray( $result );
+		$this->assertEmpty( $result['errors'] );
+
+		// We should test other array indices.
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test the `bulk_index` method with an exception
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_bulk_index_with_exception() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+
+		$this->post_with_exception = $post_id_1;
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+		$posts          = [ $post_id_1, $post_id_2 ];
+
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+		$result = $post_indexable->bulk_index( $posts );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+
+		$error_item = [
+			'index' => [
+				'_id'   => $post_id_1,
+				'error' => [
+					'type'   => 'prepare_document_error',
+					'reason' => 'Something went wrong.',
+				],
+			],
+		];
+
+		$this->assertIsArray( $result );
+		$this->assertTrue( $result['errors'] );
+		$this->assertContains( $error_item, $result['items'] );
+	}
+
+	/**
+	 * Test the `bulk_index_dynamically` method
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_bulk_index_dynamically() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+		$posts          = [ $post_id_1, $post_id_2 ];
+
+		$results = $post_indexable->bulk_index_dynamically( $posts );
+		$this->assertIsArray( $results );
+		foreach ( $results as $result ) {
+			$this->assertEmpty( $result['errors'] );
+		}
+
+		// We should test other array indices.
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test the `bulk_index_dynamically` method with an exception
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_bulk_index_dynamically_with_exception() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+
+		$this->post_with_exception = $post_id_1;
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+		$posts          = [ $post_id_1, $post_id_2 ];
+
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+		$results = $post_indexable->bulk_index_dynamically( $posts );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+
+		$error_item = [
+			'index' => [
+				'_id'   => $post_id_1,
+				'error' => [
+					'type'   => 'prepare_document_error',
+					'reason' => 'Something went wrong.',
+				],
+			],
+		];
+
+		$this->assertIsArray( $results );
+		$this->assertTrue( $results[0]['errors'] );
+		$this->assertContains( $error_item, $results[0]['items'] );
+	}
+
+	/**
+	 * Throw an exception for the specific post.
+	 *
+	 * @since 5.3.0
+	 * @param array $args The arguments for the post sync.
+	 * @return array The arguments for the post sync.
+	 * @throws \Exception If the post ID is the same as the post with exception.
+	 */
+	public function throw_exception( $args ) {
+		if ( $args['post_id'] === $this->post_with_exception ) {
+			throw new \Exception( 'Something went wrong.' );
+		}
+		return $args;
+	}
+
+	/**
+	 * Test that post meta and term caches are primed after ES query.
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_postmeta_and_term_caches_are_primed_after_ESQuery() {
+		global $wpdb;
+
+		$post_ids = $this->ep_factory->post->create_many(
+			2,
+			[
+				'meta_input' => [
+					'test_meta_key' => 'test_value',
+				],
+				'tax_input'  => [
+					'category' => [ $this->ep_factory->category->create() ],
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_cache_flush();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'post__in'     => $post_ids,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertCount( 2, $query->posts );
+
+		// After the query, post meta should be cached and no additional queries should be made.
+		$queries_before = $wpdb->num_queries;
+
+		foreach ( $post_ids as $post_id ) {
+			get_post_meta( $post_id, 'test_meta_key', true );
+		}
+
+		$queries_after = $wpdb->num_queries;
+		$this->assertSame( $queries_before, $queries_after );
+
+		foreach ( $post_ids as $post_id ) {
+			get_the_terms( $post_id, 'category' );
+		}
+
+		$queries_after = $wpdb->num_queries;
+		$this->assertSame( $queries_before, $queries_after );
+	}
+
+	/**
+	 * Test that update_post_meta_cache query arg respects post meta cache.
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_update_post_meta_cache_query_arg_respects_post_meta_cache() {
+		global $wpdb;
+
+		$post_ids = $this->ep_factory->post->create_many(
+			2,
+			[
+				'meta_input' => [
+					'test_meta_key' => 'test_value',
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_cache_flush();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'           => true,
+				'post__in'               => $post_ids,
+				'update_post_meta_cache' => false,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertCount( 2, $query->posts );
+
+		$queries_before = $wpdb->num_queries;
+		foreach ( $post_ids as $post_id ) {
+			get_post_meta( $post_id, 'test_meta_key', true );
+		}
+
+		$queries_after = $wpdb->num_queries;
+		$this->assertGreaterThan( $queries_before, $queries_after );
+	}
+
+	/**
+	 * Test that update_post_term_cache query arg respects term cache.
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_update_post_term_cache_query_arg_respects_term_cache() {
+		global $wpdb;
+		$post_ids = $this->ep_factory->post->create_many(
+			2,
+			[
+				'tax_input' => [
+					'category' => [ $this->ep_factory->category->create() ],
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_cache_flush();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'           => true,
+				'post__in'               => $post_ids,
+				'update_post_term_cache' => false,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertCount( 2, $query->posts );
+
+		$queries_before = $wpdb->num_queries;
+
+		foreach ( $post_ids as $post_id ) {
+			get_the_terms( $post_id, 'category' );
+		}
+
+		$queries_after = $wpdb->num_queries;
+		$this->assertGreaterThan( $queries_before, $queries_after );
+	}
+
+	/**
+	 * Test max_num_pages when posts_per_page is -1.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function test_max_num_pages_with_posts_per_page_negative_one() {
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'   => true,
+				'posts_per_page' => -1, // phpcs:ignore WordPress.WP.PostsPerPageNoUnlimited.posts_per_page_posts_per_page
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( 2, $query->found_posts );
+		$this->assertSame( 0, $query->max_num_pages );
+	}
+
+	/**
+	 * Test that post term and meta are stored as JSON.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function test_post_term_and_meta_are_stored_as_json() {
+		$category_id = $this->ep_factory->category->create();
+		$post_id     = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 'test_value',
+				],
+				'tax_input'  => [
+					'category' => [ $category_id ],
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'post__in'     => [ $post_id ],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+
+		$post = get_post( $query->posts[0], OBJECT, 'edit' );
+
+		$this->assertJson( wp_specialchars_decode( $post->terms, ENT_QUOTES ), true );
+		$this->assertJson( wp_specialchars_decode( $post->meta, ENT_QUOTES ), true );
+	}
+
+	/**
+	 * Test that cache_results is set to false when using a persistent object cache.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function test_cache_results_set_to_false_when_using_persistent_object_cache() {
+		// Set the persistent object cache to true.
+		wp_using_ext_object_cache( true );
+
+		$query = new \WP_Query( [ 'ep_integrate' => true ] );
+		$this->assertFalse( $query->get( 'cache_results' ) );
 	}
 }

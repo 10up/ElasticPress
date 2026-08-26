@@ -72,10 +72,9 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		$this->display_count = $instance['displayCount'];
 
 		if ( ! is_search() ) {
+			$post_type = Utils\get_post_types_for_tax_query();
 
-			if ( is_tax() ) {
-				$post_type = get_taxonomy( get_queried_object()->taxonomy )->object_type;
-			} else {
+			if ( empty( $post_type ) ) {
 				$post_type = $wp_query->get( 'post_type' ) ? $wp_query->get( 'post_type' ) : 'post';
 			}
 
@@ -120,12 +119,13 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		}
 
 		$terms_by_slug = array();
+		$aggregations  = $feature->get_facet_aggregation( $wp_query, $taxonomy );
 
 		foreach ( $terms as $term ) {
 			$terms_by_slug[ $term->slug ] = $term;
 
-			if ( ! empty( $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term->slug ] ) ) {
-				$term->count = $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term->slug ];
+			if ( ! empty( $aggregations[ $term->slug ] ) ) {
+				$term->count = $aggregations[ $term->slug ];
 			} else {
 				$term->count = 0;
 			}

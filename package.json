@@ -1,26 +1,24 @@
 {
   "name": "elasticpress",
-  "version": "5.2.0",
+  "version": "5.3.3",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
+  "private": true,
   "dependencies": {
     "@10up/component-tooltip": "^2.0.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@wordpress/icons": "^10.13.0",
     "chart.js": "^4.4.7",
     "focus-trap-react": "^11.0.3",
+    "react-router-dom": "^7.18.2",
     "react-slider": "^2.0.6",
-    "uuid": "^11.0.5"
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
-    "@4tw/cypress-drag-drop": "^2.3.0",
-    "@cypress/grep": "^4.0.1",
-    "@wordpress/env": "^10.4.0",
-    "10up-toolkit": "^6.4.0",
+    "@wordpress/env": "^11.13.0",
+    "10up-toolkit": "^7.0.0-next.1",
     "classnames": "^2.5.1",
-    "cypress": "^14.0.3",
-    "cypress-file-upload": "^5.0.8",
-    "eslint-plugin-cypress": "^3.6.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
     "husky": "^9.0.0",
     "jsdoc": "^4.0.4",
     "lint-staged": "^15.4.3",
@@ -28,29 +26,32 @@
     "terser-webpack-plugin": "^5.3.0",
     "wp-hookdoc": "github:felipeelia/wp-hookdoc#trunk"
   },
+  "workspaces": [
+    "tests/e2e"
+  ],
   "scripts": {
     "prepare": "husky",
     "start": "composer install --ignore-platform-reqs && npm install && npm run build",
     "build": "10up-toolkit build",
     "watch": "10up-toolkit start",
     "lint-release": "npm install && composer install && npm run lint",
-    "lint-js": "10up-toolkit lint-js assets/js tests/cypress",
+    "lint-js": "10up-toolkit lint-js assets/js tests/e2e",
     "lint-php": "composer run lint",
-    "format-js": "10up-toolkit format-js assets/js tests/cypress",
+    "format-js": "10up-toolkit format-js assets/js tests/e2e",
     "lint": "npm run lint-style && npm run lint-js && npm run lint-php",
     "build:docs": "rm -rf hook_docs && jsdoc -c hookdoc-conf.json elasticpress.php includes",
     "build:zip": "./bin/build-zip.sh",
     "lint-style": "10up-toolkit lint-style",
     "env": "wp-env",
-    "env:install-tests-cli": "./bin/install-wp-cli.sh tests-wordpress",
-    "env:start": "wp-env start && npm run env:install-tests-cli && npm run es:start",
+    "env:install-cli": "./bin/install-wp-cli.sh wordpress",
+    "env:start": "wp-env start && npm run env:install-cli && npm run es:start",
     "env:stop": "wp-env stop && npm run es:stop",
-    "env:reset": "wp-env clean all && npm run env:start && npm run cypress:setup",
+    "env:reset": "wp-env reset all && npm run env:start && npm run e2e:setup",
     "es:start": "cd bin/es-docker/ && docker compose build --build-arg ES_VERSION=${ES_VERSION-8.16.1} && docker compose up -d",
     "es:stop": "cd bin/es-docker/ && docker compose down",
-    "cypress:setup": "./bin/setup-cypress-env.sh",
-    "cypress:open": "cypress open --config-file tests/cypress/config.js",
-    "cypress:run": "cypress run --config-file tests/cypress/config.js"
+    "e2e:setup": "./bin/setup-e2e-env.sh",
+    "playwright:test": "playwright test -c tests/e2e/src/playwright.config.ts",
+    "playwright:ui": "playwright test -c tests/e2e/src/playwright.config.ts --ui"
   },
   "author": "10up",
   "repository": {
@@ -61,6 +62,18 @@
   "engines": {
     "node": ">=20",
     "npm": ">=9"
+  },
+  "overrides": {
+    "adm-zip": "^0.6.0",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^9.0.7"
+    },
+    "sockjs": {
+      "uuid": "^11.1.1"
+    },
+    "@wordpress/icons": {
+      "@babel/runtime": "^7.26.10"
+    }
   },
   "10up-toolkit": {
     "entry": {
@@ -79,7 +92,6 @@
       "facets-meta-range-block-view-script": "./assets/js/blocks/facets/meta-range/view.js",
       "facets-post-type-block-script": "./assets/js/blocks/facets/post-type/index.js",
       "features-script": "./assets/js/features/index.js",
-      "instant-results-admin-script": "./assets/js/instant-results/admin/index.js",
       "instant-results-script": "./assets/js/instant-results/index.js",
       "notice-script": "./assets/js/notice.js",
       "ordering-script": "./assets/js/ordering/index.js",
@@ -93,7 +105,6 @@
       "synonyms-script": "./assets/js/synonyms/index.js",
       "weighting-script": "./assets/js/weighting/index.js",
       "woocommerce-order-search-script": "./assets/js/woocommerce/admin/orders/index.js",
-      
       "autosuggest-styles": "./assets/css/autosuggest.css",
       "comments-styles": "./assets/css/comments.css",
       "dashboard-styles": "./assets/css/dashboard.css",

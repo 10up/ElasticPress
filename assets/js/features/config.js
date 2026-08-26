@@ -1,7 +1,26 @@
 /**
  * Window dependencies.
  */
-const { apiUrl, epioLogoUrl, features, indexMeta, settings, settingsDraft, syncUrl, syncNonce } =
-	window.epDashboard;
+const {
+	apiUrl,
+	epioLogoUrl,
+	features,
+	indexMeta,
+	settings,
+	settingsDraft,
+	syncUrl,
+	syncNonce,
+	featureGroups,
+} = window.epDashboard;
 
-export { apiUrl, epioLogoUrl, features, indexMeta, settings, settingsDraft, syncUrl, syncNonce };
+export {
+	apiUrl,
+	epioLogoUrl,
+	features,
+	indexMeta,
+	settings,
+	settingsDraft,
+	syncUrl,
+	syncNonce,
+	featureGroups,
+};

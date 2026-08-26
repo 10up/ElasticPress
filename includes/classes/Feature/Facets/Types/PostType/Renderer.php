@@ -32,6 +32,8 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param array $instance Instance settings
 	 */
 	public function render( $args, $instance ) {
+		global $wp_query;
+
 		$instance = wp_parse_args(
 			$instance,
 			[
@@ -63,6 +65,8 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 
 		$facetable_post_types = $facet_type->get_facetable_post_types();
 
+		$facet_aggregations = $feature->get_facet_aggregation( $wp_query, 'post_type' );
+
 		$values = [];
 
 		foreach ( $facetable_post_types as $post_type ) {
@@ -75,8 +79,8 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 					false,
 			];
 
-			if ( ! empty( $GLOBALS['ep_facet_aggs']['post_type'][ $post_type ] ) ) {
-				$values[ $post_type ]['count'] = (int) $GLOBALS['ep_facet_aggs']['post_type'][ $post_type ];
+			if ( ! empty( $facet_aggregations[ $post_type ] ) ) {
+				$values[ $post_type ]['count'] = (int) $facet_aggregations[ $post_type ];
 			}
 		}
 

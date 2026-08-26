@@ -3,7 +3,7 @@ name: Linting
 env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
-  NODE_VERSION: "20"
+  NODE_VERSION: "24"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
@@ -14,6 +14,7 @@ on:
   pull_request:
     branches:
       - develop
+      - trunk # useful for hotfix releases
       - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
 
 jobs:
@@ -22,14 +23,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set standard 10up cache directories
       run: |
         sudo npm config set cache "${{ env.NODE_CACHE }}" --global
 
     - name: Prepare npm cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
@@ -37,7 +38,7 @@ jobs:
           npm-${{ env.NODE_VERSION }}-
 
     - name: "install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ env.NODE_VERSION }}
 
@@ -56,14 +57,14 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set standard 10up cache directories
       run: |
         composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
 
     - name: Prepare composer cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ env.COMPOSER_CACHE }}
         key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
@@ -82,4 +83,7 @@ jobs:
       run: composer install
 
     - name: PHPCS check
-      run: './vendor/bin/phpcs . -q --report=checkstyle --runtime-set testVersion 7.4- | cs2pr'
+      run: './vendor/bin/phpcs . -q --ignore=tests/* --report=checkstyle --runtime-set testVersion 7.4- | cs2pr'
+
+    - name: PHPCS check tests
+      run: './vendor/bin/phpcs tests/. -q --report=checkstyle --runtime-set testVersion 8.2- | cs2pr'

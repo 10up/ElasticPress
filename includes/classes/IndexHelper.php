@@ -7,7 +7,7 @@
  * while syncing via dashboard, relying on the index_meta to pick it up where it stopped.
  *
  * @since 4.0.0
- * @see https://www.elasticpress.io/documentation/article/sync-process/
+ * @see https://www.elasticpress.io/resources/articles/sync-process/
  * @package elasticpress
  */
 
@@ -953,9 +953,10 @@ class IndexHelper {
 		 * Fires after executing a reindex
 		 *
 		 * @since 4.0.0
+		 * @param array $args Sync arguments.
 		 * @hook ep_after_sync_index
 		 */
-		do_action( 'ep_after_sync_index' );
+		do_action( 'ep_after_sync_index', $this->args );
 
 		/**
 		 * Fires after executing a reindex
@@ -1091,7 +1092,7 @@ class IndexHelper {
 	}
 
 	/**
-	 * Utilitary function to check if the indexable is being fully reindexed, i.e.,
+	 * Utility function to check if the indexable is being fully reindexed, i.e.,
 	 * the index was deleted, a new mapping was sent and content is being reindexed.
 	 *
 	 * @param string   $indexable_slug Indexable slug.
@@ -1177,24 +1178,31 @@ class IndexHelper {
 		 * Filter whether to not sync specific item in dashboard or not
 		 *
 		 * @since  2.1
+		 * @deprecated 5.3.3 Use ep_{indexable_slug}_sync_kill instead
 		 * @hook ep_item_sync_kill
 		 * @param  {boolean} $kill False means dont sync
 		 * @param  {array} $indexable_object Object to sync
 		 * @return {Indexable} Indexable that object belongs to
 		 */
-		$ep_item_sync_kill = apply_filters( 'ep_item_sync_kill', false, $indexable_object, $indexable );
+		$ep_item_sync_kill = apply_filters_deprecated(
+			'ep_item_sync_kill',
+			[ false, $indexable_object, $indexable ],
+			'ElasticPress 5.3.3',
+			'ep_' . $indexable->slug . '_sync_kill'
+		);
 
-		/**
-		 * Conditionally kill indexing for a post
-		 *
-		 * @hook ep_{indexable_slug}_index_kill
-		 * @param  {bool} $index True means dont index
-		 * @param  {int} $object_id Object ID
-		 * @return {bool} New value
-		 */
-		$ep_indexable_sync_kill = apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $indexable_object->ID );
+		/** This filter is documented in includes/classes/Indexable.php */
+		$ep_indexable_index_kill = apply_filters_deprecated(
+			'ep_' . $indexable->slug . '_index_kill',
+			[ false, $indexable_object->ID ],
+			'ElasticPress 5.3.3',
+			'ep_' . $indexable->slug . '_sync_kill'
+		);
 
-		return $ep_item_sync_kill || $ep_indexable_sync_kill;
+		/** This filter is documented in includes/classes/Indexable.php */
+		$ep_indexable_sync_kill = apply_filters( 'ep_' . $indexable->slug . '_sync_kill', false, $indexable_object->ID );
+
+		return $ep_item_sync_kill || $ep_indexable_sync_kill || $ep_indexable_index_kill;
 	}
 
 	/**
@@ -1325,7 +1333,7 @@ class IndexHelper {
 	}
 
 	/**
-	 * Utilitary function to delete the index meta option.
+	 * Utility function to delete the index meta option.
 	 *
 	 * @since 4.0.0
 	 */
@@ -1338,7 +1346,7 @@ class IndexHelper {
 	}
 
 	/**
-	 * Utilitary function to get the index meta option.
+	 * Utility function to get the index meta option.
 	 *
 	 * @return array
 	 * @since 4.0.0

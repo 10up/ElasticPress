@@ -179,6 +179,59 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	}
 
 	/**
+	 * A plain site search whose only product signal is a `product_visibility`
+	 * tax query must NOT be treated as a product query.
+	 *
+	 * As of WooCommerce 10.8.0, `WC_Query::pre_get_posts()` injects a
+	 * `product_visibility` "exclude-from-search" tax query into the main search
+	 * query (to hide products flagged as hidden). If EP treated that as a product
+	 * query it would force `post_type=product` and drop posts/pages from the site
+	 * search results. Genuine product taxonomy queries must still integrate.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testProductVisibilityTaxDoesNotForceProductIntegrationOnSearch() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$search_with_visibility             = new \WP_Query();
+		$search_with_visibility->query_vars = [
+			's'         => 'findme',
+			'tax_query' => [
+				[
+					'taxonomy' => 'product_visibility',
+					'field'    => 'term_taxonomy_id',
+					'terms'    => [ 6 ],
+					'operator' => 'NOT IN',
+				],
+			],
+		];
+
+		$this->assertFalse(
+			$this->products->should_integrate_with_query( $search_with_visibility ),
+			'`product_visibility` alone must not trigger product integration on a site search.'
+		);
+
+		$search_with_product_cat             = new \WP_Query();
+		$search_with_product_cat->query_vars = [
+			's'         => 'findme',
+			'tax_query' => [
+				[
+					'taxonomy' => 'product_cat',
+					'field'    => 'slug',
+					'terms'    => [ 'cat' ],
+				],
+			],
+		];
+
+		$this->assertTrue(
+			$this->products->should_integrate_with_query( $search_with_product_cat ),
+			'A product taxonomy (product_cat) query must still integrate.'
+		);
+	}
+
+	/**
 	 * Test all the product attributes are synced.
 	 *
 	 * @group woocommerce
@@ -486,7 +539,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 		add_filter(
 			'ep_post_formatted_args',
-			function ( $formatted_args, ) {
+			function ( $formatted_args ) {
 				$this->assertEquals( 'findme', $formatted_args['query']['function_score']['query']['bool']['should'][0]['multi_match']['query'] );
 				$this->assertEquals(
 					$args['search_fields'],
@@ -562,7 +615,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 				$expected_result = array(
 					'range' => array(
-						'meta._price.long' => array(
+						'meta._price.double' => array(
 							'gte'   => 1,
 							'lte'   => 999,
 							'boost' => 2,
@@ -640,6 +693,135 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
 		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the price filter subtracts inclusive tax from bounds so they match
+	 * the excluding-tax price indexed by Elasticsearch.
+	 *
+	 * Reproduces issue #4332: prices entered without tax, shop displays including
+	 * tax. The Filter by Price widget sends including-tax bounds, which must be
+	 * reduced to the excluding-tax value before the Elasticsearch range query.
+	 *
+	 * @since 5.3.4
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testPriceFilterWithTax() {
+		global $wpdb, $wp_the_query, $wp_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Capture existing values so we can restore them even if assertions fail.
+		$option_keys = array(
+			'woocommerce_calc_taxes',
+			'woocommerce_tax_display_shop',
+			'woocommerce_prices_include_tax',
+			'woocommerce_default_country',
+			'woocommerce_tax_based_on',
+		);
+		$old_options = array();
+		foreach ( $option_keys as $option_key ) {
+			$old_options[ $option_key ] = get_option( $option_key );
+		}
+
+		// Prices entered without tax, shop displays including tax.
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		update_option( 'woocommerce_tax_display_shop', 'incl' );
+		update_option( 'woocommerce_prices_include_tax', 'no' );
+		update_option( 'woocommerce_default_country', 'GB' );
+
+		// Force tax lookup against the shop base, not the customer's address.
+		// Without this, a leftover session or a `woocommerce_tax_based_on`
+		// setting from a prior test can make WC_Customer::get_taxable_address()
+		// return a non-GB tuple, which returns [] from WC_Tax::get_rates('')
+		// and skips the tax adjustment.
+		update_option( 'woocommerce_tax_based_on', 'base' );
+
+		// Seed a 20% tax rate for the base location so WC_Tax::get_rates finds it.
+		$wpdb->insert(
+			$wpdb->prefix . 'woocommerce_tax_rates',
+			array(
+				'tax_rate_country'  => 'GB',
+				'tax_rate_state'    => '',
+				'tax_rate'          => '20',
+				'tax_rate_name'     => 'VAT',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 1,
+				'tax_rate_class'    => '',
+			)
+		);
+		$tax_rate_id = $wpdb->insert_id;
+		\WC_Cache_Helper::invalidate_cache_group( 'taxes' );
+
+		try {
+			$this->ep_factory->product->create(
+				[
+					'name'          => 'Cap 1',
+					'regular_price' => 100.99,
+				]
+			);
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+			// Decimal price (100.99) exposes the rounding bug fixed by switching
+			// from meta._price.long (intval-truncated) to meta._price.double.
+			// WC math for 100.99 @ 20% tax: inclusivetax = 20.198, so the
+			// incl-tax price WC displays is 121.188 — sending that bound
+			// adjusts back to 100.99 and matches the indexed double value.
+			parse_str( 'min_price=121.188&max_price=121.188', $_GET );
+
+			$args  = array(
+				'post_type' => 'product',
+			);
+			$query = new \WP_Query( $args );
+
+			// mock the query as main query and is_search
+			$wp_the_query        = $query;
+			$wp_query->is_search = true;
+
+			add_filter(
+				'ep_post_formatted_args',
+				function ( $formatted_args ) {
+
+					$expected_result = array(
+						'range' => array(
+							'meta._price.double' => array(
+								'gte'   => 100.99,
+								'lte'   => 100.99,
+								'boost' => 2,
+							),
+						),
+					);
+
+					$this->assertEquals( $expected_result, $formatted_args['query'] );
+					return $formatted_args;
+				},
+				15
+			);
+
+			$query = $query->query( $args );
+
+			$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+			$this->assertEquals( 1, count( $query ) );
+		} finally {
+			// Restore options and remove the seeded tax rate regardless of outcome.
+			$wpdb->delete( $wpdb->prefix . 'woocommerce_tax_rates', array( 'tax_rate_id' => $tax_rate_id ) );
+			\WC_Cache_Helper::invalidate_cache_group( 'taxes' );
+
+			foreach ( $old_options as $option_key => $option_value ) {
+				if ( false === $option_value ) {
+					delete_option( $option_key );
+				} else {
+					update_option( $option_key, $option_value );
+				}
+			}
+
+			unset( $_GET['min_price'], $_GET['max_price'] );
+		}
 	}
 
 	/**
@@ -1066,7 +1248,9 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 			[ '_wc_average_rating', 'meta._wc_average_rating.double date' ],
 			[ '_price', 'meta._price.double date' ],
 			[ '_sku', 'meta._sku.value.sortable date' ],
-			[ 'custom_parameter', 'date' ],
+			[ 'date', 'date' ],
+			// if no mapping is found, it should fallback to menu_order
+			[ 'custom_order', 'menu_order title date' ],
 		];
 	}
 
@@ -1144,5 +1328,58 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 		$options = wp_list_pluck( $decaying['options'], 'value' );
 		$this->assertContains( 'disabled_only_products', $options );
 		$this->assertContains( 'disabled_includes_products', $options );
+	}
+
+	/**
+	 * Test that array values in orderby_meta_mapping filter are applied correctly on query level.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 *
+	 * @since 5.3.0
+	 */
+	public function test_custom_orderby_is_applied() {
+		global $wp_the_query, $wp_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		add_filter(
+			'orderby_meta_mapping',
+			function ( $mapping ) {
+				$mapping['custom_order'] = [
+					'meta._price.double' => 'desc',
+					'title'              => 'asc',
+				];
+				return $mapping;
+			}
+		);
+
+		parse_str( 'orderby=custom_order', $_GET );
+
+		$this->ep_factory->product->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'post_type'    => 'product',
+			'ep_integrate' => true,
+		);
+
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		$wp_the_query = $query;
+		$wp_query     = $query;
+
+		$query = $query->query( $args );
+
+		$this->assertSame(
+			$wp_the_query->get( 'orderby' ),
+			[
+				'meta._price.double' => 'desc',
+				'title'              => 'asc',
+			]
+		);
 	}
 }

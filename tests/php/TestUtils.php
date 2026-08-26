@@ -101,6 +101,29 @@ class TestUtils extends BaseTestCase {
 	}
 
 	/**
+	 * Check that get_site returns an empty array for a non-existent site ID.
+	 *
+	 * @since 5.3.4
+	 * @group utils
+	 * @group skip-on-single-site
+	 */
+	public function testGetSiteReturnsEmptyArrayForNonexistentSite() {
+		$result = ElasticPress\Utils\get_site( 999999 );
+		$this->assertSame( [], $result );
+	}
+
+	/**
+	 * Check that is_site_indexable returns false for a non-existent site ID.
+	 *
+	 * @since 5.3.4
+	 * @group utils
+	 * @group skip-on-single-site
+	 */
+	public function testIsSiteIndexableReturnsFalseForNonexistentSite() {
+		$this->assertFalse( ElasticPress\Utils\is_site_indexable( 999999 ) );
+	}
+
+	/**
 	 * Tests the sanitize_credentials utils function.
 	 *
 	 * @return void
@@ -622,5 +645,20 @@ class TestUtils extends BaseTestCase {
 			set_current_screen( 'edit-comments.php' );
 			$this->assertTrue( Utils\is_top_level_admin_context() );
 		}
+	}
+
+	/**
+	 * Test get_post_types_for_tax_query does not error when is_tax is true
+	 * but the queried object is invalid.
+	 *
+	 * @since 5.3.3
+	 * @group utils
+	 */
+	public function test_get_post_types_for_tax_query_invalid_queried_object() {
+		$query                 = new \WP_Query();
+		$query->is_tax         = true;
+		$query->queried_object = new \stdClass();
+
+		$this->assertSame( [], Utils\get_post_types_for_tax_query( $query ) );
 	}
 }

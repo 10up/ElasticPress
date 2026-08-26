@@ -39,8 +39,17 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		add_action( 'ep_after_index_post', [ $this, 'invalidate_meta_values_cache' ] );
 		add_action( 'ep_after_bulk_index', [ $this, 'invalidate_meta_values_cache_after_bulk' ], 10, 2 );
 
+		add_action( 'widgets_init', [ $this, 'register_widget' ] );
+
 		$this->block = new Block();
 		$this->block->setup();
+	}
+
+	/**
+	 * Register meta facet widget
+	 */
+	public function register_widget() {
+		register_widget( __NAMESPACE__ . '\\Widget' );
 	}
 
 	/**
@@ -288,10 +297,28 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			$facets_meta_fields = array_merge( $facets_meta_fields, $matches[1] );
 		}
 
+		// Get meta fields from classic widgets
+		$widgets = get_option( 'widget_ep-facet-meta' );
+		if ( is_array( $widgets ) ) {
+			foreach ( $widgets as $widget ) {
+				if ( ! is_array( $widget ) || empty( $widget['facet'] ) ) {
+					continue;
+				}
+				$facets_meta_fields[] = $widget['facet'];
+			}
+		}
+
 		if ( current_theme_supports( 'block-templates' ) ) {
 			$facets_meta_fields = array_merge(
 				$facets_meta_fields,
 				$this->block_template_meta_fields( 'elasticpress/facet-meta' )
+			);
+		}
+
+		if ( class_exists( '\Elementor\Plugin' ) ) {
+			$facets_meta_fields = array_merge(
+				$facets_meta_fields,
+				$this->elementor_template_meta_fields( 'wp-widget-ep-facet-meta' )
 			);
 		}
 

@@ -787,8 +787,8 @@ class AdminNotices {
 				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 				__( 'Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> before trying to sync.', 'elasticpress' ),
 				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
-				'https://www.elasticpress.io/documentation/article/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
-				'https://www.elasticpress.io/documentation/article/how-to-exclude-metadata-from-indexing/'
+				'https://www.elasticpress.io/resources/articles/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
+				'https://www.elasticpress.io/resources/articles/how-to-exclude-metadata-from-indexing/'
 			);
 
 			return [
@@ -803,8 +803,8 @@ class AdminNotices {
 				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 				__( 'Your website content seems to have more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> if you receive any errors while syncing.', 'elasticpress' ),
 				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
-				'https://www.elasticpress.io/documentation/article/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
-				'https://www.elasticpress.io/documentation/article/how-to-exclude-metadata-from-indexing/'
+				'https://www.elasticpress.io/resources/articles/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
+				'https://www.elasticpress.io/resources/articles/how-to-exclude-metadata-from-indexing/'
 			);
 
 			return [
@@ -832,6 +832,20 @@ class AdminNotices {
 		 * @return {array} New notices
 		 */
 		$notices = apply_filters( 'ep_admin_notices', $this->notices );
+
+		if ( ! is_array( $notices ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: Detected variable type. */
+					esc_html__( 'Callbacks of filter hook `ep_admin_notices` must return a value of type array, %s detected.', 'elasticpress' ),
+					esc_html( gettype( $notices ) )
+				),
+				'ElasticPress 5.3.3'
+			);
+
+			$notices = [];
+		}
 
 		// If the plugin is network-activated and not in the network admin, return the notices whose scope is site.
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! is_network_admin() ) {
@@ -898,7 +912,8 @@ class AdminNotices {
 
 		$index_name     = $post_indexable->get_index_name();
 		$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );
-		$es_field_limit = $es_field_limit ?? apply_filters( 'ep_total_field_limit', 5000 );
+		$es_field_limit = $es_field_limit ? $es_field_limit : 5000;
+		$es_field_limit = apply_filters( 'ep_total_field_limit', $es_field_limit );
 
 		$predicted_es_field_count = $count_fields_db * 8;
 

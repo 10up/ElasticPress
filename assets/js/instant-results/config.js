@@ -11,10 +11,13 @@ const {
 	apiHost,
 	argsSchema,
 	currencyCode,
+	excludedPostTypes,
+	excludedTermIds,
 	facets,
 	isWooCommerce,
 	locale,
 	matchType,
+	numberedPagination,
 	paramPrefix,
 	postTypeLabels,
 	taxonomyLabels,
@@ -23,6 +26,8 @@ const {
 	showSuggestions,
 	suggestionsBehavior,
 } = window.epInstantResults;
+
+const isNumberedPagination = String(numberedPagination || '0') === '1';
 
 /**
  * Sorting options configuration.
@@ -68,8 +73,11 @@ export {
 	apiHost,
 	argsSchema,
 	currencyCode,
+	excludedPostTypes,
+	excludedTermIds,
 	facets,
 	isWooCommerce,
+	isNumberedPagination,
 	locale,
 	matchType,
 	paramPrefix,

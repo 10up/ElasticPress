@@ -45,6 +45,7 @@ function setup() {
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
 	add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\block_assets' );
+	add_action( 'init', __NAMESPACE__ . '\register_react_jsx_runtime', 1 );
 
 	if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
 		add_action( 'block_categories_all', __NAMESPACE__ . '\block_categories' );
@@ -67,6 +68,27 @@ function setup() {
 		add_action( 'manage_sites_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
 		add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
 	}
+}
+
+/**
+ * Register the `react-jsx-runtime` script handle on WordPress versions that
+ * do not ship it. WordPress added it in 6.6; 10up-toolkit emits it as a
+ * dependency of the React admin and Instant Results bundles, and without the
+ * handle those scripts never print on WordPress 6.2.
+ *
+ * @since 5.3.4
+ * @return void
+ */
+function register_react_jsx_runtime() {
+	if ( wp_script_is( 'react-jsx-runtime', 'registered' ) ) {
+		return;
+	}
+
+	wp_register_script( 'react-jsx-runtime', false, [ 'react' ], '18', true );
+	wp_add_inline_script(
+		'react-jsx-runtime',
+		'window.ReactJSXRuntime=window.ReactJSXRuntime||{Fragment:window.React.Fragment,jsx:function(type,config,maybeKey){var props=Object.assign({},config);if(maybeKey!==undefined){props.key=maybeKey;}return window.React.createElement(type,props);},jsxs:function(type,config,maybeKey){var props=Object.assign({},config);if(maybeKey!==undefined){props.key=maybeKey;}return window.React.createElement(type,props);}};'
+	);
 }
 
 /**
@@ -326,11 +348,12 @@ function maybe_notice( $force = false ) {
 	$notices = AdminNotices::factory()->get_notices();
 
 	foreach ( $notices as $notice_key => $notice ) {
+		$class = 'notice notice-' . $notice['type'];
+		if ( $notice['dismiss'] ) {
+			$class .= ' is-dismissible';
+		}
 		?>
-		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> <?php
-		if ( $notice['dismiss'] ) :
-			?>
-			is-dismissible<?php endif; ?>">
+		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="<?php echo esc_attr( $class ); ?>">
 			<p>
 				<?php echo wp_kses( $notice['html'], 'ep-html' ); ?>
 			</p>
@@ -448,7 +471,17 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync', 'status-report' ], true ) ) {
+	$general_ep_screens = [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync', 'status-report' ];
+	/**
+	 * Filter the query logger object
+	 *
+	 * @since 5.3.3
+	 * @hook elasticpress_general_ep_screens
+	 * @param {array} $general_ep_screens The general ElasticPress screens.
+	 * @return {array} The filtered general ElasticPress screens.
+	 */
+	$general_ep_screens = apply_filters( 'elasticpress_general_ep_screens', $general_ep_screens );
+	if ( in_array( Screen::factory()->get_current_screen(), $general_ep_screens, true ) ) {
 		wp_enqueue_style(
 			'ep_admin_styles',
 			EP_URL . 'dist/css/dashboard-styles.css',
@@ -464,57 +497,6 @@ function action_admin_enqueue_dashboard_scripts() {
 		);
 
 		wp_set_script_translations( 'ep_admin_script', 'elasticpress' );
-	}
-
-	if ( 'weighting' === Screen::factory()->get_current_screen() ) {
-
-		wp_enqueue_style(
-			'ep_weighting_styles',
-			EP_URL . 'dist/css/weighting-script.css',
-			[ 'wp-components', 'wp-edit-post' ],
-			Utils\get_asset_info( 'weighting-script', 'version' )
-		);
-
-		wp_enqueue_script(
-			'ep_weighting_script',
-			EP_URL . 'dist/js/weighting-script.js',
-			Utils\get_asset_info( 'weighting-script', 'dependencies' ),
-			Utils\get_asset_info( 'weighting-script', 'version' ),
-			true
-		);
-
-		$weighting = Features::factory()->get_registered_feature( 'search' )->weighting;
-
-		$api_url                 = esc_url_raw( rest_url( 'elasticpress/v1/weighting' ) );
-		$meta_mode               = $weighting->get_meta_mode();
-		$weightable_fields       = $weighting->get_weightable_fields();
-		$weighting_configuration = $weighting->get_weighting_configuration_with_defaults();
-
-		/**
-		 * Filter weighting dashboard options.
-		 *
-		 * @hook ep_weighting_options
-		 * @param  {array} $data Weighting dashboard options
-		 * @return  {array} New options array
-		 * @since 5.1.0
-		 */
-		$data = apply_filters(
-			'ep_weighting_options',
-			[
-				'apiUrl'                 => $api_url,
-				'metaMode'               => $meta_mode,
-				'weightableFields'       => $weightable_fields,
-				'weightingConfiguration' => $weighting_configuration,
-			]
-		);
-
-		wp_localize_script(
-			'ep_weighting_script',
-			'epWeighting',
-			$data
-		);
-
-		wp_set_script_translations( 'ep_weighting_script', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'install' ], true ) ) {
@@ -628,7 +610,7 @@ function action_admin_menu() {
 		$capability,
 		'elasticpress',
 		__NAMESPACE__ . '\resolve_screen',
-		'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNzMgNzEuMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNzMgNzEuMzsiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik0zNi41LDQuN0MxOS40LDQuNyw1LjYsMTguNiw1LjYsMzUuN2MwLDEwLDQuNywxOC45LDEyLjEsMjQuNWw0LjUtNC41YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zbDAuNy0wLjdsNi40LTYuNGMyLjEsMS4yLDQuNSwxLjksNy4xLDEuOWM4LDAsMTQuNS02LjUsMTQuNS0xNC41cy02LjUtMTQuNS0xNC41LTE0LjVTMjIsMjcuNiwyMiwzNS42YzAsMi44LDAuOCw1LjMsMi4xLDcuNWwtNi40LDYuNGMtMi45LTMuOS00LjYtOC43LTQuNi0xMy45YzAtMTIuOSwxMC41LTIzLjQsMjMuNC0yMy40czIzLjQsMTAuNSwyMy40LDIzLjRTNDkuNCw1OSwzNi41LDU5Yy0yLjEsMC00LjEtMC4zLTYtMC44bC0wLjYsMC42bC01LjIsNS40YzMuNiwxLjUsNy42LDIuMywxMS44LDIuM2MxNy4xLDAsMzAuOS0xMy45LDMwLjktMzAuOVM1My42LDQuNywzNi41LDQuN3oiLz48L3N2Zz4='
+		'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNzMgNzEuMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNzMgNzEuMzsiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik0zNi41LDQuN0MxOS40LDQuNyw1LjYsMTguNiw1LjYsMzUuN2MwLDEwLDQuNywxOC45LDEyLjEsMjQuNWw0LjUtNC41YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zbDAuNy0wLjdsNi40LTYuNGMyLjEsMS4yLDQuNSwxLjksNy4xLDEuOWM4LDAsMTQuNS02LjUsMTQuNS0xNC41cy02LjUtMTQuNS0xNC41LTE0LjVTMjIsMjcuNiwyMiwzNS42YzAsMi44LDAuOCw1LjMsMi4xLDcuNWwtNi40LDYuNGMtMi45LTMuOS00LjYtOC43LTQuNi0xMy45YzAtMTIuOSwxMC41LTIzLjQsMjMuNC0yMy40czIzLjQsMTAuNSwyMy40LDIzLjRTNDkuNCw1OSwzNi41LDU5Yy0yLjEsMC00LjEtMC4zLTYtMC44bC0wLjYsMC42bC01LjIsNS40YzMuNiwxLjUsNy42LDIuMywxMS44LDIuM2MxNy4xLDAsMzAuOS0xMy45LDMwLjktMzAuOVM1My42LDQuNywzNi41LDQuN3oiIGZpbGw9IiNhN2FhYWQiLz48L3N2Zz4='
 	);
 
 	if ( ! Utils\is_top_level_admin_context() ) {

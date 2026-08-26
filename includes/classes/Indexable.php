@@ -266,7 +266,11 @@ abstract class Indexable {
 	 * @return object|boolean
 	 */
 	public function index( $object_id, $blocking = false ) {
-		$document = $this->prepare_document( $object_id );
+		try {
+			$document = $this->prepare_document( $object_id );
+		} catch ( \Throwable $th ) {
+			return false;
+		}
 
 		if ( false === $document ) {
 			return false;
@@ -275,13 +279,27 @@ abstract class Indexable {
 		/**
 		 * Conditionally kill indexing on a specific object
 		 *
+		 * @deprecated 5.3.3 Use ep_{indexable_slug}_sync_kill instead
 		 * @hook ep_{indexable_slug}_index_kill
 		 * @param  {bool} $kill True to not index
 		 * @param {int} $object_id Id of object to index
 		 * @since  3.0
 		 * @return {bool}  New kill value
 		 */
-		if ( apply_filters( 'ep_' . $this->slug . '_index_kill', false, $object_id ) ) {
+		if ( apply_filters_deprecated( 'ep_' . $this->slug . '_index_kill', [ false, $object_id ], 'ElasticPress 5.3.3', 'ep_' . $this->slug . '_sync_kill' ) ) {
+			return false;
+		}
+
+		/**
+		 * Conditionally kill indexing for an object.
+		 *
+		 * @hook ep_{$this->slug}_sync_kill
+		 * @param  {bool} $kill True means dont sync
+		 * @param  {int} $object_id Object ID
+		 * @return {bool} New value
+		 */
+		$ep_indexable_sync_kill = apply_filters( 'ep_' . $this->slug . '_sync_kill', false, $object_id );
+		if ( $ep_indexable_sync_kill ) {
 			return false;
 		}
 
@@ -331,6 +349,8 @@ abstract class Indexable {
 	public function bulk_index( $object_ids ) {
 		$body = '';
 
+		$non_es_errors = [];
+
 		foreach ( $object_ids as $object_id ) {
 			$action_args = array(
 				'index' => array(
@@ -338,7 +358,20 @@ abstract class Indexable {
 				),
 			);
 
-			$document = $this->prepare_document( $object_id );
+			try {
+				$document = $this->prepare_document( $object_id );
+			} catch ( \Throwable $th ) {
+				$non_es_errors[] = [
+					'index' => [
+						'_id'   => absint( $object_id ),
+						'error' => [
+							'type'   => 'prepare_document_error',
+							'reason' => $th->getMessage(),
+						],
+					],
+				];
+				continue;
+			}
 
 			/**
 			 * Conditionally kill indexing on a specific object
@@ -356,6 +389,11 @@ abstract class Indexable {
 		}
 
 		$result = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+
+		if ( ! empty( $non_es_errors ) ) {
+			$result['errors'] = true;
+			$result['items']  = isset( $result['items'] ) ? array_merge( $result['items'], $non_es_errors ) : $non_es_errors;
+		}
 
 		/**
 		 * Perform actions after a bulk indexing is completed
@@ -380,6 +418,8 @@ abstract class Indexable {
 	public function bulk_index_dynamically( $object_ids ) {
 		$documents = [];
 
+		$non_es_errors = [];
+
 		foreach ( $object_ids as $object_id ) {
 			$action_args = array(
 				'index' => array(
@@ -387,7 +427,20 @@ abstract class Indexable {
 				),
 			);
 
-			$document = $this->prepare_document( $object_id );
+			try {
+				$document = $this->prepare_document( $object_id );
+			} catch ( \Throwable $th ) {
+				$non_es_errors[] = [
+					'index' => [
+						'_id'   => absint( $object_id ),
+						'error' => [
+							'type'   => 'prepare_document_error',
+							'reason' => $th->getMessage(),
+						],
+					],
+				];
+				continue;
+			}
 
 			if ( empty( $document ) ) {
 				continue;
@@ -410,12 +463,31 @@ abstract class Indexable {
 		}
 
 		if ( empty( $documents ) ) {
-			return [
-				new \WP_Error( 'ep_bulk_index_no_documents', esc_html__( 'It was not possible to create a body request with the document IDs provided.', 'elasticpress' ), $object_ids ),
-			];
+			return ( ! empty( $non_es_errors ) ? [
+				[
+					'errors' => true,
+					'items'  => $non_es_errors,
+				],
+			] : [
+				new \WP_Error(
+					'ep_bulk_index_no_documents',
+					esc_html__( 'It was not possible to create a body request with the document IDs provided.', 'elasticpress' ),
+					$object_ids
+				),
+			] );
 		}
 
 		$results = $this->send_bulk_index_request( $documents );
+
+		if ( ! empty( $non_es_errors ) ) {
+			$results = [
+				[
+					'errors' => true,
+					'items'  => $non_es_errors,
+				],
+				...$results,
+			];
+		}
 
 		/**
 		 * Perform actions after a dynamic bulk indexing is completed
@@ -491,9 +563,9 @@ abstract class Indexable {
 
 		$results = [];
 
-		$body = [];
-
-		$requests = 0;
+		$body              = [];
+		$current_body_size = 0;
+		$requests          = 0;
 
 		/*
 		 * This script will use two main arrays: $body and $documents, being $body the
@@ -502,14 +574,16 @@ abstract class Indexable {
 		 * a buffer as small as possible.
 		 */
 		do {
-			$next_document = array_shift( $documents );
+			$next_document          = array_shift( $documents );
+			$next_document_size     = mb_strlen( $next_document );
+			$has_buffered_documents = count( $body ) > 0;
 
 			// If the next document alone takes the entire current buffer size,
 			// let's add it back to the pipe and send what we have first
-			if ( mb_strlen( $next_document ) > $current_buffer_size && count( $body ) > 0 ) {
+			if ( $next_document_size > $current_buffer_size && $has_buffered_documents ) {
 				array_unshift( $documents, $next_document );
 			} else {
-				if ( mb_strlen( $next_document ) > $max_buffer_size ) {
+				if ( $next_document_size > $max_buffer_size ) {
 					/**
 					 * Perform actions when a post is bigger than the max buffer size.
 					 *
@@ -521,13 +595,20 @@ abstract class Indexable {
 					$results[] = new \WP_Error( 'ep_too_big_request_skipped', 'Indexable too big. Request not sent.' );
 					continue;
 				}
-				$body[] = $next_document;
-				if ( mb_strlen( implode( '', $body ) ) < $current_buffer_size && ! empty( $documents ) ) {
+
+				$body[]             = $next_document;
+				$current_body_size += $next_document_size;
+
+				$can_add_more_documents = ( $current_body_size < $current_buffer_size && ! empty( $documents ) );
+				if ( $can_add_more_documents ) {
 					continue;
 				}
-				if ( mb_strlen( implode( '', $body ) ) > $max_buffer_size ) {
+
+				if ( $current_body_size > $max_buffer_size ) {
 					// The last document added to body made it too big, so let's give it back.
-					array_unshift( $documents, array_pop( $body ) );
+					$removed_document   = array_pop( $body );
+					$current_body_size -= mb_strlen( $removed_document );
+					array_unshift( $documents, $removed_document );
 				}
 			}
 
@@ -554,35 +635,40 @@ abstract class Indexable {
 
 			// It failed, possibly adjust the buffer size and try again.
 			if ( is_wp_error( $result ) ) {
+				$error_code = $result->get_error_code();
+
 				// Too many requests, wait and try again.
-				if ( 429 === $result->get_error_code() ) {
+				if ( 429 === $error_code ) {
 					sleep( 2 );
 				}
 
 				// If the error is not a "Request too big" then we really fail this batch of documents.
-				if ( 413 !== $result->get_error_code() ) {
+				if ( 413 !== $error_code ) {
 					$results[] = $result;
 					continue;
 				}
 
 				if ( count( $body ) === 1 ) {
-					$max_buffer_size = min( $max_buffer_size, mb_strlen( implode( '', $body ) ) );
-					$results[]       = $result;
-					$body            = [];
+					$max_buffer_size   = min( $max_buffer_size, $current_body_size );
+					$results[]         = $result;
+					$body              = [];
+					$current_body_size = 0;
 					continue;
 				}
 
 				// As the buffer is as small as possible, return the error.
-				if ( mb_strlen( implode( '', $body ) ) === $min_buffer_size ) {
+				if ( $current_body_size === $min_buffer_size ) {
 					$results[] = $result;
 					continue;
 				}
 
 				// We have a too big buffer. Remove one doc from the body, and set both max and current as its size.
-				array_unshift( $documents, array_pop( $body ) );
+				$removed_document   = array_pop( $body );
+				$current_body_size -= mb_strlen( $removed_document );
+				array_unshift( $documents, $removed_document );
 
 				$max_buffer_size = count( $body ) ?
-					max( $min_buffer_size, mb_strlen( implode( '', $body ) ) ) :
+					max( $min_buffer_size, $current_body_size ) :
 					$min_buffer_size;
 
 				$current_buffer_size = $max_buffer_size;
@@ -590,13 +676,14 @@ abstract class Indexable {
 			}
 
 			// Things worked so we can try to bump the buffer size.
-			if ( $current_buffer_size < $max_buffer_size && mb_strlen( implode( '', $body ) ) > $current_buffer_size ) {
+			if ( $current_buffer_size < $max_buffer_size && $current_body_size > $current_buffer_size ) {
 				$current_buffer_size = min( ( $current_buffer_size + $incremental_step ), $max_buffer_size );
 			}
 
 			$results[] = $result;
 
-			$body = [];
+			$body              = [];
+			$current_body_size = 0;
 		} while ( ! empty( $documents ) );
 
 		/**
@@ -1117,7 +1204,7 @@ abstract class Indexable {
 	}
 
 	/**
-	 * Utilitary function to check if the indexable is being fully reindexed, i.e.,
+	 * Utility function to check if the indexable is being fully reindexed, i.e.,
 	 * the index was deleted, a new mapping was sent and content is being reindexed.
 	 *
 	 * @param int|null $blog_id Blog ID
@@ -1215,9 +1302,9 @@ abstract class Indexable {
 
 		try {
 			if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
-				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
+				$meta_fields = (array) $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
 			} else {
-				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];
+				$meta_fields = (array) $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];
 			}
 			$meta_keys = array_values( array_keys( $meta_fields ) );
 			sort( $meta_keys );

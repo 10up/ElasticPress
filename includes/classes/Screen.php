@@ -94,47 +94,50 @@ class Screen {
 	 * @since 3.0
 	 */
 	public function determine_screen() {
-		// phpcs:disable WordPress.Security.NonceVerification
-		if ( ! empty( $_GET['page'] ) && false !== strpos( sanitize_key( $_GET['page'] ), 'elasticpress' ) ) {
-			$install_status = Installer::factory()->get_install_status();
-
-			$this->screen = 'install';
-
-			if ( 'elasticpress' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
-					if ( Utils\is_top_level_admin_context() ) {
-						$this->screen = 'dashboard';
-					} else {
-						$this->screen = 'weighting';
-					}
-				}
-			} elseif ( 'elasticpress-settings' === $_GET['page'] ) {
-				if ( true === $install_status || 2 === $install_status || Utils\isset_do_sync_parameter() ) {
-					$this->screen = 'settings';
-				}
-			} elseif ( 'elasticpress-health' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
-					$this->screen = 'health';
-				}
-			} elseif ( 'elasticpress-weighting' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
-					$this->screen = 'weighting';
-				}
-			} elseif ( 'elasticpress-synonyms' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
-					$this->screen = 'synonyms';
-				}
-			} elseif ( 'elasticpress-sync' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
-					$this->screen = 'sync';
-				}
-			} elseif ( 'elasticpress-status-report' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
-					$this->screen = 'status-report';
-				}
-			}
+		$page = ! empty( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : false; // phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! $page || false === strpos( $page, 'elasticpress' ) ) {
+			return;
 		}
-		// phpcs:enable WordPress.Security.NonceVerification
+
+		$install_status   = Installer::factory()->get_install_status();
+		$install_complete = ! empty( $_GET['install_complete'] ) ? sanitize_key( $_GET['install_complete'] ) : false; // phpcs:ignore WordPress.Security.NonceVerification
+
+		$this->screen = 'install';
+
+		// Handle main dashboard page with special logic
+		if ( 'elasticpress' === $page ) {
+			$can_access = ! $install_complete && ( true === $install_status || Utils\isset_do_sync_parameter() );
+			if ( $can_access ) {
+				$this->screen = Utils\is_top_level_admin_context() ? 'dashboard' : 'weighting';
+			}
+			return;
+		}
+
+		// Map page slugs to screen names with their access conditions
+		$page_screen_map = [
+			'elasticpress-settings'      => 'settings',
+			'elasticpress-health'        => 'health',
+			'elasticpress-weighting'     => 'weighting',
+			'elasticpress-synonyms'      => 'synonyms',
+			'elasticpress-sync'          => 'sync',
+			'elasticpress-status-report' => 'status-report',
+		];
+
+		if ( ! isset( $page_screen_map[ $page ] ) ) {
+			return;
+		}
+
+		$screen_name = $page_screen_map[ $page ];
+		$is_settings = 'settings' === $screen_name;
+
+		// Settings screen allows install status 2, others require completed install or sync parameter
+		$can_access = $is_settings
+			? ( true === $install_status || 2 === $install_status || Utils\isset_do_sync_parameter() )
+			: ( ! $install_complete && ( true === $install_status || Utils\isset_do_sync_parameter() ) );
+
+		if ( $can_access ) {
+			$this->screen = $screen_name;
+		}
 	}
 
 	/**
@@ -143,28 +146,20 @@ class Screen {
 	 * @since 3.0
 	 */
 	public function output() {
-		$install_status = Installer::factory()->get_install_status();
+		$page_screen_map = [
+			'dashboard'     => 'dashboard',
+			'settings'      => 'settings',
+			'install'       => 'install',
+			'health'        => 'stats',
+			'sync'          => 'sync',
+			'status-report' => 'status-report',
+		];
 
-		switch ( $this->screen ) {
-			case 'dashboard':
-				require_once __DIR__ . '/../partials/dashboard-page.php';
-				break;
-			case 'settings':
-				require_once __DIR__ . '/../partials/settings-page.php';
-				break;
-			case 'install':
-				require_once __DIR__ . '/../partials/install-page.php';
-				break;
-			case 'health':
-				require_once __DIR__ . '/../partials/stats-page.php';
-				break;
-			case 'sync':
-				require_once __DIR__ . '/../partials/sync-page.php';
-				break;
-			case 'status-report':
-				require_once __DIR__ . '/../partials/status-report-page.php';
-				break;
+		if ( ! isset( $page_screen_map[ $this->screen ] ) ) {
+			return;
 		}
+
+		require_once __DIR__ . '/../partials/' . $page_screen_map[ $this->screen ] . '-page.php';
 	}
 
 	/**

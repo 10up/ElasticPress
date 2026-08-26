@@ -51,7 +51,7 @@ class Terms extends Feature {
 
 		$this->summary = '<p>' . __( 'This feature will empower your website to overcome traditional WordPress term search and query limitations that can present themselves at scale. This feature is only needed if you are using <code>WP_Term_Query</code> directly.', 'elasticpress' ) . '</p>';
 
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#terms', 'elasticpress' );
+		$this->docs_url = __( 'https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#terms', 'elasticpress' );
 	}
 
 	/**
@@ -73,17 +73,6 @@ class Terms extends Feature {
 	public function search_setup() {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
 		add_filter( 'ep_term_fuzziness_arg', [ $this, 'set_admin_terms_search_fuzziness' ] );
-	}
-
-	/**
-	 * Output feature box long text
-	 *
-	 * @since 3.1
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'This feature will empower your website to overcome traditional WordPress term search and query limitations that can present themselves at scale.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**
@@ -115,7 +104,7 @@ class Terms extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 1 );
+		$status = new FeatureRequirementsStatus( 1, null, $this );
 
 		return $status;
 	}

@@ -20,6 +20,24 @@ export const useIndex = (apiUrl, nonce) => {
 	const abort = useRef(new AbortController());
 	const request = useRef(null);
 
+	/**
+	 * Extract valid JSON from a response body that may contain stray output.
+	 * This is a workaround for plugins that echo the output in the shortcode.
+	 *
+	 * @param {string} responseBody The raw response body.
+	 * @returns {string} The extracted JSON string.
+	 */
+	const extractJson = (responseBody) => {
+		const jsonStart = responseBody.indexOf('{"data"');
+
+		// if not found or is at the beginning, return the entire response body.
+		if (jsonStart === -1 || jsonStart === 0) {
+			return responseBody;
+		}
+
+		return responseBody.substring(jsonStart);
+	};
+
 	const onResponse = useCallback(
 		/**
 		 * Handle the response to the request.
@@ -65,7 +83,7 @@ export const useIndex = (apiUrl, nonce) => {
 					 */
 					throw new Error(
 						__(
-							'Something went wrong. Find troubleshooting steps at https://www.elasticpress.io/documentation/article/troubleshooting-guide-elasticpress-something-went-wrong-error/.',
+							'Something went wrong. Find troubleshooting steps at https://www.elasticpress.io/resources/articles/troubleshooting-guide-elasticpress-something-went-wrong-error/.',
 							'elasticpress',
 						),
 					);
@@ -76,7 +94,7 @@ export const useIndex = (apiUrl, nonce) => {
 			 * Parse the response and throw an error if it fails.
 			 */
 			try {
-				return JSON.parse(responseBody);
+				return JSON.parse(extractJson(responseBody));
 			} catch (e) {
 				/**
 				 * Log the raw response to the console to assist with
@@ -91,7 +109,7 @@ export const useIndex = (apiUrl, nonce) => {
 				 */
 				throw new Error(
 					__(
-						'Unable to parse response. Find troubleshooting steps at https://www.elasticpress.io/documentation/article/troubleshooting-guide-elasticpress-something-went-wrong-error/.',
+						'Unable to parse response. Find troubleshooting steps at https://www.elasticpress.io/resources/articles/troubleshooting-guide-elasticpress-something-went-wrong-error/.',
 						'elasticpress',
 					),
 				);

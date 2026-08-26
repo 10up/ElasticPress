@@ -38,6 +38,9 @@ class AcfRepeater extends Feature {
 	 */
 	public function __construct() {
 		$this->slug = 'acf_repeater';
+
+		$this->group = 'third-party-plugins';
+
 		parent::__construct();
 	}
 
@@ -47,13 +50,11 @@ class AcfRepeater extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'ACF Repeater Field Compatibility', 'elasticpress' );
 
-		$this->group = esc_html__( '3rd Party Plugins', 'elasticpress' );
-
 		$this->short_title = esc_html__( 'ACF Repeater Field', 'elasticpress' );
 
 		$this->summary = '<p>' . __( 'Index your ACF Repeater fields as a JSON object and, optionally, make it searchable in the Search Fields & Weighting dashboard.', 'elasticpress' ) . '</p>';
 
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/acf-repeater-field-compatibility-feature/', 'elasticpress' );
+		$this->docs_url = __( 'https://www.elasticpress.io/resources/articles/acf-repeater-field-compatibility-feature/', 'elasticpress' );
 	}
 
 	/**
@@ -62,7 +63,7 @@ class AcfRepeater extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 0 );
+		$status = new FeatureRequirementsStatus( 0, null, $this );
 
 		foreach ( $this->acf_functions as $function ) {
 			if ( ! function_exists( $function ) ) {

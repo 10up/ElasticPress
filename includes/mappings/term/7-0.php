@@ -29,14 +29,14 @@ return [
 				'default'          => [
 					'tokenizer' => 'standard',
 					/* This filter is documented in includes/mappings/post/7-0.php */
-					'filter'    => apply_filters( 'ep_default_analyzer_filters', [ 'lowercase', 'ep_stop', 'ewp_snowball' ] ),
+					'filter'    => apply_filters( 'ep_default_analyzer_filters', [ 'lowercase', 'ep_stop', 'ewp_snowball', 'ep_asciifolding' ] ),
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language'  => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				],
 				'default_search'   => [
 					'tokenizer'   => 'standard',
 					/* This filter is documented in includes/mappings/post/7-0.php */
-					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', [ 'lowercase', 'ep_stop', 'ewp_snowball' ] ),
+					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', [ 'lowercase', 'ep_stop', 'ewp_snowball', 'ep_asciifolding' ] ),
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'char_filter' => apply_filters( 'ep_default_search_analyzer_char_filters', [ 'html_strip' ] ),
 					/* This filter is documented above */
@@ -54,27 +54,30 @@ return [
 				],
 			],
 			'filter'     => [
-				'shingle_filter' => [
+				'shingle_filter'  => [
 					'type'             => 'shingle',
 					'min_shingle_size' => 2,
 					'max_shingle_size' => 5,
 				],
-				'ewp_snowball'   => [
+				'ewp_snowball'    => [
 					'type'     => 'snowball',
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				],
-				'edge_ngram'     => [
-					'side'     => 'front',
+				'edge_ngram'      => [
 					'max_gram' => 10,
 					'min_gram' => 3,
 					'type'     => 'edge_ngram',
 				],
-				'ep_stop'        => [
+				'ep_stop'         => [
 					'type'        => 'stop',
 					'ignore_case' => true,
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'stopwords'   => apply_filters( 'ep_analyzer_language', 'english', 'filter_ep_stop' ),
+				],
+				'ep_asciifolding' => [
+					'type'              => 'asciifolding',
+					'preserve_original' => true,
 				],
 			],
 			'normalizer' => [

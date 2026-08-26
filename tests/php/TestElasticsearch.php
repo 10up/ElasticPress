@@ -442,4 +442,34 @@ class TestElasticsearch extends BaseTestCase {
 		$elasticsearch->remote_request( '', [ 'blocking' => false ], [], 'example_type' );
 		$this->assertSame( $initial_count + 2, did_action( 'ep_remote_request' ) );
 	}
+
+	/**
+	 * Test the ep_get_query_log filter
+	 *
+	 * @since 5.3.0
+	 * @group elasticsearch
+	 */
+	public function test_ep_get_query_log_filter() {
+		$elasticsearch = new \ElasticPress\Elasticsearch();
+
+		$reflection = new \ReflectionClass( $elasticsearch );
+		$property   = $reflection->getProperty( 'queries' );
+
+		$original_query = [ 'query' => 'query' ];
+		$new_query      = [ 'query' => 'new query' ];
+
+		$property->setValue( $elasticsearch, $original_query );
+
+		$this->assertSame( $original_query, $elasticsearch->get_query_log() );
+
+		$add_query = function ( $query ) use ( $new_query, $original_query ) {
+			$this->assertSame( $original_query, $query );
+			return $new_query;
+		};
+		add_filter( 'ep_get_query_log', $add_query );
+
+		$this->assertSame( $new_query, $elasticsearch->get_query_log() );
+
+		remove_filter( 'ep_get_query_log', $add_query );
+	}
 }

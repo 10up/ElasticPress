@@ -13,7 +13,7 @@ import {
 } from '@wordpress/components';
 import { safeHTML } from '@wordpress/dom';
 import { RawHTML, WPElement } from '@wordpress/element';
-import { __, sprintf } from '@wordpress/i18n';
+import { _n, __, _x, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
@@ -30,14 +30,14 @@ import { useFeatureSettings } from '../provider';
  * @param {string} props.name Setting name.
  * @param {Function} props.onChange Change event handler.
  * @param {Array|null} props.options (optional) Control options.
- * @param {false|string} props.requiresFeature Any feature required by this setting.
+ * @param {false|string} props.requiresFeature Any features required by this setting.
  * @param {boolean} props.requiresSync Whether setting changes require a sync.
  * @param {boolean|string} props.syncedValue Setting value at last sync.
  * @param {string} props.type Control type.
  * @param {boolean|string} props.value Setting value.
  * @returns {WPElement} Reports component.
  */
-export default ({
+const Control = ({
 	disabled,
 	help,
 	label,
@@ -51,6 +51,19 @@ export default ({
 	value,
 }) => {
 	const { getFeature, isBusy, settings, willSettingRequireSync } = useFeatureSettings();
+
+	// Convert single feature requirement to array for compatibility
+	let requiredFeaturesList = [];
+	if (requiresFeature) {
+		requiredFeaturesList = Array.isArray(requiresFeature) ? requiresFeature : [requiresFeature];
+	}
+
+	/**
+	 * Get missing required features.
+	 */
+	const missingRequiredFeatures = requiredFeaturesList
+		.map((featureSlug) => getFeature(featureSlug))
+		.filter((feature) => !feature.isAvailable || settings[feature.slug]?.active !== true);
 
 	/**
 	 * Help text formatted to allow safe HTML.
@@ -71,23 +84,27 @@ export default ({
 			})
 		: [];
 
-	/**
-	 * The feature required by this setting, if any.
-	 */
-	const requiredFeature =
-		requiresFeature && settings[requiresFeature]?.active !== true
-			? getFeature(requiresFeature)
-			: false;
+	const titles = missingRequiredFeatures.map((f) => f.shortTitle);
 
 	/**
 	 * The notice to display if a feature is required.
 	 */
 	const requiredFeatureNotice =
 		name === 'active'
-			? /* translators: Feature name */
-				__('The %s feature must be enabled to use this feature.', 'elasticpress')
-			: /* translators: Feature name */
-				__('The %s feature must be enabled to use the following setting.', 'elasticpress');
+			? /* translators: %s: feature list */
+				_n(
+					'The %s feature must be enabled to use this feature.',
+					'The %s features must be enabled to use this feature.',
+					titles.length,
+					'elasticpress',
+				)
+			: /* translators: %s: feature list */
+				_n(
+					'The %s feature must be enabled to use the following setting.',
+					'The %s features must be enabled to use the following setting.',
+					titles.length,
+					'elasticpress',
+				);
 
 	/**
 	 * The notice to display if a sync is required.
@@ -100,7 +117,7 @@ export default ({
 	/**
 	 * Whether the control is disabled.
 	 */
-	const isDisabled = isBusy || disabled || requiredFeature;
+	const isDisabled = isBusy || disabled || missingRequiredFeatures.length > 0;
 
 	/**
 	 * Whether the selected value for this setting will require a sync.
@@ -136,11 +153,34 @@ export default ({
 		onChange(value);
 	};
 
+	const list = (() => {
+		if (titles.length === 0) {
+			return '';
+		}
+		if (titles.length === 1) {
+			return titles[0];
+		}
+		if (titles.length === 2) {
+			return sprintf(
+				/* translators: %1$s: feature name, %2$s: last feature name */
+				_x('%1$s and %2$s', 'two feature names', 'elasticpress'),
+				titles[0],
+				titles[1],
+			);
+		}
+		return sprintf(
+			/* translators: %1$s: feature names, %2$s: last feature name */
+			_x('%1$s and %2$s', 'multiple feature names', 'elasticpress'),
+			titles.slice(0, -1).join(__(', ', 'elasticpress')),
+			titles[titles.length - 1],
+		);
+	})();
+
 	return (
 		<>
-			{requiredFeature ? (
+			{missingRequiredFeatures.length > 0 ? (
 				<Notice isDismissible={false} status={name === 'active' ? 'error' : 'warning'}>
-					{sprintf(requiredFeatureNotice, requiredFeature.shortTitle)}
+					{sprintf(requiredFeatureNotice, list)}
 				</Notice>
 			) : null}
 			{willRequireSync ? (
@@ -179,7 +219,7 @@ export default ({
 							return (
 								<FormTokenField
 									__experimentalExpandOnFocus
-									__experimentalShowHowTo={false}
+									help=""
 									label={label}
 									onChange={onChangeFormTokenField}
 									disabled={isDisabled}
@@ -260,3 +300,5 @@ export default ({
 		</>
 	);
 };
+
+export default Control;

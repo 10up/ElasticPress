@@ -52,6 +52,8 @@ class SearchOrdering extends Feature {
 	public function __construct() {
 		$this->slug = 'searchordering';
 
+		$this->group = 'core-search';
+
 		$this->requires_install_reindex = false;
 
 		$this->requires_feature = 'search';
@@ -68,11 +70,9 @@ class SearchOrdering extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
 
-		$this->group = esc_html__( 'Core Search', 'elasticpress' );
-
 		$this->summary = '<p>' . __( 'Selected posts will be inserted into search results in the specified position.', 'elasticpress' ) . '</p>';
 
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#custom-search-results', 'elasticpress' );
+		$this->docs_url = __( 'https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#custom-search-results', 'elasticpress' );
 	}
 
 	/**
@@ -192,16 +192,7 @@ class SearchOrdering extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status(): FeatureRequirementsStatus {
-		return new FeatureRequirementsStatus( 0 );
-	}
-
-	/**
-	 * Output feature box long
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'Selected posts will be inserted into search results in the specified position.', 'elasticpress' ); ?></p>
-		<?php
+		return new FeatureRequirementsStatus( 0, null, $this );
 	}
 
 	/**
@@ -310,7 +301,7 @@ class SearchOrdering extends Feature {
 			'menu_position'        => 100,
 			'supports'             => [ 'title' ],
 			'register_meta_box_cb' => [ $this, 'register_meta_box' ],
-			'menu_icon'            => 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNzMgNzEuMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNzMgNzEuMzsiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik0zNi41LDQuN0MxOS40LDQuNyw1LjYsMTguNiw1LjYsMzUuN2MwLDEwLDQuNywxOC45LDEyLjEsMjQuNWw0LjUtNC41YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zbDAuNy0wLjdsNi40LTYuNGMyLjEsMS4yLDQuNSwxLjksNy4xLDEuOWM4LDAsMTQuNS02LjUsMTQuNS0xNC41cy02LjUtMTQuNS0xNC41LTE0LjVTMjIsMjcuNiwyMiwzNS42YzAsMi44LDAuOCw1LjMsMi4xLDcuNWwtNi40LDYuNGMtMi45LTMuOS00LjYtOC43LTQuNi0xMy45YzAtMTIuOSwxMC41LTIzLjQsMjMuNC0yMy40czIzLjQsMTAuNSwyMy40LDIzLjRTNDkuNCw1OSwzNi41LDU5Yy0yLjEsMC00LjEtMC4zLTYtMC44bC0wLjYsMC42bC01LjIsNS40YzMuNiwxLjUsNy42LDIuMywxMS44LDIuM2MxNy4xLDAsMzAuOS0xMy45LDMwLjktMzAuOVM1My42LDQuNywzNi41LDQuN3oiLz48L3N2Zz4=',
+			'menu_icon'            => 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNzMgNzEuMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNzMgNzEuMzsiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik0zNi41LDQuN0MxOS40LDQuNyw1LjYsMTguNiw1LjYsMzUuN2MwLDEwLDQuNywxOC45LDEyLjEsMjQuNWw0LjUtNC41YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zbDAuNy0wLjdsNi40LTYuNGMyLjEsMS4yLDQuNSwxLjksNy4xLDEuOWM4LDAsMTQuNS02LjUsMTQuNS0xNC41cy02LjUtMTQuNS0xNC41LTE0LjVTMjIsMjcuNiwyMiwzNS42YzAsMi44LDAuOCw1LjMsMi4xLDcuNWwtNi40LDYuNGMtMi45LTMuOS00LjYtOC43LTQuNi0xMy45YzAtMTIuOSwxMC41LTIzLjQsMjMuNC0yMy40czIzLjQsMTAuNSwyMy40LDIzLjRTNDkuNCw1OSwzNi41LDU5Yy0yLjEsMC00LjEtMC4zLTYtMC44bC0wLjYsMC42bC01LjIsNS40YzMuNiwxLjUsNy42LDIuMywxMS44LDIuM2MxNy4xLDAsMzAuOS0xMy45LDMwLjktMzAuOVM1My42LDQuNywzNi41LDQuN3oiIGZpbGw9IiNhN2FhYWQiLz48L3N2Zz4=',
 		);
 
 		register_post_type( self::POST_TYPE_NAME, $args );
@@ -664,13 +655,12 @@ class SearchOrdering extends Feature {
 			$to_inject = array();
 
 			foreach ( $posts as $key => &$post ) {
-				if ( isset( $post->terms ) && isset( $post->terms[ self::TAXONOMY_NAME ] ) ) {
-					foreach ( $post->terms[ self::TAXONOMY_NAME ] as $current_term ) {
+				$terms = json_decode( wp_specialchars_decode( $post->terms, ENT_QUOTES ), true );
+				if ( isset( $terms[ self::TAXONOMY_NAME ] ) ) {
+					foreach ( $terms[ self::TAXONOMY_NAME ] as $current_term ) {
 						if ( strtolower( $current_term['name'] ) === $search_query ) {
 							$to_inject[ $current_term['term_order'] ] = $post;
-
 							unset( $posts[ $key ] );
-
 							break;
 						}
 					}

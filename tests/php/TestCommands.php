@@ -68,7 +68,6 @@ class TestCommands extends BaseTestCase {
 		$this->command->activate_feature( [ 'comments' ], [] );
 
 		$output = $this->getActualOutputForAssertion();
-		$this->assertStringContainsString( 'Feature is usable but there are warnings', $output );
 		$this->assertStringContainsString( 'This feature requires a re-index. You may want to run the index command next', $output );
 	}
 
@@ -1182,6 +1181,44 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `sync` command when an exception is thrown
+	 *
+	 * This is not a "unit test" in the traditional sense, but it's needed so we are sure
+	 * the error message is displayed correctly when an exception is thrown.
+	 *
+	 * @since 5.3.0
+	 * @group commands
+	 */
+	public function test_error_message_when_exception_is_thrown() {
+
+		$post_id_1 = $this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+
+		$throw_exception = function ( $args ) use ( $post_id_1 ) {
+			if ( $args['post_id'] === $post_id_1 ) {
+				throw new \Exception( 'Something went wrong.' );
+			}
+			return $args;
+		};
+		add_filter( 'ep_post_sync_args_post_prepare_meta', $throw_exception );
+
+		$this->command->sync( [], [ 'show-errors' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( $post_id_1 . ' (Post): [prepare_document_error] Something went wrong.', $output );
+
+		if ( $this->is_network_activate() ) {
+			$this->assertStringContainsString( 'Number of posts index errors on site 1: 1', $output );
+			$this->assertStringContainsString( 'Number of posts indexed on site 1: 1', $output );
+		} else {
+			$this->assertStringContainsString( 'Number of posts index errors: 1', $output );
+			$this->assertStringContainsString( 'Number of posts indexed: 1', $output );
+		}
+
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', $throw_exception );
+	}
+
+	/**
 	 * Test commands throws deprecated warning.
 	 *
 	 *  @expectedDeprecated get-indexes
@@ -1280,5 +1317,77 @@ class TestCommands extends BaseTestCase {
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'This command is deprecated. Please use stop-sync instead.', $output );
+	}
+
+	/**
+	 * Test put-search-template command saves the search template for all sites.
+	 *
+	 * @group skip-on-single-site
+	 * @since 5.3.3
+	 */
+	public function test_put_search_template_with_network_wide_flag() {
+		$this->factory->blog->create_many( 2 );
+
+		$sites          = ElasticPress\Utils\get_sites();
+		$called_indices = 0;
+
+		add_filter( 'ep_intercept_remote_request', '__return_true' );
+		add_filter(
+			'ep_do_intercept_request',
+			function ( $response, $query ) use ( &$called_indices ) {
+				if ( str_contains( $query['url'], 'api/v1/search/posts/' ) ) {
+					$called_indices++;
+				}
+
+				return [
+					'body'     => '{}',
+					'response' => [ 'code' => 200 ],
+				];
+			},
+			10,
+			2
+		);
+
+		$this->command->put_search_template( [], [ 'network-wide' => true ] );
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Done.', $output );
+
+		$this->assertEquals( count( $sites ), $called_indices );
+	}
+
+	/**
+	 * Test delete-search-template command deletes the search template for all sites.
+	 *
+	 * @group skip-on-single-site
+	 * @since 5.3.3
+	 */
+	public function test_delete_search_template_with_network_wide_flag() {
+		$this->factory->blog->create_many( 2 );
+
+		$sites          = ElasticPress\Utils\get_sites();
+		$called_indices = 0;
+
+		add_filter( 'ep_intercept_remote_request', '__return_true' );
+		add_filter(
+			'ep_do_intercept_request',
+			function ( $response, $query ) use ( &$called_indices ) {
+				if ( 'DELETE' === $query['args']['method'] && str_contains( $query['url'], 'api/v1/search/posts/' ) ) {
+					$called_indices++;
+				}
+
+				return [
+					'body'     => '{}',
+					'response' => [ 'code' => 200 ],
+				];
+			},
+			10,
+			2
+		);
+
+		$this->command->delete_search_template( [], [ 'network-wide' => true ] );
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Done', $output );
+
+		$this->assertEquals( count( $sites ), $called_indices );
 	}
 }

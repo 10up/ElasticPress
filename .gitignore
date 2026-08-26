@@ -12,3 +12,16 @@ screenshots
 .DS_Store
 
 elasticpress.zip
+
+# Playwright
+/tests/e2e/dist/
+/tests/e2e/test-results/
+/tests/e2e/playwright-report/
+/tests/e2e/src/playwright-report/
+/tests/e2e/blob-report/
+/tests/e2e/playwright/.cache/
+
+.env
+
+# Cached e2e databases
+/bin/.cache/

@@ -22,7 +22,7 @@ export default ({ id, title, actions = [], messages = [], children }) => {
 			</PanelHeader>
 
 			{messages.map(({ message, type }) => (
-				<Notice status={type} isDismissible={false}>
+				<Notice status={type} isDismissible={false} key={message}>
 					<RawHTML>{safeHTML(message)}</RawHTML>
 				</Notice>
 			))}

@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Feature\WooCommerce;
 
-use ElasticPress\Elasticsearch;
+use ElasticPress\ElasticPressIoTemplateManager;
 use ElasticPress\Features;
 use ElasticPress\Indexables;
 use ElasticPress\REST;
@@ -22,6 +22,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * WooCommerce OrdersAutosuggest Feature
  */
 class OrdersAutosuggest {
+
+	use ElasticPressIoTemplateManager;
+
 	/**
 	 * The name of the index.
 	 *
@@ -81,6 +84,7 @@ class OrdersAutosuggest {
 		add_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
 		add_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
 		add_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ], 10, 2 );
+		add_filter( 'ep_pre_kill_sync_for_password_protected', [ $this, 'sync_password_protected_orders' ], 10, 3 );
 	}
 
 	/**
@@ -101,6 +105,7 @@ class OrdersAutosuggest {
 		remove_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ] );
 		remove_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
 		remove_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ] );
+		remove_filter( 'ep_pre_kill_sync_for_password_protected', [ $this, 'sync_password_protected_orders' ] );
 	}
 
 	/**
@@ -125,7 +130,7 @@ class OrdersAutosuggest {
 	 *
 	 * @return string WooCommerce Orders search template endpoint.
 	 */
-	public function get_template_endpoint() {
+	public function get_template_endpoint(): string {
 		/**
 		 * Filters the WooCommerce Orders search template API endpoint.
 		 *
@@ -203,98 +208,21 @@ class OrdersAutosuggest {
 	}
 
 	/**
-	 * Save or delete the search template on ElasticPress.io based on whether
-	 * the WooCommerce feature is being activated or deactivated.
+	 * Get the feature slug for ElasticPress.io template management.
 	 *
-	 * @param string $feature  Feature slug
-	 * @param array  $settings Feature settings
-	 * @param array  $data     Feature activation data
-	 *
-	 * @return void
+	 * @return string Feature slug.
 	 */
-	public function after_update_feature( $feature, $settings, $data ) {
-		if ( 'woocommerce' !== $feature ) {
-			return;
-		}
-
-		if ( true === $data['active'] ) {
-			$this->epio_save_search_template();
-		} else {
-			$this->epio_delete_search_template();
-		}
+	public function get_feature_slug(): string {
+		return 'woocommerce';
 	}
 
 	/**
-	 * Save the search template to ElasticPress.io.
+	 * Get the hook prefix for ElasticPress.io template management.
 	 *
-	 * @return void
+	 * @return string Hook prefix.
 	 */
-	public function epio_save_search_template() {
-		$endpoint = $this->get_template_endpoint();
-		$template = $this->get_search_template();
-
-		Elasticsearch::factory()->remote_request(
-			$endpoint,
-			[
-				'blocking' => false,
-				'body'     => $template,
-				'method'   => 'PUT',
-			]
-		);
-
-		/**
-		 * Fires after the request is sent the search template API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_order_search_template_saved
-		 * @param {string} $template The search template (JSON).
-		 * @param {string} $index Index name.
-		 */
-		do_action( 'ep_woocommerce_order_search_template_saved', $template, $this->index );
-	}
-
-	/**
-	 * Delete the search template from ElasticPress.io.
-	 *
-	 * @return void
-	 */
-	public function epio_delete_search_template() {
-		$endpoint = $this->get_template_endpoint();
-
-		Elasticsearch::factory()->remote_request(
-			$endpoint,
-			[
-				'blocking' => false,
-				'method'   => 'DELETE',
-			]
-		);
-
-		/**
-		 * Fires after the request is sent the search template API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_order_search_template_deleted
-		 * @param {string} $index Index name.
-		 */
-		do_action( 'ep_woocommerce_order_search_template_deleted', $this->index );
-	}
-
-	/**
-	 * Get the saved search template from ElasticPress.io.
-	 *
-	 * @return string|WP_Error Search template if found, WP_Error on error.
-	 */
-	public function epio_get_search_template() {
-		$endpoint = $this->get_template_endpoint();
-		$request  = Elasticsearch::factory()->remote_request( $endpoint );
-
-		if ( is_wp_error( $request ) ) {
-			return $request;
-		}
-
-		$response = wp_remote_retrieve_body( $request );
-
-		return $response;
+	public function get_hook_prefix(): string {
+		return 'ep_woocommerce_order_search';
 	}
 
 	/**
@@ -307,11 +235,9 @@ class OrdersAutosuggest {
 	 *
 	 * @return string The search template as JSON.
 	 */
-	public function get_search_template() {
+	public function get_search_template(): string {
 		$order_statuses = wc_get_order_statuses();
 
-		add_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
-		add_filter( 'ep_intercept_remote_request', '__return_true' );
 		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 3 );
 		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
 
@@ -319,14 +245,14 @@ class OrdersAutosuggest {
 			array(
 				'ep_integrate'             => true,
 				'ep_order_search_template' => true,
+				'ep_skip_search_exclusion' => true,
 				'post_status'              => array_keys( $order_statuses ),
 				'post_type'                => 'shop_order',
 				's'                        => '{{ep_placeholder}}',
+				'ep_intercept_request'     => true,
 			)
 		);
 
-		remove_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
-		remove_filter( 'ep_intercept_remote_request', '__return_true' );
 		remove_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10 );
 		remove_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10 );
 
@@ -643,6 +569,23 @@ class OrdersAutosuggest {
 	}
 
 	/**
+	 * Short-circuit the sync for password protected orders.
+	 *
+	 * @since 5.3.3
+	 * @param null|bool $new_skip Short-circuit flag
+	 * @param bool      $skip     Current value of $skip
+	 * @param int       $object_id The object ID
+	 * @return null|bool
+	 */
+	public function sync_password_protected_orders( $new_skip, $skip, $object_id ) {
+		if ( 'shop_order' === get_post_type( $object_id ) ) {
+			return (bool) $skip;
+		}
+
+		return $new_skip;
+	}
+
+	/**
 	 * Return the help message for the setting schema field
 	 *
 	 * @since 5.1.0
@@ -651,7 +594,7 @@ class OrdersAutosuggest {
 	protected function get_setting_help_message(): string {
 		$available = $this->is_available();
 
-		$epio_autosuggest_kb_link = 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-io-order-autosuggest/';
+		$epio_autosuggest_kb_link = 'https://www.elasticpress.io/resources/articles/configuring-elasticpress-io-order-autosuggest/';
 
 		if ( $available ) {
 			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */

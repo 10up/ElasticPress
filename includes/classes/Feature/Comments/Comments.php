@@ -54,7 +54,7 @@ class Comments extends Feature {
 
 		$this->summary = '<p>' . __( 'This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale. This feature is only needed if you are using <code>WP_Comment_Query</code> directly.', 'elasticpress' ) . '</p>';
 
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#comments', 'elasticpress' );
+		$this->docs_url = __( 'https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#comments', 'elasticpress' );
 	}
 
 	/**
@@ -104,17 +104,6 @@ class Comments extends Feature {
 	}
 
 	/**
-	 * Output feature box long text
-	 *
-	 * @since 3.6.0
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Enable integration on search queries
 	 *
 	 * @param  bool              $enabled Whether EP is enabled
@@ -143,7 +132,7 @@ class Comments extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 1 );
+		$status = new FeatureRequirementsStatus( 1, null, $this );
 
 		return $status;
 	}

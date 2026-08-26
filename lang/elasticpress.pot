@@ -1,44 +1,95 @@
-# Copyright (C) 2025 10up
+# Copyright (C) 2026 10up
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 5.2.0\n"
+"Project-Id-Version: ElasticPress 5.3.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-04-10T12:18:43+00:00\n"
+"POT-Creation-Date: 2026-05-07T11:33:58+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.8.1\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: elasticpress\n"
 
 #. Plugin Name of the plugin
+#: elasticpress.php
 #: includes/classes/HealthCheck/HealthCheckElasticsearch.php:44
 #: includes/classes/StatusReport/ElasticPress.php:28
 msgid "ElasticPress"
 msgstr ""
 
 #. Plugin URI of the plugin
+#: elasticpress.php
 msgid "https://github.com/10up/ElasticPress"
 msgstr ""
 
 #. Description of the plugin
+#: elasticpress.php
 msgid "A fast and flexible search and query engine for WordPress."
 msgstr ""
 
 #. Author of the plugin
+#: elasticpress.php
 msgid "10up"
 msgstr ""
 
 #. Author URI of the plugin
+#: elasticpress.php
 msgid "https://10up.com"
 msgstr ""
 
 #. translators: %s: Minimum required PHP version
 #: elasticpress.php:51
+#, php-format
 msgid "ElasticPress requires PHP version %s or later. Please upgrade PHP or disable the plugin."
+msgstr ""
+
+#: includes/classes/AdminBar.php:67
+msgid "No calls made to Elasticsearch"
+msgstr ""
+
+#: includes/classes/AdminBar.php:100
+#: includes/classes/StatusReport/LastSync.php:75
+msgid "No"
+msgstr ""
+
+#: includes/classes/AdminBar.php:102
+#: includes/classes/StatusReport/LastSync.php:75
+msgid "Yes"
+msgstr ""
+
+#: includes/classes/AdminBar.php:102
+#: includes/classes/StatusReport/LastSync.php:82
+msgid "Failed"
+msgstr ""
+
+#. translators: %s: Yes, Failed, or No
+#: includes/classes/AdminBar.php:108
+#, php-format
+msgid "Main query: %s"
+msgstr ""
+
+#. translators: %s: Total queries
+#: includes/classes/AdminBar.php:113
+#, php-format
+msgid "Total queries: %s"
+msgstr ""
+
+#. translators: %s: Failed queries
+#: includes/classes/AdminBar.php:118
+#, php-format
+msgid "Failed queries: %s"
+msgstr ""
+
+#: includes/classes/AdminBar.php:123
+msgid "More about debugging"
+msgstr ""
+
+#: includes/classes/AdminBar.php:149
+msgid "The ep_admin_bar_status_and_summary filter must return an array with the status and summary keys."
 msgstr ""
 
 #: includes/classes/AdminNotices.php:120
@@ -47,11 +98,13 @@ msgstr ""
 
 #. translators: Feature name
 #: includes/classes/AdminNotices.php:185
+#, php-format
 msgid "Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work."
 msgstr ""
 
 #. translators: 1. Feature name; 2: Sync page URL
 #: includes/classes/AdminNotices.php:191
+#, php-format
 msgid "The ElasticPress %1$s feature has been auto-activated! You will need to <a href=\"%2$s\">run a sync</a> for it to work."
 msgstr ""
 
@@ -61,6 +114,7 @@ msgstr ""
 
 #. translators: Sync Page URL
 #: includes/classes/AdminNotices.php:256
+#, php-format
 msgid "The new version of ElasticPress requires that you <a href=\"%s\">delete all data and start a fresh sync</a>."
 msgstr ""
 
@@ -74,61 +128,73 @@ msgstr ""
 
 #. translators: Sync Page URL
 #: includes/classes/AdminNotices.php:320
+#, php-format
 msgid "ElasticPress is almost ready to go. You just need to <a href=\"%s\">sync your content</a>."
 msgstr ""
 
 #. translators: Sync Page URL
 #: includes/classes/AdminNotices.php:372
+#, php-format
 msgid "ElasticPress is almost ready to go. You just need to <a href=\"%s\">enter your settings</a>."
 msgstr ""
 
 #. translators: 1. Current Elasticsearch version; 2. Minimum required ES version
 #: includes/classes/AdminNotices.php:429
+#, php-format
 msgid "Your Elasticsearch version %1$s is below the minimum required Elasticsearch version %2$s. ElasticPress may or may not work properly."
 msgstr ""
 
 #. translators: 1. Current Elasticsearch version; 2. Maximum supported ES version
 #: includes/classes/AdminNotices.php:481
+#, php-format
 msgid "Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly."
 msgstr ""
 
 #. translators: Document page URL
 #: includes/classes/AdminNotices.php:525
+#, php-format
 msgid "Your server software is not supported. To learn more about server compatibility please <a href=\"%s\">visit our documentation</a>."
 msgstr ""
 
 #. translators: 1. Current URL with retry parameter; 2. Settings Page URL
 #: includes/classes/AdminNotices.php:593
+#, php-format
 msgid "There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href=\"%1$s\">try your host again</a>, or you may need to <a href=\"%2$s\">change your settings</a>."
 msgstr ""
 
 #. translators: Response Code Number
 #: includes/classes/AdminNotices.php:601
+#, php-format
 msgid "Response Code: %s"
 msgstr ""
 
 #. translators: Response Code Message
 #: includes/classes/AdminNotices.php:606
+#, php-format
 msgid "Response error: %s"
 msgstr ""
 
 #. translators: 1. <em>; 2. </em>
 #: includes/classes/AdminNotices.php:668
+#, php-format
 msgid "It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the %1$s--setup%2$s flag"
 msgstr ""
 
 #. translators: 1. Current mapping file; 2. Mapping file that should be used
 #: includes/classes/AdminNotices.php:675
+#, php-format
 msgid "Current mapping: %1$s. Expected mapping: %2$s"
 msgstr ""
 
 #. translators: Index Health URL
 #: includes/classes/AdminNotices.php:732
+#, php-format
 msgid "It looks like one or more of your indices are running on a single node. While this won't prevent you from using ElasticPress, depending on your site's specific needs this can represent a performance issue. Please check the <a href=\"%s\">Index Health</a> page where you can check the health of all of your indices."
 msgstr ""
 
 #. translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article
 #: includes/classes/AdminNotices.php:788
+#, php-format
 msgid "Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href=\"%2$s\">Elasticsearch field limitations</a> and <a href=\"%3$s\">how to index just the custom fields you need</a> before trying to sync."
 msgstr ""
 
@@ -137,7 +203,8 @@ msgstr ""
 #: includes/classes/ElasticsearchErrorInterpreter.php:93
 #: includes/classes/StatusReport/ElasticPressIo.php:30
 #: assets/js/sync/index.js:269
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:2612
+#: dist/js/sync-script.js:1726
 msgid "ElasticPress.io"
 msgstr ""
 
@@ -145,246 +212,269 @@ msgstr ""
 #: includes/classes/AdminNotices.php:805
 #: includes/classes/ElasticsearchErrorInterpreter.php:93
 #: assets/js/sync/index.js:270
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:2612
+#: dist/js/sync-script.js:1727
 msgid "Elasticsearch"
 msgstr ""
 
 #. translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article
 #: includes/classes/AdminNotices.php:804
+#, php-format
 msgid "Your website content seems to have more public custom fields than %1$s is able to store. Check our articles about <a href=\"%2$s\">Elasticsearch field limitations</a> and <a href=\"%3$s\">how to index just the custom fields you need</a> if you receive any errors while syncing."
 msgstr ""
 
-#: includes/classes/Command.php:99
-#: includes/classes/Command.php:144
+#. translators: %s: Detected variable type.
+#: includes/classes/AdminNotices.php:841
+#, php-format
+msgid "Callbacks of filter hook `ep_admin_notices` must return a value of type array, %s detected."
+msgstr ""
+
+#: includes/classes/Command.php:100
+#: includes/classes/Command.php:145
 msgid "No feature with that slug is registered"
 msgstr ""
 
-#: includes/classes/Command.php:103
+#: includes/classes/Command.php:104
 msgid "This feature is already active"
 msgstr ""
 
 #. translators: Error message
-#: includes/classes/Command.php:110
+#: includes/classes/Command.php:111
+#, php-format
 msgid "Feature requirements are not met: %s"
 msgstr ""
 
 #. translators: Warning message
-#: includes/classes/Command.php:113
+#: includes/classes/Command.php:114
+#, php-format
 msgid "Feature is usable but there are warnings: %s"
 msgstr ""
 
-#: includes/classes/Command.php:119
+#: includes/classes/Command.php:120
 msgid "This feature requires a re-index. You may want to run the index command next."
 msgstr ""
 
-#: includes/classes/Command.php:122
+#: includes/classes/Command.php:123
 msgid "Feature activated"
 msgstr ""
 
-#: includes/classes/Command.php:157
+#: includes/classes/Command.php:158
 msgid "Feature is not active"
 msgstr ""
 
-#: includes/classes/Command.php:162
+#: includes/classes/Command.php:163
 msgid "Feature deactivated"
 msgstr ""
 
-#: includes/classes/Command.php:184
+#: includes/classes/Command.php:185
 msgid "Active features:"
 msgstr ""
 
-#: includes/classes/Command.php:194
+#: includes/classes/Command.php:195
 msgid "Registered features:"
 msgstr ""
 
 #. translators: 1. Indexable; 2. Site ID
-#: includes/classes/Command.php:272
+#: includes/classes/Command.php:273
+#, php-format
 msgid "Adding %1$s mapping for site %2$d…"
 msgstr ""
 
-#: includes/classes/Command.php:288
-#: includes/classes/Command.php:328
-#: includes/classes/Command.php:369
+#: includes/classes/Command.php:289
+#: includes/classes/Command.php:329
+#: includes/classes/Command.php:370
 #: includes/classes/IndexHelper.php:394
 msgid "Mapping sent"
 msgstr ""
 
 #. translators: Error message
-#: includes/classes/Command.php:293
-#: includes/classes/Command.php:333
-#: includes/classes/Command.php:374
-#: includes/classes/IndexHelper.php:1410
+#: includes/classes/Command.php:294
+#: includes/classes/Command.php:334
+#: includes/classes/Command.php:375
+#: includes/classes/IndexHelper.php:1418
+#, php-format
 msgid "Mapping failed: %s"
 msgstr ""
 
 #. translators: Indexable label
-#: includes/classes/Command.php:312
-#: includes/classes/Command.php:353
+#: includes/classes/Command.php:313
+#: includes/classes/Command.php:354
+#, php-format
 msgid "Adding %s mapping…"
 msgstr ""
 
-#: includes/classes/Command.php:495
+#: includes/classes/Command.php:496
 msgid "Are you sure you want to delete your Elasticsearch index?"
 msgstr ""
 
-#: includes/classes/Command.php:502
-#: includes/classes/Command.php:529
-#: includes/classes/Command.php:545
-#: includes/classes/Command.php:559
+#: includes/classes/Command.php:503
+#: includes/classes/Command.php:530
+#: includes/classes/Command.php:546
+#: includes/classes/Command.php:560
 msgid "Index deleted"
 msgstr ""
 
-#: includes/classes/Command.php:504
-#: includes/classes/Command.php:547
-#: includes/classes/Command.php:561
+#: includes/classes/Command.php:505
+#: includes/classes/Command.php:548
+#: includes/classes/Command.php:562
 msgid "Index delete failed"
 msgstr ""
 
 #. translators: 1. Indexable label; 2. Site ID
-#: includes/classes/Command.php:524
+#: includes/classes/Command.php:525
+#, php-format
 msgid "Deleting %1$s index for site %2$d…"
 msgstr ""
 
-#: includes/classes/Command.php:531
+#: includes/classes/Command.php:532
 msgid "Delete index failed"
 msgstr ""
 
 #. translators: Index Label (plural)
-#: includes/classes/Command.php:540
-#: includes/classes/Command.php:554
+#: includes/classes/Command.php:541
+#: includes/classes/Command.php:555
+#, php-format
 msgid "Deleting index for %s…"
 msgstr ""
 
-#: includes/classes/Command.php:581
+#: includes/classes/Command.php:582
 msgid "ElasticPress is not network activated."
 msgstr ""
 
 #. translators: Index Label
-#: includes/classes/Command.php:588
+#: includes/classes/Command.php:589
+#, php-format
 msgid "Recreating %s network alias…"
 msgstr ""
 
-#: includes/classes/Command.php:595
-#: includes/classes/Command.php:621
-#: includes/classes/Command.php:1174
-#: includes/classes/Command.php:1232
-#: includes/classes/Command.php:1514
-#: includes/classes/Command.php:1526
+#: includes/classes/Command.php:596
+#: includes/classes/Command.php:622
+#: includes/classes/Command.php:634
+#: includes/classes/Command.php:1187
+#: includes/classes/Command.php:1245
+#: includes/classes/Command.php:1537
+#: includes/classes/Command.php:1559
 msgid "Done."
 msgstr ""
 
-#: includes/classes/Command.php:597
+#: includes/classes/Command.php:598
 msgid "An error occurred"
 msgstr ""
 
-#: includes/classes/Command.php:614
+#: includes/classes/Command.php:615
 msgid "Autosuggest is not enabled."
 msgstr ""
 
 #. translators: ElasticPress.io or Elasticsearch
-#: includes/classes/Command.php:733
+#: includes/classes/Command.php:746
+#, php-format
 msgid "Syncing with the --setup option will delete your existing index in %s. Are you sure you want to delete your Elasticsearch index"
 msgstr ""
 
-#: includes/classes/Command.php:740
+#: includes/classes/Command.php:753
 msgid "Are you sure you want to stop any other ongoing sync?"
 msgstr ""
 
-#: includes/classes/Command.php:744
+#: includes/classes/Command.php:757
 msgid "Function pcntl_signal not available. Make sure to run `wp elasticpress clear-sync` in case the process is killed."
 msgstr ""
 
-#: includes/classes/Command.php:862
+#: includes/classes/Command.php:875
 msgid "Total time elapsed: "
 msgstr ""
 
-#: includes/classes/Command.php:866
+#: includes/classes/Command.php:879
 msgid "Done!"
 msgstr ""
 
-#: includes/classes/Command.php:892
+#: includes/classes/Command.php:905
 msgid "Failed to return status."
 msgstr ""
 
-#: includes/classes/Command.php:935
+#: includes/classes/Command.php:948
 msgid "Failed to return stats."
 msgstr ""
 
-#: includes/classes/Command.php:962
+#: includes/classes/Command.php:975
 msgid "Elasticsearch host is not set."
 msgstr ""
 
-#: includes/classes/Command.php:964
+#: includes/classes/Command.php:977
 msgid "Could not connect to Elasticsearch."
 msgstr ""
 
-#: includes/classes/Command.php:975
+#: includes/classes/Command.php:988
 msgid "An index is already occurring. Try again later."
 msgstr ""
 
-#: includes/classes/Command.php:1019
+#: includes/classes/Command.php:1032
 msgid "Sync cleared."
 msgstr ""
 
-#: includes/classes/Command.php:1164
+#: includes/classes/Command.php:1177
 msgid "There is no indexing operation running."
 msgstr ""
 
-#: includes/classes/Command.php:1166
+#: includes/classes/Command.php:1179
 msgid "Stopping indexing…"
 msgstr ""
 
-#: includes/classes/Command.php:1212
+#: includes/classes/Command.php:1225
 msgid "This command expects a version number or the --default flag."
 msgstr ""
 
-#: includes/classes/Command.php:1335
+#: includes/classes/Command.php:1348
 msgid "Time elapsed: "
 msgstr ""
 
-#: includes/classes/Command.php:1341
+#: includes/classes/Command.php:1354
 msgid "Memory Usage: "
 msgstr ""
 
-#: includes/classes/Command.php:1439
+#: includes/classes/Command.php:1452
 msgid "Are you sure you want to delete all ElasticPress settings?"
 msgstr ""
 
-#: includes/classes/Command.php:1444
+#: includes/classes/Command.php:1457
 msgid "Settings deleted."
 msgstr ""
 
 #. translators: list of active indexables slugs
-#: includes/classes/Command.php:1583
+#: includes/classes/Command.php:1616
 msgid "Indexable not found or inactive. Active indexables are: %l"
 msgstr ""
 
-#: includes/classes/Command.php:1593
+#: includes/classes/Command.php:1626
 msgid "Not found"
 msgstr ""
 
 #. translators: URL of the request
-#: includes/classes/Command.php:1618
+#: includes/classes/Command.php:1651
+#, php-format
 msgid "URL: %s"
 msgstr ""
 
 #. translators: Request arguments (outputted with print_r())
-#: includes/classes/Command.php:1625
+#: includes/classes/Command.php:1658
+#, php-format
 msgid "Request Args: %s"
 msgstr ""
 
 #. translators: HTTP transport used
-#: includes/classes/Command.php:1632
+#: includes/classes/Command.php:1665
+#, php-format
 msgid "Transport: %s"
 msgstr ""
 
 #. translators: Context under which the http_api_debug hook is fired
-#: includes/classes/Command.php:1639
+#: includes/classes/Command.php:1672
+#, php-format
 msgid "Context: %s"
 msgstr ""
 
 #. translators: HTTP response (outputted with print_r())
-#: includes/classes/Command.php:1646
+#: includes/classes/Command.php:1679
+#, php-format
 msgid "Response: %s"
 msgstr ""
 
@@ -408,249 +498,178 @@ msgstr ""
 #: includes/classes/DeprecatedCommand.php:215
 #: includes/classes/DeprecatedCommand.php:247
 #: includes/classes/DeprecatedCommand.php:271
+#, php-format
 msgid "This command is deprecated. Please use %s instead."
+msgstr ""
+
+#: includes/classes/ElasticPressIo.php:34
+msgid "ElasticPressIo::factory() is deprecated. Use \\ElasticPress\\get_container()->get( \\ElasticPress\\ElasticPressIo::class ) instead."
 msgstr ""
 
 #: includes/classes/Elasticsearch.php:999
 msgid "Error while getting the index settings."
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:1405
+#: includes/classes/Elasticsearch.php:1413
 msgid "Site not indexed. <p>Please run: <code>wp elasticpress index --setup --network-wide</code> using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:1409
+#: includes/classes/Elasticsearch.php:1417
 msgid "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:1594
+#: includes/classes/Elasticsearch.php:1602
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
 #. translators: Sync Page URL
 #: includes/classes/ElasticsearchErrorInterpreter.php:33
+#, php-format
 msgid "It seems one of the indices is missing. <a href=\"%1$s\">Delete all data and sync</a> to fix the issue."
 msgstr ""
 
 #. translators: 1. Index name; 2. Sync Page URL
 #: includes/classes/ElasticsearchErrorInterpreter.php:44
+#, php-format
 msgid "It seems the %1$s index is missing. <a href=\"%2$s\">Delete all data and sync</a> to fix the issue."
 msgstr ""
 
 #. translators: 1. Index name; 2. Sync Page URL
 #: includes/classes/ElasticsearchErrorInterpreter.php:56
+#, php-format
 msgid "The field %1$s was not found. Make sure it is added to the list of indexed fields and run <a href=\"%2$s\">a new sync</a> to fix the issue."
 msgstr ""
 
 #. translators: 1. Field name; 2. Sync Page URL
 #: includes/classes/ElasticsearchErrorInterpreter.php:64
+#, php-format
 msgid "It seems you saved a post without doing a full sync first because <code>%1$s</code> is missing the correct mapping type. <a href=\"%2$s\">Delete all data and sync</a> to fix the issue."
 msgstr ""
 
 #. translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article
 #: includes/classes/ElasticsearchErrorInterpreter.php:92
+#, php-format
 msgid "Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href=\"%2$s\">Elasticsearch field limitations</a> and <a href=\"%3$s\">how to index just the custom fields you need</a> and sync again."
 msgstr ""
 
 #. translators: ElasticPress.io Article URL
 #: includes/classes/ElasticsearchErrorInterpreter.php:113
+#, php-format
 msgid "Please refer to <a href=\"%s\">this article</a> outlining how to address this issue."
 msgstr ""
 
 #. translators: ElasticPress.io My Account URL
 #: includes/classes/ElasticsearchErrorInterpreter.php:122
+#, php-format
 msgid "We did not recognize this error. Please open an ElasticPress.io <a href=\"%s\">support ticket</a> so we can troubleshoot further."
 msgstr ""
 
 #. translators: New GitHub issue URL
 #: includes/classes/ElasticsearchErrorInterpreter.php:132
+#, php-format
 msgid "We did not recognize this error. Please consider opening a <a href=\"%s\">GitHub Issue</a> so we can add it to our list of supported errors."
 msgstr ""
 
-#: includes/classes/Feature.php:315
-msgid "Learn more"
-msgstr ""
-
-#: includes/classes/Feature.php:320
-msgid "Collapse"
-msgstr ""
-
-#: includes/classes/Feature.php:377
-msgid "Enabling this feature will require re-syncing your content."
-msgstr ""
-
-#: includes/classes/Feature.php:385
-msgid "Settings not saved. Cannot save settings while a sync is in progress."
-msgstr ""
-
-#: includes/classes/Feature.php:387
-msgid "View sync status."
-msgstr ""
-
-#: includes/classes/Feature.php:392
-#: includes/classes/StatusReport/ElasticPress.php:79
-#: includes/dashboard.php:650
-#: includes/partials/settings-page.php:34
-#: assets/js/blocks/facets/common/edit.js:87
-#: assets/js/blocks/facets/date/edit.js:23
-#: assets/js/blocks/facets/meta-range/edit.js:89
-#: assets/js/blocks/facets/post-type/edit.js:59
-#: assets/js/blocks/related-posts/Edit.js:76
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-date-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-meta-range-block-script.js:1
-#: dist/js/facets-post-type-block-script.js:1
-#: dist/js/related-posts-block-script.js:1
-msgid "Settings"
-msgstr ""
-
-#: includes/classes/Feature.php:396
-msgid "Status"
-msgstr ""
-
-#: includes/classes/Feature.php:398
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:120
-#: includes/classes/Feature/InstantResults/InstantResults.php:192
-#: includes/classes/Feature/Search/Search.php:642
-#: includes/classes/Feature/Search/Search.php:659
-#: includes/classes/Feature/Search/Search.php:680
-msgid "Enabled"
-msgstr ""
-
-#: includes/classes/Feature.php:399
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:121
-#: includes/classes/Feature/InstantResults/InstantResults.php:195
-#: includes/classes/Feature/Search/Search.php:643
-#: includes/classes/Feature/Search/Search.php:660
-#: includes/classes/Feature/Search/Search.php:681
-msgid "Disabled"
-msgstr ""
-
-#: includes/classes/Feature.php:410
-msgid "Setting adjustments to this feature require a re-sync. Use WP-CLI."
-msgstr ""
-
-#: includes/classes/Feature.php:422
-msgid "Save"
-msgstr ""
-
-#: includes/classes/Feature.php:574
+#: includes/classes/Feature.php:462
 msgid "Enable"
 msgstr ""
 
-#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:49
+#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:51
 msgid "ACF Repeater Field Compatibility"
 msgstr ""
 
-#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:51
+#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:53
 msgid "ACF Repeater Field"
 msgstr ""
 
-#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:53
+#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:55
 msgid "Index your ACF Repeater fields as a JSON object and, optionally, make it searchable in the Search Fields & Weighting dashboard."
 msgstr ""
 
-#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:55
+#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:57
 msgid "https://www.elasticpress.io/documentation/article/acf-repeater-field-compatibility-feature/"
 msgstr ""
 
-#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:69
+#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:71
 msgid "ACF Pro not installed."
 msgstr ""
 
 #. translators: %s: post type name
-#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:120
+#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:122
+#, php-format
 msgid "Index this field as a JSON object. If you want to make it searchable, do not forget to enable it under the related post types in the <a href=\"%1$s\">Search Fields & Weighting dashboard</a>. To index existent content you can either manually save posts with this field or <a href=\"%2$s\">run a sync</a>."
 msgstr ""
 
-#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:129
+#: includes/classes/Feature/AcfRepeater/AcfRepeater.php:131
 msgid "Index in ElasticPress"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:65
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:67
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:69
 msgid "Autosuggest"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:69
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:81
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:71
 msgid "Input fields of type \"search\" or with the CSS class \"search-field\" or \"ep-autosuggest\" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:71
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:73
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#autosuggest"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:110
-msgid "Autosuggest Selector"
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:113
-msgid "Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type=\"text\"]"
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:118
-msgid "Google Analytics Events"
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:122
-msgid "When enabled, a gtag tracking event is fired when an autosuggest result is clicked."
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:136
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:917
-msgid "Endpoint URL"
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:141
-msgid "Your autosuggest endpoint is set in wp-config.php"
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:144
-msgid "This address will be exposed to the public."
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:606
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:546
 msgid "This is a fake request to build the ElasticPress Autosuggest query. It is not really sent."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:631
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:571
 msgid "This feature modifies the site’s default user experience by presenting a list of suggestions below detected search fields as text is entered into the field."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:635
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:575
 msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:789
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:742
 msgid "Connection"
 msgstr ""
 
 #. translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>;
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:798
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:873
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:751
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:850
+#, php-format
 msgid "You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:894
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:825
+msgid "Use the WP_Query argument `ep_intercept_request` instead."
+msgstr ""
+
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:871
 msgid "Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type=\"text\"]</code>"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:896
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:873
 msgid "Additional selectors"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:902
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:879
 msgid "Enable to fire a gtag tracking event when an autosuggest result is clicked."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:903
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:880
 msgid "Trigger Google Analytics events"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:915
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:892
 msgid "A valid URL starting with <code>http://</code> or <code>https://</code>. This address will be exposed to the public."
+msgstr ""
+
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:894
+msgid "Endpoint URL"
+msgstr ""
+
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:908
+msgid "This method should not be called anymore, as autosuggest requests are not sent regularly anymore."
 msgstr ""
 
 #: includes/classes/Feature/Comments/Comments.php:53
@@ -666,11 +685,7 @@ msgstr ""
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#comments"
 msgstr ""
 
-#: includes/classes/Feature/Comments/Comments.php:113
-msgid "This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale."
-msgstr ""
-
-#: includes/classes/Feature/Comments/Comments.php:221
+#: includes/classes/Feature/Comments/Comments.php:210
 msgid "We could not find any results"
 msgstr ""
 
@@ -683,6 +698,9 @@ msgid "ElasticPress - Comments"
 msgstr ""
 
 #: includes/classes/Feature/Comments/Widget.php:105
+#: includes/classes/Feature/Facets/Types/Date/Widget.php:67
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:98
+#: includes/classes/Feature/Facets/Types/MetaRange/Widget.php:77
 #: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:129
 #: includes/classes/Feature/RelatedPosts/Widget.php:103
 msgid "Title:"
@@ -692,235 +710,320 @@ msgstr ""
 msgid "Search for comments on:"
 msgstr ""
 
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:44
+#: includes/classes/Feature/DidYouMean/DidYouMean.php:46
 msgid "Did You Mean"
 msgstr ""
 
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:46
+#: includes/classes/Feature/DidYouMean/DidYouMean.php:48
 msgid "\"Did You Mean\" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href=\"https://www.elasticpress.io/documentation/article/did-you-mean/\">this tutorial</a>."
 msgstr ""
 
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:48
+#: includes/classes/Feature/DidYouMean/DidYouMean.php:50
 msgid "https://www.elasticpress.io/documentation/article/did-you-mean/"
 msgstr ""
 
-#. translators: Tutorial URL
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:76
-msgid "\"Did You Mean\" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href=\"%s\">this tutorial</a>."
-msgstr ""
-
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:154
+#: includes/classes/Feature/DidYouMean/DidYouMean.php:135
 msgid "Did you mean"
 msgstr ""
 
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:247
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:432
-#: includes/classes/Feature/InstantResults/InstantResults.php:206
-#: includes/classes/Feature/InstantResults/InstantResults.php:1131
-msgid "Search behavior when no result is found"
-msgstr ""
-
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:249
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:435
-#: includes/classes/Feature/InstantResults/InstantResults.php:208
-#: includes/classes/Feature/InstantResults/InstantResults.php:1134
-msgid "Display the top suggestion"
-msgstr ""
-
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:250
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:439
-#: includes/classes/Feature/InstantResults/InstantResults.php:209
-#: includes/classes/Feature/InstantResults/InstantResults.php:1138
-msgid "Display all the suggestions"
-msgstr ""
-
 #: includes/classes/Feature/DidYouMean/DidYouMean.php:251
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:443
-msgid "Automatically redirect the user to the top suggestion"
-msgstr ""
-
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:289
 msgid "Other suggestions:"
 msgstr ""
 
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:389
+#: includes/classes/Feature/DidYouMean/DidYouMean.php:351
 msgid "Showing results for: "
 msgstr ""
 
-#: includes/classes/Feature/DidYouMean/DidYouMean.php:391
+#: includes/classes/Feature/DidYouMean/DidYouMean.php:353
 msgid "No results for: "
 msgstr ""
 
-#: includes/classes/Feature/Documents/Documents.php:40
+#: includes/classes/Feature/DidYouMean/DidYouMean.php:394
+#: includes/classes/Feature/InstantResults/InstantResults.php:936
+msgid "Search behavior when no result is found"
+msgstr ""
+
+#: includes/classes/Feature/DidYouMean/DidYouMean.php:397
+#: includes/classes/Feature/InstantResults/InstantResults.php:939
+msgid "Display the top suggestion"
+msgstr ""
+
+#: includes/classes/Feature/DidYouMean/DidYouMean.php:401
+#: includes/classes/Feature/InstantResults/InstantResults.php:943
+msgid "Display all the suggestions"
+msgstr ""
+
+#: includes/classes/Feature/DidYouMean/DidYouMean.php:405
+msgid "Automatically redirect the user to the top suggestion"
+msgstr ""
+
+#: includes/classes/Feature/Documents/Documents.php:42
 #: includes/partials/stats-page.php:77
 msgid "Documents"
 msgstr ""
 
-#: includes/classes/Feature/Documents/Documents.php:42
+#: includes/classes/Feature/Documents/Documents.php:44
 msgid "Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf, csv, txt."
 msgstr ""
 
-#: includes/classes/Feature/Documents/Documents.php:44
+#: includes/classes/Feature/Documents/Documents.php:46
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#documents"
 msgstr ""
 
-#: includes/classes/Feature/Documents/Documents.php:318
+#: includes/classes/Feature/Documents/Documents.php:320
 msgid "The <a href=\"https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html\">Ingest Attachment plugin</a> for Elasticsearch is not installed. To get the most out of ElasticPress, without the hassle of Elasticsearch management, check out <a href=\"https://elasticpress.io\">ElasticPress.io</a> hosting."
 msgstr ""
 
-#: includes/classes/Feature/Documents/Documents.php:321
+#: includes/classes/Feature/Documents/Documents.php:323
 msgid "This feature modifies the default user experience for your visitors by adding popular document file types to search results. All supported documents (PDFs and Microsoft Office) uploaded to your media library will appear in search results."
 msgstr ""
 
-#: includes/classes/Feature/Documents/Documents.php:334
-msgid "Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf."
-msgstr ""
-
-#: includes/classes/Feature/Documents/Documents.php:466
+#: includes/classes/Feature/Documents/Documents.php:457
 msgid "Description"
 msgstr ""
 
-#: includes/classes/Feature/Documents/Documents.php:467
+#: includes/classes/Feature/Documents/Documents.php:458
 msgid "Caption"
 msgstr ""
 
-#: includes/classes/Feature/Documents/Documents.php:472
+#: includes/classes/Feature/Documents/Documents.php:463
 msgid "Document Content"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:95
-#: includes/classes/Feature/InstantResults/InstantResults.php:169
-#: includes/classes/Feature/InstantResults/InstantResults.php:1096
+#: includes/classes/Feature/Facets/Facets.php:97
+#: includes/classes/Feature/InstantResults/InstantResults.php:894
 msgid "Filters"
 msgstr ""
 
 #. translators: Site Editor URL
-#: includes/classes/Feature/Facets/Facets.php:101
+#: includes/classes/Feature/Facets/Facets.php:103
+#, php-format
 msgid "Adds <a href=\"%s\">filter blocks</a> that administrators can add to the website’s templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges."
 msgstr ""
 
 #. translators: Widgets Edit Screen URL
-#: includes/classes/Feature/Facets/Facets.php:106
+#: includes/classes/Feature/Facets/Facets.php:108
+#, php-format
 msgid "Adds <a href=\"%s\">filter widgets</a> that administrators can add to the website’s sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges."
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:111
+#: includes/classes/Feature/Facets/Facets.php:113
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#filters"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:177
-#: includes/classes/Feature/InstantResults/InstantResults.php:175
-msgid "Match Type"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:179
-#: includes/classes/Feature/InstantResults/InstantResults.php:179
-msgid "Show any content tagged to <strong>all</strong> selected terms"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:180
-#: includes/classes/Feature/InstantResults/InstantResults.php:183
-msgid "Show all content tagged to <strong>any</strong> selected term"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:181
-#: includes/classes/Feature/InstantResults/InstantResults.php:185
-msgid "\"All\" will only show content that matches all filters. \"Any\" will show content that matches any filter."
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:249
+#: includes/classes/Feature/Facets/Facets.php:216
 msgid "Facets no longer require admin styles."
 msgstr ""
 
-#. translators: Widgets Edit Screen URL
-#: includes/classes/Feature/Facets/Facets.php:550
-msgid "Adds <a href='%s'>filter widgets</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms."
+#: includes/classes/Feature/Facets/Facets.php:414
+msgid "The global variable $GLOBALS['ep_facet_aggs'] is deprecated. Access aggregation data directly from the query object using $query->ep_aggregations or the Facets feature methods get_query_aggregations() and get_facet_aggregation()."
 msgstr ""
 
-#. translators: Site Editor URL
-#: includes/classes/Feature/Facets/Facets.php:558
-msgid "Adds <a href='%s'>filter blocks</a> that administrators can add to the website's templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms."
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:712
-#: includes/classes/Feature/InstantResults/InstantResults.php:1103
+#: includes/classes/Feature/Facets/Facets.php:738
+#: includes/classes/Feature/InstantResults/InstantResults.php:901
 msgid "Filter matching"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:715
-#: includes/classes/Feature/InstantResults/InstantResults.php:1106
+#: includes/classes/Feature/Facets/Facets.php:741
+#: includes/classes/Feature/InstantResults/InstantResults.php:904
 msgid "Show results that match <strong>all</strong> selected filters"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:719
-#: includes/classes/Feature/InstantResults/InstantResults.php:1110
+#: includes/classes/Feature/Facets/Facets.php:745
+#: includes/classes/Feature/InstantResults/InstantResults.php:908
 msgid "Show results that match <strong>any</strong> selected filter"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Date/FacetType.php:169
+#: includes/classes/Feature/Facets/Types/Date/FacetType.php:180
 msgid "Last 3 months"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Date/FacetType.php:174
+#: includes/classes/Feature/Facets/Types/Date/FacetType.php:185
 msgid "Last 6 months"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Date/FacetType.php:179
+#: includes/classes/Feature/Facets/Types/Date/FacetType.php:190
 msgid "Last 12 months"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Date/Renderer.php:137
+#: includes/classes/Feature/Facets/Types/Date/Renderer.php:163
 #: assets/js/blocks/facets/common/components/range-filter.js:57
-#: dist/js/facets-meta-range-block-script.js:1
-#: dist/js/facets-meta-range-block-view-script.js:1
+#: dist/js/facets-meta-range-block-script.js:243
+#: dist/js/facets-meta-range-block-view-script.js:120
+#: dist/js/facets-meta-range-block-script.js:132
+#: dist/js/facets-meta-range-block-view-script.js:57
 msgid "Filter"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Date/Renderer.php:143
+#: includes/classes/Feature/Facets/Types/Date/Renderer.php:169
 #: assets/js/blocks/facets/common/components/range-filter.js:55
-#: dist/js/facets-meta-range-block-script.js:1
-#: dist/js/facets-meta-range-block-view-script.js:1
+#: dist/js/facets-meta-range-block-script.js:234
+#: dist/js/facets-meta-range-block-view-script.js:111
+#: dist/js/facets-meta-range-block-script.js:130
+#: dist/js/facets-meta-range-block-view-script.js:55
 msgid "Clear"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Date/Renderer.php:181
+#: includes/classes/Feature/Facets/Types/Date/Renderer.php:207
 msgid "Custom"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Date/Renderer.php:187
+#: includes/classes/Feature/Facets/Types/Date/Renderer.php:213
 msgid "From:"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Date/Renderer.php:190
+#: includes/classes/Feature/Facets/Types/Date/Renderer.php:216
 msgid "To:"
 msgstr ""
 
+#: includes/classes/Feature/Facets/Types/Date/Widget.php:25
+msgid "Let visitors filter your content by post date."
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Date/Widget.php:30
+msgid "ElasticPress - Filter by Post Date"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Date/Widget.php:73
+#: assets/js/blocks/facets/date/edit.js:25
+#: dist/js/facets-date-block-script.js:180
+#: dist/js/facets-date-block-script.js:90
+msgid "Display custom date option"
+msgstr ""
+
 #. translators: %s: Filter term name.
-#: includes/classes/Feature/Facets/Types/Meta/Renderer.php:231
-#: includes/classes/Feature/Facets/Types/PostType/Renderer.php:184
+#: includes/classes/Feature/Facets/Types/Meta/Renderer.php:236
+#: includes/classes/Feature/Facets/Types/PostType/Renderer.php:188
 #: includes/classes/Feature/Facets/Types/Taxonomy/Renderer.php:434
 #: assets/js/instant-results/components/tools/active-constraints.js:35
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:3645
+#: dist/js/instant-results-script.js:2766
+#, php-format,js-format
 msgid "Remove filter: %s"
 msgstr ""
 
 #. translators: %s: Filter term name.
-#: includes/classes/Feature/Facets/Types/Meta/Renderer.php:233
-#: includes/classes/Feature/Facets/Types/PostType/Renderer.php:186
+#: includes/classes/Feature/Facets/Types/Meta/Renderer.php:238
+#: includes/classes/Feature/Facets/Types/PostType/Renderer.php:190
 #: includes/classes/Feature/Facets/Types/Taxonomy/Renderer.php:436
+#, php-format
 msgid "Apply filter: %s"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/MetaRange/Renderer.php:45
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:29
+msgid "ElasticPress - Filter by Metadata"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:31
+msgid "Add a meta facet filter to your sidebar or widget area."
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:59
+#: includes/classes/Feature/Facets/Types/MetaRange/Widget.php:69
+#: assets/js/blocks/facets/common/components/facet-meta-control.js:29
+#: dist/js/facets-block-script.js:140
+#: dist/js/facets-meta-block-script.js:140
+#: dist/js/facets-meta-range-block-script.js:51
+#: dist/js/facets-block-script.js:87
+#: dist/js/facets-meta-block-script.js:87
+#: dist/js/facets-meta-range-block-script.js:29
+msgid "Select key"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:71
+msgid "Search"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:77
+msgid "Highest to lowest count"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:81
+msgid "Lowest to highest count"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:85
+#: assets/js/blocks/facets/common/components/facet-order-control.js:28
+#: dist/js/facets-block-script.js:217
+#: dist/js/facets-meta-block-script.js:217
+#: dist/js/facets-post-type-block-script.js:133
+#: dist/js/facets-block-script.js:144
+#: dist/js/facets-meta-block-script.js:144
+#: dist/js/facets-post-type-block-script.js:86
+msgctxt "label for ordering posts by title in ascending order"
+msgid "A → Z"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:89
+#: assets/js/blocks/facets/common/components/facet-order-control.js:36
+#: dist/js/facets-block-script.js:220
+#: dist/js/facets-meta-block-script.js:220
+#: dist/js/facets-post-type-block-script.js:136
+#: dist/js/facets-block-script.js:152
+#: dist/js/facets-meta-block-script.js:152
+#: dist/js/facets-post-type-block-script.js:94
+msgctxt "label for ordering posts by title in descending order"
+msgid "Z → A"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:104
+#: includes/classes/Feature/Facets/Types/MetaRange/Widget.php:83
+msgid "Filter by:"
+msgstr ""
+
+#. translators: %s: URL to sync content
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:115
+#: includes/classes/Feature/Facets/Types/MetaRange/Widget.php:94
+#, php-format
+msgid "This is the list of metadata fields indexed in Elasticsearch. If your desired field does not appear in this list please try to %1$ssync your content%2$s"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:124
+msgid "Search field placeholder:"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:131
+#: assets/js/blocks/facets/common/components/facet-display-count-control.js:20
+#: dist/js/facets-block-script.js:80
+#: dist/js/facets-meta-block-script.js:80
+#: dist/js/facets-post-type-block-script.js:80
+#: dist/js/facets-block-script.js:52
+#: dist/js/facets-meta-block-script.js:52
+#: dist/js/facets-post-type-block-script.js:52
+msgid "Display count"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/Meta/Widget.php:136
+msgid "Order by:"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/MetaRange/Renderer.php:67
 msgid "Preview not available. Make sure you select a field."
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/MetaRange/Renderer.php:64
+#: includes/classes/Feature/Facets/Types/MetaRange/Renderer.php:87
 msgid "Could not get min and max values. Is this a numeric field?"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/MetaRange/Widget.php:27
+msgid "Let visitors filter your content by a range of metadata values."
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/MetaRange/Widget.php:32
+msgid "ElasticPress - Filter by Metadata Range - Beta"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/MetaRange/Widget.php:103
+msgid "Value Prefix:"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Types/MetaRange/Widget.php:109
+msgid "Value Suffix:"
 msgstr ""
 
 #. translators: Taxonomy Name
 #: includes/classes/Feature/Facets/Types/Taxonomy/Renderer.php:214
+#, php-format
 msgid "Search %s"
 msgstr ""
 
@@ -944,7 +1047,8 @@ msgstr ""
 
 #: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:116
 #: assets/js/sync-ui/components/errors.js:27
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:635
+#: dist/js/sync-script.js:359
 msgid "Count"
 msgstr ""
 
@@ -974,152 +1078,138 @@ msgstr ""
 
 #. translators: "all" or "any", depending on configuration values, 3: URL
 #: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:175
+#, php-format
 msgid "Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href=\"%3$s\">ElasticPress settings</a>."
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:103
-#: includes/classes/Feature/InstantResults/InstantResults.php:105
+#: includes/classes/Feature/InstantResults/InstantResults.php:108
+#: includes/classes/Feature/InstantResults/InstantResults.php:110
 msgid "Instant Results"
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:107
+#: includes/classes/Feature/InstantResults/InstantResults.php:112
 msgid "WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed."
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:108
+#: includes/classes/Feature/InstantResults/InstantResults.php:113
 msgid "Requires an <a href=\"https://www.elasticpress.io/\" target=\"_blank\">ElasticPress.io plan</a> or a custom proxy to function."
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:110
+#: includes/classes/Feature/InstantResults/InstantResults.php:115
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results"
 msgstr ""
 
-#. translators: %s: ElasticPress.io link.
-#: includes/classes/Feature/InstantResults/InstantResults.php:124
-msgid "WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed. Requires an %s or a custom proxy to function."
-msgstr ""
-
-#: includes/classes/Feature/InstantResults/InstantResults.php:128
-msgid "ElasticPress.io plan"
-msgstr ""
-
-#: includes/classes/Feature/InstantResults/InstantResults.php:150
-#: includes/classes/Feature/Search/Search.php:665
-msgid "Highlight tag "
-msgstr ""
-
-#: includes/classes/Feature/InstantResults/InstantResults.php:153
-#: includes/classes/Feature/InstantResults/InstantResults.php:1067
-msgid "None"
-msgstr ""
-
-#: includes/classes/Feature/InstantResults/InstantResults.php:165
-msgid "Highlight search terms in results with the selected HTML tag."
-msgstr ""
-
-#: includes/classes/Feature/InstantResults/InstantResults.php:189
-msgid "Term Count"
-msgstr ""
-
-#: includes/classes/Feature/InstantResults/InstantResults.php:197
-msgid "When enabled, it will show the term count in the instant results widget."
-msgstr ""
-
-#: includes/classes/Feature/InstantResults/InstantResults.php:241
+#: includes/classes/Feature/InstantResults/InstantResults.php:143
 msgid "You are using a custom proxy. Make sure you implement all security measures needed."
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:243
+#: includes/classes/Feature/InstantResults/InstantResults.php:145
 msgid "To use this feature you need to be an <a href='https://elasticpress.io'>ElasticPress.io</a> customer or implement a <a href='https://github.com/10up/elasticpress-proxy'>custom proxy</a>."
 msgstr ""
 
 #. translators: Article URL
-#: includes/classes/Feature/InstantResults/InstantResults.php:253
+#: includes/classes/Feature/InstantResults/InstantResults.php:155
+#, php-format
 msgid "ElasticPress is network activated. Additional steps are required to ensure Instant Results works for all sites on the network. See our article on <a href=\"%s\" target=\"_blank\">running ElasticPress in network mode</a> for more details."
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:825
+#: includes/classes/Feature/InstantResults/InstantResults.php:385
+msgid "Use the WP_Query argument `ep_skip_search_exclusion`."
+msgstr ""
+
+#: includes/classes/Feature/InstantResults/InstantResults.php:602
 msgid "Post type"
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:826
+#: includes/classes/Feature/InstantResults/InstantResults.php:603
 msgid "Type"
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:897
+#. translators: %s is a taxonomy slug.
+#: includes/classes/Feature/InstantResults/InstantResults.php:639
+#, php-format
+msgid "Invalid taxonomy \"%s\" returned via ep_facet_include_taxonomies filter"
+msgstr ""
+
+#: includes/classes/Feature/InstantResults/InstantResults.php:695
 msgid "Price range"
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:898
+#: includes/classes/Feature/InstantResults/InstantResults.php:696
 msgid "Price"
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:1062
-#: includes/classes/Feature/Search/Search.php:910
+#: includes/classes/Feature/InstantResults/InstantResults.php:860
+#: includes/classes/Feature/Search/Search.php:834
 msgid "Select the HTML tag used to highlight search terms."
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:1064
-#: includes/classes/Feature/Search/Search.php:912
+#: includes/classes/Feature/InstantResults/InstantResults.php:862
+#: includes/classes/Feature/Search/Search.php:836
 msgid "Highlight tag"
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:1118
+#: includes/classes/Feature/InstantResults/InstantResults.php:865
+msgid "None"
+msgstr ""
+
+#: includes/classes/Feature/InstantResults/InstantResults.php:916
 msgid "Enable to show the number of matching results next to filter options."
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:1120
+#: includes/classes/Feature/InstantResults/InstantResults.php:918
 msgid "Show filter counts"
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:47
-msgid "Protected Content"
+#: includes/classes/Feature/InstantResults/InstantResults.php:923
+msgid "Enable to show numbered pagination links instead of previous/next buttons."
+msgstr ""
+
+#: includes/classes/Feature/InstantResults/InstantResults.php:925
+msgid "Numbered pagination"
 msgstr ""
 
 #: includes/classes/Feature/ProtectedContent/ProtectedContent.php:49
+msgid "Protected Content"
+msgstr ""
+
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:51
 msgid "Syncs unpublished content — including private, draft, and scheduled posts — improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query."
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:50
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:52
 msgid "We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public."
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:52
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:54
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#protected-content"
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:377
-msgid "Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>"
-msgstr ""
-
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:417
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:409
 msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure."
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:476
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:561
 msgid "Enable to use WordPress default sort for searches inside the WP Dashboard."
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:477
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:562
 msgid "Use default WordPress sort on the WP Dashboard"
 msgstr ""
 
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:41
+#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:43
 #: assets/js/blocks/related-posts/Edit.js:86
-#: dist/js/related-posts-block-script.js:1
+#: dist/js/related-posts-block-script.js:151
+#: dist/js/related-posts-block-script.js:86
 msgid "Related Posts"
 msgstr ""
 
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:43
+#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:45
 msgid "Instantly deliver engaging and precise related content with no impact on site performance. Output related content using our block or directly in your theme using our <a href=\"https://www.elasticpress.io/documentation/article/related-posts-api/\">API functions</a>."
 msgstr ""
 
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:45
+#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:47
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#related-posts"
-msgstr ""
-
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:294
-msgid "Output related content using our Widget or directly in your theme using our <a href=\"https://www.elasticpress.io/documentation/article/related-posts-api/\">API functions.</a>"
 msgstr ""
 
 #: includes/classes/Feature/RelatedPosts/Widget.php:29
@@ -1134,433 +1224,435 @@ msgstr ""
 msgid "Number of Posts to Show:"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:77
+#: includes/classes/Feature/Search/Search.php:79
 msgid "Post Search"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:79
+#: includes/classes/Feature/Search/Search.php:81
 msgid "Instantly find the content you’re looking for. The first time."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:80
-#: includes/classes/Feature/Search/Search.php:589
+#: includes/classes/Feature/Search/Search.php:82
 msgid "Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:82
+#: includes/classes/Feature/Search/Search.php:84
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#post-search"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:640
-#: includes/classes/Feature/Search/Search.php:888
-msgid "Weight results by date"
+#: includes/classes/Feature/Search/Search.php:88
+msgid "Highlighting Options"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:657
-msgid "Highlighting status"
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:678
-msgid "Excerpt highlighting"
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:682
-msgid "By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results. "
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:688
-#: includes/classes/Feature/Search/Search.php:951
-msgid "Advanced fields and weighting settings"
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:689
-#: includes/classes/Feature/Search/Search.php:953
-msgid "Add synonyms to your post searches"
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:798
+#: includes/classes/Feature/Search/Search.php:720
 #: assets/js/search/editor/plugins/exclude-from-search.js:29
-#: dist/js/search-editor-script.js:1
+#: dist/js/search-editor-script.js:56
+#: dist/js/search-editor-script.js:29
 msgid "Exclude from search results"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:801
+#: includes/classes/Feature/Search/Search.php:723
 msgid "Excludes this media from the results of your site's search form while ElasticPress is active."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:803
+#: includes/classes/Feature/Search/Search.php:725
 #: assets/js/search/editor/plugins/exclude-from-search.js:30
-#: dist/js/search-editor-script.js:1
+#: dist/js/search-editor-script.js:57
+#: dist/js/search-editor-script.js:30
 msgid "Excludes this post from the results of your site's search form while ElasticPress is active."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:881
+#: includes/classes/Feature/Search/Search.php:803
 msgid "Weighting by date"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:884
+#: includes/classes/Feature/Search/Search.php:806
 msgid "Don't weight results by date"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:898
+#: includes/classes/Feature/Search/Search.php:810
+msgid "Weight results by date"
+msgstr ""
+
+#: includes/classes/Feature/Search/Search.php:818
+msgid "Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling."
+msgstr ""
+
+#: includes/classes/Feature/Search/Search.php:820
 msgid "Highlight search terms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:903
+#: includes/classes/Feature/Search/Search.php:826
 msgid "By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:905
+#: includes/classes/Feature/Search/Search.php:828
 msgid "Highlight search terms in excerpts"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:89
+#: includes/classes/Feature/Search/Search.php:883
+msgid "Advanced fields and weighting settings"
+msgstr ""
+
+#: includes/classes/Feature/Search/Search.php:885
+msgid "Add synonyms to your post searches"
+msgstr ""
+
+#: includes/classes/Feature/Search/Synonyms.php:91
 msgid "This feature requires the \"Post Search\" feature to be enabled"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:182
+#: includes/classes/Feature/Search/Synonyms.php:184
 msgid "ElasticPress Synonyms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:183
+#: includes/classes/Feature/Search/Synonyms.php:185
 #: includes/classes/StatusReport/Features.php:91
 #: assets/js/synonyms/components/groups/synonyms.js:43
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1765
+#: dist/js/synonyms-script.js:1203
 msgid "Synonyms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:229
+#: includes/classes/Feature/Search/Synonyms.php:231
 msgid "Successfully updated synonym filter."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:232
+#: includes/classes/Feature/Search/Synonyms.php:234
 msgid "There was an error storing your synonyms."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:235
+#: includes/classes/Feature/Search/Synonyms.php:237
 msgid "There was a problem updating the index with your synonyms. If you have not indexed your data, please run an index."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:238
+#: includes/classes/Feature/Search/Synonyms.php:240
 msgid "There was an error updating the synonym list."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:255
+#: includes/classes/Feature/Search/Synonyms.php:257
 msgid "Elasticsearch Synonyms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:679
+#: includes/classes/Feature/Search/Synonyms.php:681
 #: assets/js/synonyms/utils.js:207
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:2358
+#: dist/js/synonyms-script.js:1739
 msgid "# Defined synonyms."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:682
+#: includes/classes/Feature/Search/Synonyms.php:684
 #: assets/js/synonyms/utils.js:211
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:2358
+#: dist/js/synonyms-script.js:1743
 msgid "# Defined hyponyms."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:685
+#: includes/classes/Feature/Search/Synonyms.php:687
 #: assets/js/synonyms/utils.js:215
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:2358
+#: dist/js/synonyms-script.js:1747
 msgid "# Defined replacements."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:704
+#: includes/classes/Feature/Search/Synonyms.php:706
 #: assets/js/synonyms/index.js:26
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:6088
+#: dist/js/synonyms-script.js:4592
 msgid "Manage Synonyms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:705
+#: includes/classes/Feature/Search/Synonyms.php:707
 msgid "Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:706
+#: includes/classes/Feature/Search/Synonyms.php:708
 msgid "Switch to Advanced Text Editor"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:707
+#: includes/classes/Feature/Search/Synonyms.php:709
 msgid "Switch to Visual Editor"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:709
+#: includes/classes/Feature/Search/Synonyms.php:711
 msgid "Sets"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:710
+#: includes/classes/Feature/Search/Synonyms.php:712
 msgid "Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:711
+#: includes/classes/Feature/Search/Synonyms.php:713
 msgid "Comma separated list of terms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:712
+#: includes/classes/Feature/Search/Synonyms.php:714
 msgid "Add Set"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:713
+#: includes/classes/Feature/Search/Synonyms.php:715
 msgid "This set must contain at least 2 terms."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:715
+#: includes/classes/Feature/Search/Synonyms.php:717
 msgid "Alternatives"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:716
+#: includes/classes/Feature/Search/Synonyms.php:718
 msgid "Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include results for sneaker, sandals, boots, and high heels."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:717
+#: includes/classes/Feature/Search/Synonyms.php:719
 msgid "Primary term"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:718
+#: includes/classes/Feature/Search/Synonyms.php:720
 msgid "Comma separated list of alternatives"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:719
+#: includes/classes/Feature/Search/Synonyms.php:721
 msgid "Add Alternative"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:720
+#: includes/classes/Feature/Search/Synonyms.php:722
 msgid "You must enter both a primary term and at least one alternative term."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:722
+#: includes/classes/Feature/Search/Synonyms.php:724
 msgid "Advanced Synonym Editor"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:723
+#: includes/classes/Feature/Search/Synonyms.php:725
 msgid "When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site's synonyms for use on another site."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:724
+#: includes/classes/Feature/Search/Synonyms.php:726
 msgid "SolrSynonym Text"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:725
+#: includes/classes/Feature/Search/Synonyms.php:727
 msgid "Alternatives must have both a primary term and at least one alternative term."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:726
+#: includes/classes/Feature/Search/Synonyms.php:728
 msgid "Sets must contain at least 2 terms."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:728
+#: includes/classes/Feature/Search/Synonyms.php:730
 #: assets/js/weighting/components/field.js:83
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:424
+#: dist/js/weighting-script.js:221
 msgid "Remove"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:729
+#: includes/classes/Feature/Search/Synonyms.php:731
 msgid "Update Synonyms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Weighting.php:52
+#: includes/classes/Feature/Search/Weighting.php:53
 msgid "Attributes"
 msgstr ""
 
-#: includes/classes/Feature/Search/Weighting.php:86
+#: includes/classes/Feature/Search/Weighting.php:87
 msgid "Taxonomies"
 msgstr ""
 
-#: includes/classes/Feature/Search/Weighting.php:329
+#: includes/classes/Feature/Search/Weighting.php:330
 msgid "ElasticPress Search Fields & Weighting"
 msgstr ""
 
-#: includes/classes/Feature/Search/Weighting.php:330
+#: includes/classes/Feature/Search/Weighting.php:331
 #: includes/classes/StatusReport/Features.php:95
 msgid "Search Fields & Weighting"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:69
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:71
 msgid "Custom Search Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:71
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:201
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:73
 msgid "Selected posts will be inserted into search results in the specified position."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:73
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:75
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#custom-search-results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:164
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:167
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:166
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:169
 msgid "Custom result updated."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:165
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:167
 msgid "Custom field updated."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:166
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:168
 msgid "Custom field deleted."
 msgstr ""
 
 #. translators: %s: date and time of the revision
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:169
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:171
+#, php-format
 msgid "Custom result restored to revision from %s"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:170
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:172
 msgid "Custom result published."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:171
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:173
 msgid "Custom result saved."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:172
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:174
 msgid "Custom result submitted."
 msgstr ""
 
 #. translators: Scheduled date.
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:175
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:177
+#, php-format
 msgid "Custom result scheduled for: %1$s."
 msgstr ""
 
 #. translators: Publish box date format, see https://php.net/date
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:177
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:179
 msgid "M j, Y @ G:i"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:179
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:181
 msgid "Custom result draft updated."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:224
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:225
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:328
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:217
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:218
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:321
 msgid "Custom Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:280
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:273
 msgctxt "post type general name"
 msgid "Custom Search Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:281
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:274
 msgctxt "post type singular name"
 msgid "Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:282
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:275
 msgctxt "admin menu"
 msgid "Custom Search Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:283
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:276
 msgctxt "add new on admin bar"
 msgid "Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:284
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:277
 msgctxt "book"
 msgid "Add New"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:285
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:278
 msgid "Add New Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:286
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:279
 msgid "New Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:287
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:280
 msgid "Edit Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:288
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:281
 msgid "View Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:289
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:282
 msgid "All Custom Search Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:290
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:283
 msgid "Search Custom Search Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:291
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:284
 msgid "Parent Custom Search Result:"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:292
-#: assets/js/ordering/pointers.js:257
-#: dist/js/ordering-script.js:1
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:285
+#: assets/js/ordering/pointers.js:276
+#: dist/js/ordering-script.js:315
+#: dist/js/ordering-script.js:276
 msgid "No results found."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:293
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:286
 msgid "No results found in Trash."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:298
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:291
 msgid "Posts to inject into search results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:318
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:311
 msgctxt "taxonomy general name"
 msgid "Custom Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:319
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:312
 msgctxt "taxonomy singular name"
 msgid "Custom Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:320
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:313
 msgid "Search Custom Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:321
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:314
 msgid "All Custom Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:322
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:315
 msgid "Parent Custom Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:323
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:316
 msgid "Parent Custom Result:"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:324
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:317
 msgid "Edit Custom Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:325
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:318
 msgid "Update Custom Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:326
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:319
 msgid "Add New Custom Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:327
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:320
 msgid "New Custom Result Name"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:356
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:349
 msgid "Manage Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:631
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:624
 msgid "Enter Search Query"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:645
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:638
 msgid "Search Query"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:802
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:795
 msgid "ElasticPress Custom Search Results"
 msgstr ""
 
@@ -1577,29 +1669,27 @@ msgstr ""
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#terms"
 msgstr ""
 
-#: includes/classes/Feature/Terms/Terms.php:85
-msgid "This feature will empower your website to overcome traditional WordPress term search and query limitations that can present themselves at scale."
-msgstr ""
-
 #: includes/classes/Feature/WooCommerce/Orders.php:373
 msgid "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list if WooCommerce's High-performance order storage is enabled."
 msgstr ""
 
-#: includes/classes/Feature/WooCommerce/OrdersAutosuggest.php:637
+#: includes/classes/Feature/WooCommerce/OrdersAutosuggest.php:563
 msgid "Show suggestions when searching for Orders"
 msgstr ""
 
 #. translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>;
-#: includes/classes/Feature/WooCommerce/OrdersAutosuggest.php:658
+#: includes/classes/Feature/WooCommerce/OrdersAutosuggest.php:601
+#, php-format
 msgid "You are directly connected to %1$sElasticPress.io%2$s! Enable autosuggest for Orders to enhance Dashboard results and quickly find WooCommerce Orders. %3$sLearn More%4$s."
 msgstr ""
 
-#: includes/classes/Feature/WooCommerce/OrdersAutosuggest.php:670
+#: includes/classes/Feature/WooCommerce/OrdersAutosuggest.php:613
 msgid "Currently, autosuggest for orders is only available if WooCommerce order data storage is set in legacy or compatibility mode."
 msgstr ""
 
 #. translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>;
-#: includes/classes/Feature/WooCommerce/OrdersAutosuggest.php:674
+#: includes/classes/Feature/WooCommerce/OrdersAutosuggest.php:617
+#, php-format
 msgid "Due to the sensitive nature of orders, this autosuggest feature is available only to %1$sElasticPress.io%2$s customers. %3$sLearn More%4$s."
 msgstr ""
 
@@ -1613,6 +1703,7 @@ msgstr ""
 
 #. translators: Sync Page URL
 #: includes/classes/Feature/WooCommerce/Products.php:556
+#, php-format
 msgid "Due to the number of products in the site, you will need to <a href=\"%s\">resync</a> after applying a custom sort order."
 msgstr ""
 
@@ -1624,20 +1715,20 @@ msgstr ""
 msgid "Disabled for any query that includes products"
 msgstr ""
 
-#: includes/classes/Feature/WooCommerce/Products.php:1104
+#: includes/classes/Feature/WooCommerce/Products.php:1101
 msgid "Weight results by date, except for product-only queries"
 msgstr ""
 
-#: includes/classes/Feature/WooCommerce/Products.php:1108
+#: includes/classes/Feature/WooCommerce/Products.php:1105
 msgid "Weight results by date, except for any query that includes products"
 msgstr ""
 
 #: includes/classes/Feature/WooCommerce/WooCommerce.php:81
+#: includes/classes/Features.php:62
 msgid "WooCommerce"
 msgstr ""
 
 #: includes/classes/Feature/WooCommerce/WooCommerce.php:83
-#: includes/classes/Feature/WooCommerce/WooCommerce.php:179
 msgid "Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management."
 msgstr ""
 
@@ -1645,12 +1736,24 @@ msgstr ""
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#woocommerce"
 msgstr ""
 
-#: includes/classes/Feature/WooCommerce/WooCommerce.php:194
+#: includes/classes/Feature/WooCommerce/WooCommerce.php:183
 msgid "WooCommerce not installed."
 msgstr ""
 
-#: includes/classes/Feature/WooCommerce/WooCommerce.php:289
-msgid "Settings are now generated via the set_settings_schema() method."
+#: includes/classes/Features.php:53
+msgid "Core Search"
+msgstr ""
+
+#: includes/classes/Features.php:56
+msgid "Live Search"
+msgstr ""
+
+#: includes/classes/Features.php:59
+msgid "Indexing Options"
+msgstr ""
+
+#: includes/classes/Features.php:65
+msgid "Third Party Plugins"
 msgstr ""
 
 #: includes/classes/HealthCheck/HealthCheckElasticsearch.php:41
@@ -1686,7 +1789,7 @@ msgstr ""
 msgid "Check if your Elasticsearch host URL is correct and you have the right access to the host."
 msgstr ""
 
-#: includes/classes/Indexable.php:414
+#: includes/classes/Indexable.php:474
 msgid "It was not possible to create a body request with the document IDs provided."
 msgstr ""
 
@@ -1695,7 +1798,7 @@ msgid "Comment"
 msgstr ""
 
 #: includes/classes/Indexable/Comment/QueryIntegration.php:140
-#: includes/classes/Indexable/Post/QueryIntegration.php:295
+#: includes/classes/Indexable/Post/QueryIntegration.php:287
 #: includes/classes/Indexable/Term/QueryIntegration.php:111
 msgid "sites is deprecated. Use site__in instead."
 msgstr ""
@@ -1714,47 +1817,50 @@ msgstr ""
 
 #. translators: Sync Page URL
 #: includes/classes/Indexable/Post/SyncManager.php:428
+#, php-format
 msgid "Due to the number of posts associated with its child terms, you will need to <a href=\"%s\">resync</a> after editing or deleting it."
 msgstr ""
 
 #. translators: Sync Page URL
 #: includes/classes/Indexable/Post/SyncManager.php:444
+#, php-format
 msgid "Due to the number of posts associated with this term, you will need to <a href=\"%s\">resync</a> after editing or deleting it."
 msgstr ""
 
 #. translators: Sync Page URL
 #: includes/classes/Indexable/Post/SyncManager.php:479
+#, php-format
 msgid "Depending on the number of posts associated with a term, you may need to <a href=\"%s\">resync</a> after editing or deleting it."
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1026
+#: includes/classes/Indexable/Post/SyncManager.php:1029
 msgid "Content in sync"
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1027
+#: includes/classes/Indexable/Post/SyncManager.php:1030
 msgid "WordPress and Elasticsearch content match."
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1035
+#: includes/classes/Indexable/Post/SyncManager.php:1038
 #: assets/js/features/components/tab.js:32
-#: dist/js/features-script.js:1
 msgid "Sync required"
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1036
+#: includes/classes/Indexable/Post/SyncManager.php:1039
 msgid "Content not found in Elasticsearch."
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1043
+#: includes/classes/Indexable/Post/SyncManager.php:1046
 msgid "Out of sync"
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1044
+#: includes/classes/Indexable/Post/SyncManager.php:1047
 msgid "WordPress and Elasticsearch content are out of sync."
 msgstr ""
 
 #. translators: 1: EP prefix 2: Document status message
-#: includes/classes/Indexable/Post/SyncManager.php:1073
+#: includes/classes/Indexable/Post/SyncManager.php:1077
+#, php-format
 msgctxt "Doc status message"
 msgid "[%1$s] %2$s"
 msgstr ""
@@ -1765,16 +1871,19 @@ msgstr ""
 
 #. translators: 1: Indexable name, 2: Site ID
 #: includes/classes/IndexHelper.php:296
+#, php-format
 msgid "Indexing %1$s on site %2$d…"
 msgstr ""
 
 #. translators: 1: Indexable name
 #: includes/classes/IndexHelper.php:304
+#, php-format
 msgid "Indexing %1$s (globally)…"
 msgstr ""
 
 #. translators: 1: Indexable name
 #: includes/classes/IndexHelper.php:306
+#, php-format
 msgid "Indexing %1$s…"
 msgstr ""
 
@@ -1784,11 +1893,13 @@ msgstr ""
 
 #. translators: 1. Number of objects skipped 2. Indexable type
 #: includes/classes/IndexHelper.php:427
+#, php-format
 msgid "Skipping %1$d %2$s…"
 msgstr ""
 
 #. translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID
 #: includes/classes/IndexHelper.php:729
+#, php-format
 msgid "Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d"
 msgstr ""
 
@@ -1798,61 +1909,72 @@ msgstr ""
 
 #. translators: 1: indexable (plural), 2: Blog ID, 3: number of failed objects
 #: includes/classes/IndexHelper.php:831
+#, php-format
 msgid "Number of %1$s index errors on site %2$d: %3$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: number of failed objects
 #: includes/classes/IndexHelper.php:839
+#, php-format
 msgid "Number of %1$s index errors: %2$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: Blog ID, 3: number of synced objects
 #: includes/classes/IndexHelper.php:851
+#, php-format
 msgid "Number of %1$s indexed on site %2$d: %3$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: number of synced objects
 #: includes/classes/IndexHelper.php:859
+#, php-format
 msgid "Number of %1$s indexed: %2$d"
 msgstr ""
 
-#: includes/classes/IndexHelper.php:969
+#: includes/classes/IndexHelper.php:970
 #: assets/js/sync-ui/components/progress.js:52
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1915
+#: dist/js/sync-script.js:1150
 msgid "Sync complete"
 msgstr ""
 
 #. translators: 1: Indexable name
-#: includes/classes/IndexHelper.php:1005
+#: includes/classes/IndexHelper.php:1006
+#, php-format
 msgid "Network alias created for %1$s"
 msgstr ""
 
 #. translators: 1: Indexable name
-#: includes/classes/IndexHelper.php:1013
+#: includes/classes/IndexHelper.php:1014
+#, php-format
 msgid "Network alias creation failed for %1$s"
 msgstr ""
 
 #. translators: Index name
-#: includes/classes/IndexHelper.php:1260
+#: includes/classes/IndexHelper.php:1268
+#, php-format
 msgid "Index %s deleted"
 msgstr ""
 
-#: includes/classes/IndexHelper.php:1415
+#: includes/classes/IndexHelper.php:1423
 msgid "Mapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping."
 msgstr ""
 
 #. translators: Error message
-#: includes/classes/IndexHelper.php:1420
+#: includes/classes/IndexHelper.php:1428
+#, php-format
 msgid "Index failed: %s"
 msgstr ""
 
 #. translators: Site Name
 #: includes/classes/Installer.php:49
+#, php-format
 msgid "ElasticPress Setup &lsaquo; %s &#8212; WordPress"
 msgstr ""
 
 #. translators: %s: Sync page link.
 #: includes/classes/QueryLogger.php:242
+#, php-format
 msgid "Your site's content is not synced with your %1$s. Please %2$s."
 msgstr ""
 
@@ -1871,6 +1993,7 @@ msgstr ""
 
 #. translators: Status Report URL
 #: includes/classes/QueryLogger.php:259
+#, php-format
 msgid "Some ElasticPress queries failed in the last 24 hours. Please visit the <a href=\"%s\">Status Report page</a> for more details."
 msgstr ""
 
@@ -1925,6 +2048,7 @@ msgstr ""
 
 #. translators: 1. Number of objects indexed, 2. Total number of objects, 3. Last object ID.
 #: includes/classes/REST/Sync.php:192
+#, php-format
 msgid "Processed %1$d/%2$d. Last Object ID: %3$d"
 msgstr ""
 
@@ -1956,11 +2080,13 @@ msgstr ""
 
 #. translators: EP.io account or ES server.
 #: includes/classes/Screen/Settings.php:134
+#, php-format
 msgid "It was not possible to connect to your %s. Please check your settings and try again."
 msgstr ""
 
 #. translators: EP.io account or ES server.
 #: includes/classes/Screen/Settings.php:140
+#, php-format
 msgid "It was not possible to connect to your %s. Your settings were reverted."
 msgstr ""
 
@@ -1982,6 +2108,7 @@ msgstr ""
 
 #. translators: %d: Number of messages.
 #: includes/classes/Screen/StatusReport.php:278
+#, php-format
 msgid "%s message from ElasticPress.io"
 msgid_plural "%s messages from ElasticPress.io"
 msgstr[0] ""
@@ -2018,14 +2145,16 @@ msgstr ""
 #: includes/classes/StatusReport/ElasticPress.php:54
 #: includes/partials/settings-page.php:64
 #: assets/js/settings.js:74
-#: dist/js/settings-script.js:1
+#: dist/js/settings-script.js:180
+#: dist/js/settings-script.js:131
 msgid "ElasticPress.io Host URL"
 msgstr ""
 
 #: includes/classes/StatusReport/ElasticPress.php:54
 #: includes/partials/settings-page.php:66
 #: assets/js/settings.js:75
-#: dist/js/settings-script.js:1
+#: dist/js/settings-script.js:180
+#: dist/js/settings-script.js:132
 msgid "Elasticsearch Host URL"
 msgstr ""
 
@@ -2046,15 +2175,45 @@ msgstr ""
 msgid "Network Active"
 msgstr ""
 
+#: includes/classes/StatusReport/ElasticPress.php:79
+#: includes/dashboard.php:610
+#: includes/partials/settings-page.php:34
+#: assets/js/blocks/facets/common/edit.js:87
+#: assets/js/blocks/facets/date/edit.js:23
+#: assets/js/blocks/facets/meta-range/edit.js:89
+#: assets/js/blocks/facets/post-type/edit.js:59
+#: assets/js/blocks/related-posts/Edit.js:76
+#: dist/js/facets-block-script.js:552
+#: dist/js/facets-date-block-script.js:172
+#: dist/js/facets-meta-block-script.js:552
+#: dist/js/facets-meta-range-block-script.js:367
+#: dist/js/facets-post-type-block-script.js:385
+#: dist/js/related-posts-block-script.js:124
+#: dist/js/facets-block-script.js:359
+#: dist/js/facets-date-block-script.js:88
+#: dist/js/facets-meta-block-script.js:359
+#: dist/js/facets-meta-range-block-script.js:227
+#: dist/js/facets-post-type-block-script.js:237
+#: dist/js/related-posts-block-script.js:76
+msgid "Settings"
+msgstr ""
+
 #. translators: default time
 #: includes/classes/StatusReport/ElasticPress.php:94
-#: includes/classes/StatusReport/ElasticPress.php:114
-msgid "Default Requests Timeout (default: %s)"
+#, php-format
+msgid "Single Document Sync Requests Timeout (default: %s)"
 msgstr ""
 
 #. translators: default time
 #: includes/classes/StatusReport/ElasticPress.php:104
-msgid "Index Document Request Timeout (default: %s)"
+#, php-format
+msgid "Multiple Document Sync Requests Timeout (default: %s)"
+msgstr ""
+
+#. translators: default time
+#: includes/classes/StatusReport/ElasticPress.php:114
+#, php-format
+msgid "Other HTTP Requests Timeout (default: %s)"
 msgstr ""
 
 #: includes/classes/StatusReport/ElasticPress.php:121
@@ -2062,25 +2221,31 @@ msgid "Timeouts"
 msgstr ""
 
 #: includes/classes/StatusReport/ElasticPressIo.php:60
-#: includes/classes/StatusReport/ElasticPressIo.php:65
+#: includes/classes/StatusReport/ElasticPressIo.php:77
 msgid "Allowed Autosuggest Parameters"
 msgstr ""
 
-#: includes/classes/StatusReport/ElasticPressIo.php:66
+#. translators: %s: URL
+#: includes/classes/StatusReport/ElasticPressIo.php:68
+#, php-format
+msgid "If you need to reset the allowed parameters, you can do so by saving your Search Fields & Weighting settings or by visiting <a href=\"%s\">this URL</a>."
+msgstr ""
+
+#: includes/classes/StatusReport/ElasticPressIo.php:78
 msgid "Allowed autosuggest parameters info not available."
 msgstr ""
 
-#: includes/classes/StatusReport/ElasticPressIo.php:86
-#: includes/classes/StatusReport/ElasticPressIo.php:87
-#: includes/classes/StatusReport/ElasticPressIo.php:88
+#: includes/classes/StatusReport/ElasticPressIo.php:100
+#: includes/classes/StatusReport/ElasticPressIo.php:101
+#: includes/classes/StatusReport/ElasticPressIo.php:102
 msgid "%l"
 msgstr ""
 
-#: includes/classes/StatusReport/ElasticPressIo.php:119
+#: includes/classes/StatusReport/ElasticPressIo.php:135
 msgid "Instant Results Template"
 msgstr ""
 
-#: includes/classes/StatusReport/ElasticPressIo.php:160
+#: includes/classes/StatusReport/ElasticPressIo.php:176
 msgid "Orders Search Template"
 msgstr ""
 
@@ -2150,6 +2315,7 @@ msgstr ""
 
 #. translators: %1$s: Post count limit (defaults to 80,000). %2$s: Post type name.
 #: includes/classes/StatusReport/IndexableContent.php:158
+#, php-format
 msgid "For performance reasons the reported count is based on the first %1$s %2$s only. The actual number may be higher."
 msgid_plural "For performance reasons the reported count is based on the first %1$s %2$s only. The actual number may be higher."
 msgstr[0] ""
@@ -2179,14 +2345,6 @@ msgstr ""
 msgid "WP-CLI"
 msgstr ""
 
-#: includes/classes/StatusReport/LastSync.php:75
-msgid "Yes"
-msgstr ""
-
-#: includes/classes/StatusReport/LastSync.php:75
-msgid "No"
-msgstr ""
-
 #: includes/classes/StatusReport/LastSync.php:79
 msgid "Total"
 msgstr ""
@@ -2197,10 +2355,6 @@ msgstr ""
 
 #: includes/classes/StatusReport/LastSync.php:81
 msgid "Skipped"
-msgstr ""
-
-#: includes/classes/StatusReport/LastSync.php:82
-msgid "Failed"
 msgstr ""
 
 #: includes/classes/StatusReport/LastSync.php:83
@@ -2234,6 +2388,7 @@ msgstr ""
 
 #. translators: last sync title
 #: includes/classes/StatusReport/LastSync.php:117
+#, php-format
 msgid "%s (In Progress)"
 msgstr ""
 
@@ -2295,11 +2450,13 @@ msgstr ""
 
 #. translators: 1: <a> tag (Support article); 2. </a>; 3: <a> tag (link to Features screen); 4. </a>;
 #: includes/classes/Upgrades.php:322
+#, php-format
 msgid "%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click %3$shere%4$s to activate the feature and start your sync."
 msgstr ""
 
 #. translators: 1: <a> tag (Support article about Instant Results); 2. </a>; 3: <a> tag (Support article about self hosted Elasticsearch setups); 4. </a>;
 #: includes/classes/Upgrades.php:333
+#, php-format
 msgid "%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to %3$sinstall and configure a PHP proxy%4$s."
 msgstr ""
 
@@ -2311,49 +2468,53 @@ msgstr ""
 msgid "Dashboard"
 msgstr ""
 
-#: includes/dashboard.php:640
+#: includes/dashboard.php:600
 msgid "ElasticPress Features"
 msgstr ""
 
-#: includes/dashboard.php:641
+#: includes/dashboard.php:601
 #: assets/js/features/index.js:34
-#: dist/js/features-script.js:1
+#: dist/js/features-script.js:15200
+#: dist/js/features-script.js:13979
 msgid "Features"
 msgstr ""
 
-#: includes/dashboard.php:649
+#: includes/dashboard.php:609
 msgid "ElasticPress Settings"
 msgstr ""
 
-#: includes/dashboard.php:658
-#: includes/dashboard.php:659
-#: assets/js/features/apps/features.js:83
+#: includes/dashboard.php:618
+#: includes/dashboard.php:619
+#: assets/js/features/apps/features.js:185
 #: assets/js/synonyms/apps/synonyms-settings.js:61
-#: dist/js/features-script.js:1
-#: dist/js/synonyms-script.js:1
+#: dist/js/features-script.js:261
+#: dist/js/synonyms-script.js:231
+#: dist/js/features-script.js:185
+#: dist/js/synonyms-script.js:134
 msgid "Sync"
 msgstr ""
 
-#: includes/dashboard.php:667
+#: includes/dashboard.php:627
 msgid "ElasticPress Index Health"
 msgstr ""
 
-#: includes/dashboard.php:668
+#: includes/dashboard.php:628
 #: includes/partials/stats-page.php:35
 msgid "Index Health"
 msgstr ""
 
-#: includes/dashboard.php:676
+#: includes/dashboard.php:636
 msgid "ElasticPress Status Report"
 msgstr ""
 
-#: includes/dashboard.php:677
+#: includes/dashboard.php:637
 #: assets/js/status-report/index.js:21
-#: dist/js/status-report-script.js:1
+#: dist/js/status-report-script.js:1016
+#: dist/js/status-report-script.js:536
 msgid "Status Report"
 msgstr ""
 
-#: includes/dashboard.php:875
+#: includes/dashboard.php:835
 msgid "ElasticPress Indexing"
 msgstr ""
 
@@ -2374,85 +2535,86 @@ msgstr ""
 msgid "Settings Page"
 msgstr ""
 
-#: includes/partials/install-page.php:37
+#: includes/partials/install-page.php:41
 msgid "A Fast and Flexible Search and Query Engine for WordPress."
 msgstr ""
 
-#: includes/partials/install-page.php:45
+#: includes/partials/install-page.php:49
 msgid "That’s it! You’re ready to experience faster search and gain the ability to create powerful queries on your site!"
 msgstr ""
 
-#: includes/partials/install-page.php:47
+#: includes/partials/install-page.php:51
 msgid "Go to dashboard"
 msgstr ""
 
-#: includes/partials/install-page.php:56
-#: includes/partials/install-page.php:63
-#: includes/partials/install-page.php:78
-#: includes/partials/install-page.php:147
+#: includes/partials/install-page.php:60
+#: includes/partials/install-page.php:67
+#: includes/partials/install-page.php:82
+#: includes/partials/install-page.php:151
 msgid "Step"
 msgstr ""
 
-#: includes/partials/install-page.php:58
+#: includes/partials/install-page.php:62
 msgid "Plugin has been installed"
 msgstr ""
 
-#: includes/partials/install-page.php:59
+#: includes/partials/install-page.php:63
 msgid "You've taken your first step into a faster and more flexible search and query engine for WordPress"
 msgstr ""
 
-#: includes/partials/install-page.php:65
+#: includes/partials/install-page.php:69
 msgid "Set up Elasticsearch hosting"
 msgstr ""
 
-#: includes/partials/install-page.php:67
+#: includes/partials/install-page.php:71
 msgid "The next step is to make sure you have a working Elasticsearch server. We recommend creating an <a href=\"https://elasticpress.io\" target=\"_blank\">ElasticPress.io</a> account or if you want you can set up your own hosting."
 msgstr ""
 
-#: includes/partials/install-page.php:71
+#: includes/partials/install-page.php:75
 msgid "Got hosting? Get Started"
 msgstr ""
 
-#: includes/partials/install-page.php:72
-#: includes/partials/install-page.php:141
-#: includes/partials/install-page.php:156
+#: includes/partials/install-page.php:76
+#: includes/partials/install-page.php:145
+#: includes/partials/install-page.php:160
 msgid "Skip Install »"
 msgstr ""
 
-#: includes/partials/install-page.php:80
+#: includes/partials/install-page.php:84
 msgid "Select your features"
 msgstr ""
 
-#: includes/partials/install-page.php:82
+#: includes/partials/install-page.php:86
 msgid "ElasticPress will sync the data you select, then keep it up-to-date automatically."
 msgstr ""
 
 #. translators: %s: Feature name.
-#: includes/partials/install-page.php:118
+#: includes/partials/install-page.php:122
+#, php-format
 msgid "Learn more about %s."
 msgstr ""
 
-#: includes/partials/install-page.php:126
+#: includes/partials/install-page.php:130
 msgid "Click to learn more."
 msgstr ""
 
-#: includes/partials/install-page.php:135
+#: includes/partials/install-page.php:139
 msgid "Don't worry if you're not sure what features you need, you can always make changes to them later on."
 msgstr ""
 
-#: includes/partials/install-page.php:140
+#: includes/partials/install-page.php:144
 msgid "Save Features"
 msgstr ""
 
-#: includes/partials/install-page.php:149
+#: includes/partials/install-page.php:153
 msgid "Index your content"
 msgstr ""
 
-#: includes/partials/install-page.php:151
+#: includes/partials/install-page.php:155
 msgid "Click below to index your content through ElasticPress. You can also activate optional Features such as Protected Content and Autosuggest in the Features page"
 msgstr ""
 
-#: includes/partials/install-page.php:155
+#: includes/partials/install-page.php:159
 msgid "Index Your Content"
 msgstr ""
 
@@ -2542,1198 +2704,1490 @@ msgstr ""
 
 #. translators: %s: Sync page link.
 #: includes/partials/stats-page.php:105
+#, php-format
 msgid "We could not find any data for your Elasticsearch indices. Maybe you need to %s?"
 msgstr ""
 
 #. translators: Error message
-#: assets/js/api-search/index.js:313
-#: dist/js/instant-results-script.js:1
-#: dist/js/woocommerce-order-search-script.js:1
+#: assets/js/api-search/index.js:323
+#: dist/js/instant-results-script.js:343
+#: dist/js/woocommerce-order-search-script.js:343
+#: dist/js/instant-results-script.js:323
+#: dist/js/woocommerce-order-search-script.js:323
+#, js-format
 msgid "ElasticPress: Unable to fetch results. %s"
 msgstr ""
 
 #. translators: Response status code
 #: assets/js/api-search/src/hooks.js:68
-#: dist/js/instant-results-script.js:1
-#: dist/js/woocommerce-order-search-script.js:1
+#: dist/js/instant-results-script.js:488
+#: dist/js/woocommerce-order-search-script.js:487
+#: dist/js/instant-results-script.js:467
+#: dist/js/woocommerce-order-search-script.js:467
+#, js-format
 msgid "HTTP %d."
 msgstr ""
 
 #: assets/js/blocks/comments/Edit.js:80
-#: dist/js/comments-block-script.js:1
+#: dist/js/comments-block-script.js:134
+#: dist/js/comments-block-script.js:80
 msgid "Search settings"
 msgstr ""
 
 #: assets/js/blocks/comments/Edit.js:83
-#: dist/js/comments-block-script.js:1
+#: dist/js/comments-block-script.js:143
+#: dist/js/comments-block-script.js:83
 msgid "Search all comments"
 msgstr ""
 
 #. translators: %s: Post type label, plural.
 #: assets/js/blocks/comments/Edit.js:89
-#: dist/js/comments-block-script.js:1
+#: dist/js/comments-block-script.js:153
+#: dist/js/comments-block-script.js:89
+#, js-format
 msgid "Search comments on %s"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/empty-response-placeholder.js:21
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-date-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-post-type-block-script.js:1
+#: dist/js/facets-block-script.js:43
+#: dist/js/facets-date-block-script.js:43
+#: dist/js/facets-meta-block-script.js:43
+#: dist/js/facets-post-type-block-script.js:43
+#: dist/js/facets-block-script.js:21
+#: dist/js/facets-date-block-script.js:21
+#: dist/js/facets-meta-block-script.js:21
+#: dist/js/facets-post-type-block-script.js:21
 msgid "Preview unavailable. The selected taxonomy has no terms assigned to searchable content."
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/empty-response-placeholder.js:25
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-date-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-post-type-block-script.js:1
+#: dist/js/facets-block-script.js:43
+#: dist/js/facets-date-block-script.js:43
+#: dist/js/facets-meta-block-script.js:43
+#: dist/js/facets-post-type-block-script.js:43
+#: dist/js/facets-block-script.js:25
+#: dist/js/facets-date-block-script.js:25
+#: dist/js/facets-meta-block-script.js:25
+#: dist/js/facets-post-type-block-script.js:25
 msgid "Preview unavailable. There is no searchable content available with the selected metadata."
 msgstr ""
 
-#: assets/js/blocks/facets/common/components/facet-display-count-control.js:20
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-post-type-block-script.js:1
-msgid "Display count"
-msgstr ""
-
-#: assets/js/blocks/facets/common/components/facet-meta-control.js:29
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-meta-range-block-script.js:1
-msgid "Select key"
-msgstr ""
-
 #: assets/js/blocks/facets/common/components/facet-meta-control.js:43
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-meta-range-block-script.js:1
+#: dist/js/facets-block-script.js:149
+#: dist/js/facets-meta-block-script.js:149
+#: dist/js/facets-meta-range-block-script.js:60
+#: dist/js/facets-block-script.js:101
+#: dist/js/facets-meta-block-script.js:101
+#: dist/js/facets-meta-range-block-script.js:43
 msgid "This is the list of metadata fields indexed in Elasticsearch. If your desired field does not appear in this list please try to <a>sync your content</a>"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-meta-control.js:49
 #: assets/js/blocks/facets/common/components/facet-taxonomy-control.js:43
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-meta-range-block-script.js:1
+#: dist/js/facets-block-script.js:161
+#: dist/js/facets-block-script.js:350
+#: dist/js/facets-meta-block-script.js:161
+#: dist/js/facets-meta-block-script.js:350
+#: dist/js/facets-meta-range-block-script.js:72
+#: dist/js/facets-block-script.js:107
+#: dist/js/facets-block-script.js:246
+#: dist/js/facets-meta-block-script.js:107
+#: dist/js/facets-meta-block-script.js:246
+#: dist/js/facets-meta-range-block-script.js:49
 msgid "Filter by"
 msgstr ""
 
-#: assets/js/blocks/facets/common/components/facet-order-control.js:28
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-post-type-block-script.js:1
-msgctxt "label for ordering posts by title in ascending order"
-msgid "A → Z"
-msgstr ""
-
-#: assets/js/blocks/facets/common/components/facet-order-control.js:36
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-post-type-block-script.js:1
-msgctxt "label for ordering posts by title in descending order"
-msgid "Z → A"
-msgstr ""
-
 #: assets/js/blocks/facets/common/components/facet-order-control.js:47
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-post-type-block-script.js:1
+#: dist/js/facets-block-script.js:224
+#: dist/js/facets-meta-block-script.js:224
+#: dist/js/facets-post-type-block-script.js:140
+#: dist/js/facets-block-script.js:163
+#: dist/js/facets-meta-block-script.js:163
+#: dist/js/facets-post-type-block-script.js:105
 msgid "Order by"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-search-placeholder-control.js:19
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-#: dist/js/facets-post-type-block-script.js:1
+#: dist/js/facets-block-script.js:278
+#: dist/js/facets-meta-block-script.js:278
+#: dist/js/facets-post-type-block-script.js:194
+#: dist/js/facets-block-script.js:195
+#: dist/js/facets-meta-block-script.js:195
+#: dist/js/facets-post-type-block-script.js:137
 msgid "Search field placeholder"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-taxonomy-control.js:29
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-block-script.js:340
+#: dist/js/facets-meta-block-script.js:340
+#: dist/js/facets-block-script.js:232
+#: dist/js/facets-meta-block-script.js:232
 msgid "Select taxonomy"
 msgstr ""
 
-#: assets/js/blocks/facets/date/edit.js:25
-#: dist/js/facets-date-block-script.js:1
-msgid "Display custom date option"
-msgstr ""
-
 #: assets/js/blocks/facets/meta-range/edit.js:94
-#: dist/js/facets-meta-range-block-script.js:1
+#: dist/js/facets-meta-range-block-script.js:398
+#: dist/js/facets-meta-range-block-script.js:232
 msgid "Value prefix"
 msgstr ""
 
 #: assets/js/blocks/facets/meta-range/edit.js:103
-#: dist/js/facets-meta-range-block-script.js:1
+#: dist/js/facets-meta-range-block-script.js:417
+#: dist/js/facets-meta-range-block-script.js:241
 msgid "Value suffix"
 msgstr ""
 
 #. translators: %s: Field name.
 #: assets/js/blocks/facets/meta-range/edit.js:131
-#: dist/js/facets-meta-range-block-script.js:1
+#: dist/js/facets-meta-range-block-script.js:469
+#: dist/js/facets-meta-range-block-script.js:269
+#, js-format
 msgid "Preview unavailable. The \"%s\" field does not appear to contain numeric values. Select a new meta field key or populate the field with numeric values to enable filtering by range."
 msgstr ""
 
 #: assets/js/blocks/related-posts/Edit.js:90
-#: dist/js/related-posts-block-script.js:1
+#: dist/js/related-posts-block-script.js:165
+#: dist/js/related-posts-block-script.js:90
 msgid "No related posts yet."
 msgstr ""
 
 #: assets/js/blocks/related-posts/Edit.js:104
-#: dist/js/related-posts-block-script.js:1
+#: dist/js/related-posts-block-script.js:208
+#: dist/js/related-posts-block-script.js:104
 msgid "(Untitled)"
 msgstr ""
 
 #: assets/js/dashboard.js:60
-#: dist/js/dashboard-script.js:1
+#: dist/js/dashboard-script.js:3184
+#: dist/js/dashboard-script.js:2167
 msgid "Enabling this feature will begin re-syncing your content. Do you wish to proceed?"
 msgstr ""
 
 #: assets/js/dashboard.js:180
-#: dist/js/dashboard-script.js:1
+#: dist/js/dashboard-script.js:3296
+#: dist/js/dashboard-script.js:2287
 msgid "It looks like you’re trying to use ElasticPress’s advanced features only. If you’d like to activate basic search, please select Cancel and activate the Post Search Feature. Otherwise, please click Ok to configure advanced features."
 msgstr ""
 
-#: assets/js/features/apps/features.js:55
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:157
+#: dist/js/features-script.js:236
+#: dist/js/features-script.js:157
 msgid "Could not save feature settings. Please try again."
 msgstr ""
 
-#: assets/js/features/apps/features.js:63
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:165
+#: dist/js/features-script.js:243
+#: dist/js/features-script.js:165
 msgid "View sync status"
 msgstr ""
 
-#: assets/js/features/apps/features.js:70
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:172
+#: dist/js/features-script.js:249
+#: dist/js/features-script.js:172
 msgid "Cannot save settings while a sync is in progress."
 msgstr ""
 
-#: assets/js/features/apps/features.js:75
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:177
+#: dist/js/features-script.js:254
+#: dist/js/features-script.js:177
 msgid "Changes to feature settings discarded."
 msgstr ""
 
-#: assets/js/features/apps/features.js:90
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:192
+#: dist/js/features-script.js:267
+#: dist/js/features-script.js:192
 msgid "If you choose to sync later some settings changes may not take effect until the sync is performed. Save and sync later?"
 msgstr ""
 
-#: assets/js/features/apps/features.js:98
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:200
+#: dist/js/features-script.js:272
+#: dist/js/features-script.js:200
 msgid "Saving these settings will begin re-syncing your content. Save and sync now?"
 msgstr ""
 
-#: assets/js/features/apps/features.js:106
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:208
+#: dist/js/features-script.js:277
+#: dist/js/features-script.js:208
 msgid "Feature settings saved. Starting sync…"
 msgstr ""
 
-#: assets/js/features/apps/features.js:111
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:213
+#: dist/js/features-script.js:282
+#: dist/js/features-script.js:213
 msgid "Feature settings saved."
 msgstr ""
 
-#: assets/js/features/apps/features.js:143
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:256
+#: dist/js/features-script.js:322
+#: dist/js/features-script.js:256
+msgid "Other"
+msgstr ""
+
+#: assets/js/features/apps/features.js:279
+#: dist/js/features-script.js:343
+#: dist/js/features-script.js:279
 msgid "ElasticPress: Could not save feature settings."
 msgstr ""
 
-#: assets/js/features/apps/features.js:245
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:390
+#: dist/js/features-script.js:497
+#: dist/js/features-script.js:390
+msgid "Select a feature above."
+msgstr ""
+
+#: assets/js/features/apps/features.js:410
+#: dist/js/features-script.js:533
+#: dist/js/features-script.js:410
 msgid "Save and sync now"
 msgstr ""
 
-#: assets/js/features/apps/features.js:246
+#: assets/js/features/apps/features.js:411
 #: assets/js/synonyms/apps/synonyms-settings.js:174
 #: assets/js/synonyms/components/common/edit-panel.js:101
 #: assets/js/weighting/apps/weighting.js:59
-#: dist/js/features-script.js:1
-#: dist/js/synonyms-script.js:1
-#: dist/js/weighting-script.js:1
+#: dist/js/features-script.js:533
+#: dist/js/synonyms-script.js:418
+#: dist/js/synonyms-script.js:588
+#: dist/js/weighting-script.js:255
+#: dist/js/features-script.js:411
+#: dist/js/synonyms-script.js:247
+#: dist/js/synonyms-script.js:353
+#: dist/js/weighting-script.js:132
 msgid "Save changes"
 msgstr ""
 
-#: assets/js/features/apps/features.js:258
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:423
+#: dist/js/features-script.js:552
+#: dist/js/features-script.js:423
 msgid "Save and sync later"
 msgstr ""
 
-#: assets/js/features/apps/features.js:265
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:430
+#: dist/js/features-script.js:569
+#: dist/js/features-script.js:430
 msgid "Discard changes"
 msgstr ""
 
-#. translators: Feature name
-#: assets/js/features/components/control.js:88
-#: dist/js/features-script.js:1
+#: assets/js/features/apps/features.js:475
+#: dist/js/features-script.js:653
+#: dist/js/features-script.js:475
+msgid "No features available."
+msgstr ""
+
+#. translators: %s: feature list
+#: assets/js/features/components/control.js:95
+#: dist/js/features-script.js:784
+#: dist/js/features-script.js:579
+#, js-format
 msgid "The %s feature must be enabled to use this feature."
-msgstr ""
+msgid_plural "The %s features must be enabled to use this feature."
+msgstr[0] ""
+msgstr[1] ""
 
-#. translators: Feature name
-#: assets/js/features/components/control.js:90
-#: dist/js/features-script.js:1
+#. translators: %s: feature list
+#: assets/js/features/components/control.js:102
+#: dist/js/features-script.js:785
+#: dist/js/features-script.js:586
+#, js-format
 msgid "The %s feature must be enabled to use the following setting."
-msgstr ""
+msgid_plural "The %s features must be enabled to use the following setting."
+msgstr[0] ""
+msgstr[1] ""
 
-#: assets/js/features/components/control.js:97
-#: dist/js/features-script.js:1
+#: assets/js/features/components/control.js:114
+#: dist/js/features-script.js:790
+#: dist/js/features-script.js:598
 msgid "Enabling this feature requires re-syncing your content."
 msgstr ""
 
-#: assets/js/features/components/control.js:98
-#: dist/js/features-script.js:1
+#: assets/js/features/components/control.js:115
+#: dist/js/features-script.js:790
+#: dist/js/features-script.js:599
 msgid "A change to following setting requires re-syncing your content."
 msgstr ""
 
+#. translators: %1$s: first feature name, %2$s: second feature name
+#. translators: %1$s: comma-separated list of feature names, %2$s: last feature name
+#: assets/js/features/components/control.js:166
+#: assets/js/features/components/control.js:173
+#: dist/js/features-script.js:834
+#: dist/js/features-script.js:837
+#: dist/js/features-script.js:650
+#: dist/js/features-script.js:657
+#, js-format
+msgid "%1$s and %2$s"
+msgstr ""
+
+#: assets/js/features/components/control.js:174
+#: assets/js/instant-results/components/facets/taxonomy-terms-facet.js:43
+#: dist/js/features-script.js:837
+#: dist/js/instant-results-script.js:2614
+#: dist/js/features-script.js:658
+#: dist/js/instant-results-script.js:2015
+msgid ", "
+msgstr ""
+
 #: assets/js/features/components/tab.js:29
-#: dist/js/features-script.js:1
 msgid "Unavailable"
 msgstr ""
 
 #: assets/js/features/index.js:46
-#: dist/js/features-script.js:1
+#: dist/js/features-script.js:15228
+#: dist/js/features-script.js:13991
 msgid "ElasticPress Features add functionality to enhance search and queries on your site. You may choose to activate some or all of these Features depending on your needs. You can learn more about each Feature <a>here</a>."
 msgstr ""
 
-#: assets/js/instant-results/admin/components/facet-selector.js:73
-#: dist/js/instant-results-admin-script.js:1
-msgid "Select filters"
-msgstr ""
-
 #: assets/js/instant-results/apps/modal.js:100
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:981
+#: dist/js/instant-results-script.js:922
 msgid "Search results"
 msgstr ""
 
 #: assets/js/instant-results/components/common/checkbox-list.js:231
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:1279
+#: dist/js/instant-results-script.js:1158
 msgid "Show fewer options"
 msgstr ""
 
 #. translators: %d: Number of additional options available.
 #: assets/js/instant-results/components/common/checkbox-list.js:234
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:1280
+#: dist/js/instant-results-script.js:1161
+#, js-format
 msgid "Show %d more option"
 msgid_plural "Show %d more options"
 msgstr[0] ""
 msgstr[1] ""
 
 #: assets/js/instant-results/components/common/modal.js:90
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:1573
+#: dist/js/instant-results-script.js:1355
 msgid "Close"
 msgstr ""
 
 #. translators: %1$f Rating. %2$d Max rating.
 #: assets/js/instant-results/components/common/star-rating.js:17
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:1945
+#: dist/js/instant-results-script.js:1560
+#, js-format
 msgid "Rated %1$f out of %2$d"
 msgstr ""
 
 #: assets/js/instant-results/components/facets/post-type-facet.js:96
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:2193
+#: dist/js/instant-results-script.js:1714
 msgid "Select content type"
 msgstr ""
 
 #. translators: %1$s: Minimum price. %2$s: Maximum price.
 #: assets/js/instant-results/components/facets/price-range-facet.js:143
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:2416
+#: dist/js/instant-results-script.js:1876
+#, js-format
 msgctxt "Price range"
 msgid "%1$s — %2$s"
 msgstr ""
 
 #: assets/js/instant-results/components/facets/search-term-facet.js:65
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:2509
+#: dist/js/instant-results-script.js:1954
 msgid "Search…"
 msgstr ""
 
 #. translators: %s: Search term.
 #: assets/js/instant-results/components/facets/search-term-facet.js:74
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:2521
+#: dist/js/instant-results-script.js:1963
+#, js-format
 msgid "“%s”"
-msgstr ""
-
-#: assets/js/instant-results/components/facets/taxonomy-terms-facet.js:43
-#: dist/js/instant-results-script.js:1
-msgid ", "
 msgstr ""
 
 #. translators: %1$s: Facet label. $2$s: Facet post types.
 #: assets/js/instant-results/components/facets/taxonomy-terms-facet.js:48
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:2616
+#: dist/js/instant-results-script.js:2020
+#, js-format
 msgid "%1$s (%2$s)"
 msgstr ""
 
 #. translators: %s: Taxonomy name.
 #: assets/js/instant-results/components/facets/taxonomy-terms-facet.js:156
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:2723
+#: dist/js/instant-results-script.js:2128
+#, js-format
 msgid "Select %s"
 msgstr ""
 
 #. translators: %1$d: results count. %2$s: Search term.
-#: assets/js/instant-results/components/layout/results.js:66
-#: dist/js/instant-results-script.js:1
+#: assets/js/instant-results/components/layout/results.js:76
+#: dist/js/instant-results-script.js:3012
+#: dist/js/instant-results-script.js:2301
+#, js-format
 msgid "%1$d result for “%2$s“"
 msgid_plural "%1$d results for “%2$s“"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: results count.
-#: assets/js/instant-results/components/layout/results.js:78
-#: dist/js/instant-results-script.js:1
+#: assets/js/instant-results/components/layout/results.js:88
+#: dist/js/instant-results-script.js:3015
+#: dist/js/instant-results-script.js:2313
+#, js-format
 msgid "%d result"
 msgid_plural "%d results"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/instant-results/components/layout/results.js:89
-#: dist/js/instant-results-script.js:1
+#: assets/js/instant-results/components/layout/results.js:99
+#: dist/js/instant-results-script.js:3043
+#: dist/js/instant-results-script.js:2324
 msgid "Loading results"
 msgstr ""
 
 #. translators: Search term
 #: assets/js/instant-results/components/results/did-you-mean.js:33
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:3216
+#: dist/js/instant-results-script.js:2415
+#, js-format
 msgid "Did you mean: <a>%s</a>"
 msgstr ""
 
 #: assets/js/instant-results/components/results/did-you-mean.js:55
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:3244
+#: dist/js/instant-results-script.js:2437
 msgid "Other suggestions"
 msgstr ""
 
-#: assets/js/instant-results/components/results/pagination.js:48
-#: dist/js/instant-results-script.js:1
-msgid "Previous"
-msgstr ""
-
 #. translators: %1$d: current page. %2$d: total pages.
-#: assets/js/instant-results/components/results/pagination.js:56
-#: dist/js/instant-results-script.js:1
+#: assets/js/instant-results/components/results/pagination.js:95
+#: dist/js/instant-results-script.js:3365
+#: dist/js/instant-results-script.js:2548
+#, js-format
 msgid "Page %1$d of %2$d"
 msgstr ""
 
-#: assets/js/instant-results/components/results/pagination.js:69
-#: dist/js/instant-results-script.js:1
+#: assets/js/instant-results/components/results/pagination.js:116
+#: dist/js/instant-results-script.js:3389
+#: dist/js/instant-results-script.js:2569
+msgid "Previous"
+msgstr ""
+
+#: assets/js/instant-results/components/results/pagination.js:129
+#: dist/js/instant-results-script.js:3408
+#: dist/js/instant-results-script.js:2582
 msgid "Next"
 msgstr ""
 
+#: assets/js/instant-results/components/results/pagination.js:176
+#: dist/js/instant-results-script.js:3466
+#: dist/js/instant-results-script.js:2629
+#, js-format
+msgid "Page %d"
+msgstr ""
+
 #: assets/js/instant-results/components/tools/clear-constraints.js:56
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:3767
+#: dist/js/instant-results-script.js:2843
 msgid "Clear filters"
 msgstr ""
 
 #: assets/js/instant-results/components/tools/sidebar-toggle.js:24
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:3815
+#: dist/js/instant-results-script.js:2871
 msgid "Close filters"
 msgstr ""
 
 #: assets/js/instant-results/components/tools/sidebar-toggle.js:24
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:3815
+#: dist/js/instant-results-script.js:2871
 msgid "All filters"
 msgstr ""
 
 #: assets/js/instant-results/components/tools/sort.js:46
-#: dist/js/instant-results-script.js:1
+#: dist/js/instant-results-script.js:3910
+#: dist/js/instant-results-script.js:2922
 msgid "Sort by"
 msgstr ""
 
-#: assets/js/instant-results/config.js:32
-#: dist/js/instant-results-script.js:1
+#: assets/js/instant-results/config.js:35
+#: dist/js/instant-results-script.js:3999
+#: dist/js/instant-results-script.js:2973
 msgid "Most relevant"
 msgstr ""
 
-#: assets/js/instant-results/config.js:38
-#: dist/js/instant-results-script.js:1
+#: assets/js/instant-results/config.js:41
+#: dist/js/instant-results-script.js:4005
+#: dist/js/instant-results-script.js:2979
 msgid "Date, newest to oldest"
 msgstr ""
 
-#: assets/js/instant-results/config.js:43
-#: dist/js/instant-results-script.js:1
+#: assets/js/instant-results/config.js:46
+#: dist/js/instant-results-script.js:4010
+#: dist/js/instant-results-script.js:2984
 msgid "Date, oldest to newest"
 msgstr ""
 
-#: assets/js/instant-results/config.js:54
-#: dist/js/instant-results-script.js:1
+#: assets/js/instant-results/config.js:57
+#: dist/js/instant-results-script.js:4021
+#: dist/js/instant-results-script.js:2995
 msgid "Price, highest to lowest"
 msgstr ""
 
-#: assets/js/instant-results/config.js:60
-#: dist/js/instant-results-script.js:1
+#: assets/js/instant-results/config.js:63
+#: dist/js/instant-results-script.js:4026
+#: dist/js/instant-results-script.js:3001
 msgid "Price, lowest to highest"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:180
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:199
+#: dist/js/ordering-script.js:228
+#: dist/js/ordering-script.js:199
 msgid "You have added the maximum number of custom results."
 msgstr ""
 
-#: assets/js/ordering/pointers.js:277
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:296
+#: dist/js/ordering-script.js:361
+#: dist/js/ordering-script.js:296
 msgid "Add Post"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:304
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:323
+#: dist/js/ordering-script.js:396
+#: dist/js/ordering-script.js:323
 msgid "Enter your search query above to preview the results."
 msgstr ""
 
-#: assets/js/ordering/pointers.js:317
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:336
+#: dist/js/ordering-script.js:422
+#: dist/js/ordering-script.js:336
 msgid "Loading Result Preview…"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:369
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:388
+#: dist/js/ordering-script.js:498
+#: dist/js/ordering-script.js:388
 msgid "Return to original position"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:370
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:389
+#: dist/js/ordering-script.js:498
+#: dist/js/ordering-script.js:389
 msgid "Remove custom result from results list"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:393
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:412
+#: dist/js/ordering-script.js:535
+#: dist/js/ordering-script.js:412
 msgid "The following posts have been displaced to the next page of search results."
 msgstr ""
 
-#: assets/js/ordering/pointers.js:447
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:466
+#: dist/js/ordering-script.js:617
+#: dist/js/ordering-script.js:466
 msgid "Drag post up or down to reposition"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:469
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:488
+#: dist/js/ordering-script.js:657
+#: dist/js/ordering-script.js:488
 msgid "Custom Result (manually added to list)"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:475
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:494
+#: dist/js/ordering-script.js:681
+#: dist/js/ordering-script.js:494
 msgid "Reordered Default (originally in results, but repositioned)"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:484
-#: dist/js/ordering-script.js:1
+#: assets/js/ordering/pointers.js:503
+#: dist/js/ordering-script.js:697
+#: dist/js/ordering-script.js:503
 msgid "Add to results"
 msgstr ""
 
 #: assets/js/settings.js:93
-#: dist/js/settings-script.js:1
+#: dist/js/settings-script.js:197
+#: dist/js/settings-script.js:150
 msgid "Plug in your ElasticPress.io server here!"
 msgstr ""
 
 #: assets/js/settings.js:94
-#: dist/js/settings-script.js:1
+#: dist/js/settings-script.js:197
+#: dist/js/settings-script.js:151
 msgid "Plug in your Elasticsearch server here!"
 msgstr ""
 
 #: assets/js/sites-admin.js:58
-#: dist/js/sites-admin-script.js:1
+#: dist/js/sites-admin-script.js:204
+#: dist/js/sites-admin-script.js:118
 msgid "On"
 msgstr ""
 
 #: assets/js/sites-admin.js:58
-#: dist/js/sites-admin-script.js:1
+#: dist/js/sites-admin-script.js:204
+#: dist/js/sites-admin-script.js:118
 msgid "Off"
 msgstr ""
 
 #: assets/js/status-report/components/reports.js:44
-#: dist/js/status-report-script.js:1
+#: dist/js/status-report-script.js:210
+#: dist/js/status-report-script.js:117
 msgid "Copied status report to clipboard."
 msgstr ""
 
 #: assets/js/status-report/components/reports.js:113
-#: dist/js/status-report-script.js:1
+#: dist/js/status-report-script.js:280
+#: dist/js/status-report-script.js:186
 msgid "Generating full status report ..."
 msgstr ""
 
 #: assets/js/status-report/components/reports.js:156
-#: dist/js/status-report-script.js:1
+#: dist/js/status-report-script.js:307
+#: dist/js/status-report-script.js:229
 msgid "Successfully generated status report."
 msgstr ""
 
 #: assets/js/status-report/components/reports.js:162
-#: dist/js/status-report-script.js:1
+#: dist/js/status-report-script.js:316
+#: dist/js/status-report-script.js:235
 msgid "This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. This list can also be copy/pasted and shared as needed. As the process can be resource-intensive, the report presented here is partial. You must click the \"Generate Full Status Report\" button to generate a full report."
 msgstr ""
 
 #: assets/js/status-report/components/reports.js:176
-#: dist/js/status-report-script.js:1
+#: dist/js/status-report-script.js:343
+#: dist/js/status-report-script.js:249
 msgid "Generate Full Status Report"
 msgstr ""
 
 #: assets/js/sync-ui/apps/sync.js:62
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:241
+#: dist/js/sync-script.js:135
 msgid "Sync completed."
 msgstr ""
 
 #: assets/js/sync-ui/apps/sync.js:89
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:269
+#: dist/js/sync-script.js:162
 msgid "Starting delete and sync…"
 msgstr ""
 
 #: assets/js/sync-ui/apps/sync.js:108
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:291
+#: dist/js/sync-script.js:181
 msgid "Starting sync…"
 msgstr ""
 
 #: assets/js/sync-ui/apps/sync.js:119
-#: dist/js/sync-script.js:1
-msgid "If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes."
+#: dist/js/sync-script.js:311
+#: dist/js/sync-script.js:192
+msgid "ElasticPress automatically syncs your content every time you create, delete, or update it. After the initial sync, manual syncs are rarely needed unless you make changes to your content programmatically, enable certain features, or change your Elasticsearch mapping via code."
 msgstr ""
 
 #. translators: %s: Index type. ElasticPress.io or Elasticsearch.
 #: assets/js/sync-ui/apps/sync.js:125
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:312
+#: dist/js/sync-script.js:198
+#, js-format
 msgid "Run a sync to index your existing content %s. Once syncing finishes, your site is officially supercharged."
 msgstr ""
 
 #: assets/js/sync-ui/apps/sync.js:130
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:312
+#: dist/js/sync-script.js:203
 msgid "on ElasticPress.io"
 msgstr ""
 
 #: assets/js/sync-ui/apps/sync.js:131
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:312
+#: dist/js/sync-script.js:204
 msgid "in Elasticsearch"
 msgstr ""
 
-#: assets/js/sync-ui/apps/sync.js:148
-#: dist/js/sync-script.js:1
+#: assets/js/sync-ui/apps/sync.js:136
+#: dist/js/sync-script.js:326
+#: dist/js/sync-script.js:209
+msgid "The sync will pause if you close this window. Please keep it open until completion."
+msgstr ""
+
+#: assets/js/sync-ui/apps/sync.js:156
+#: dist/js/sync-script.js:383
+#: dist/js/sync-script.js:229
 msgid "Advanced options"
 msgstr ""
 
-#: assets/js/sync-ui/apps/sync.js:153
-#: dist/js/sync-script.js:1
+#: assets/js/sync-ui/apps/sync.js:161
+#: dist/js/sync-script.js:405
+#: dist/js/sync-script.js:234
 msgid "Sync history"
 msgstr ""
 
 #: assets/js/sync-ui/components/controls.js:31
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:476
+#: dist/js/sync-script.js:274
 msgid "Pausing sync…"
 msgstr ""
 
 #: assets/js/sync-ui/components/controls.js:41
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:486
+#: dist/js/sync-script.js:284
 msgid "Resuming sync…"
 msgstr ""
 
 #: assets/js/sync-ui/components/controls.js:51
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:496
+#: dist/js/sync-script.js:294
 msgid "Sync stopped"
 msgstr ""
 
 #: assets/js/sync-ui/components/controls.js:62
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:519
+#: dist/js/sync-script.js:305
 msgid "Stop sync"
 msgstr ""
 
 #: assets/js/sync-ui/components/controls.js:66
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:528
+#: dist/js/sync-script.js:309
 msgid "Resume sync"
 msgstr ""
 
 #: assets/js/sync-ui/components/controls.js:70
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:537
+#: dist/js/sync-script.js:313
 msgid "Pause sync"
 msgstr ""
 
 #: assets/js/sync-ui/components/controls.js:76
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:546
+#: dist/js/sync-script.js:319
 msgid "Start sync"
 msgstr ""
 
 #: assets/js/sync-ui/components/controls.js:84
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:556
+#: dist/js/sync-script.js:327
 msgid "Learn more about Sync"
 msgstr ""
 
 #: assets/js/sync-ui/components/errors.js:28
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:642
+#: dist/js/sync-script.js:360
 msgid "Error type"
 msgstr ""
 
 #: assets/js/sync-ui/components/errors.js:44
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:680
+#: dist/js/sync-script.js:376
 msgid "No errors found in the log."
 msgstr ""
 
 #: assets/js/sync-ui/components/include.js:52
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:881
+#: dist/js/sync-script.js:476
 msgid "Object IDs"
 msgstr ""
 
 #: assets/js/sync-ui/components/indexables.js:50
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:983
+#: dist/js/sync-script.js:536
 msgid "Content to sync"
 msgstr ""
 
 #: assets/js/sync-ui/components/limits.js:52
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1089
+#: dist/js/sync-script.js:604
 msgid "Sync objects with an ID of this number or higher."
 msgstr ""
 
 #: assets/js/sync-ui/components/limits.js:53
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1090
+#: dist/js/sync-script.js:605
 msgid "Lower object ID"
 msgstr ""
 
 #: assets/js/sync-ui/components/limits.js:66
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1114
+#: dist/js/sync-script.js:618
 msgid "Sync objects with an ID of this number or lower."
 msgstr ""
 
 #: assets/js/sync-ui/components/limits.js:67
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1115
+#: dist/js/sync-script.js:619
 msgid "Higher object ID"
 msgstr ""
 
 #: assets/js/sync-ui/components/log.js:60
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1216
+#: dist/js/sync-script.js:691
 msgid "Copied log to clipboard."
 msgstr ""
 
 #: assets/js/sync-ui/components/log.js:71
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1226
+#: dist/js/sync-script.js:702
 msgid "Log"
 msgstr ""
 
 #. translators: %d: Error message count.
 #: assets/js/sync-ui/components/log.js:77
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1230
+#: dist/js/sync-script.js:708
+#, js-format
 msgid "Errors (%d)"
 msgstr ""
 
 #: assets/js/sync-ui/components/log.js:104
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1292
+#: dist/js/sync-script.js:735
 msgid "Clear log"
 msgstr ""
 
 #: assets/js/sync-ui/components/log.js:109
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1309
+#: dist/js/sync-script.js:740
 msgid "Copy log to clipboard"
 msgstr ""
 
 #: assets/js/sync-ui/components/objects.js:63
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1478
+#: dist/js/sync-script.js:847
 msgid "Objects to sync"
 msgstr ""
 
 #: assets/js/sync-ui/components/objects.js:71
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1484
+#: dist/js/sync-script.js:855
 msgid "Specific IDs"
 msgstr ""
 
 #: assets/js/sync-ui/components/objects.js:75
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1487
+#: dist/js/sync-script.js:859
 msgid "A range of IDs"
 msgstr ""
 
 #: assets/js/sync-ui/components/offset.js:27
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1566
+#: dist/js/sync-script.js:898
 msgid "Specify the number of objects to skip during syncing."
 msgstr ""
 
 #: assets/js/sync-ui/components/offset.js:28
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1567
+#: dist/js/sync-script.js:899
 msgid "Skip objects"
 msgstr ""
 
 #: assets/js/sync-ui/components/post-types.js:45
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1667
+#: dist/js/sync-script.js:953
 msgid "Post types to sync"
 msgstr ""
 
 #: assets/js/sync-ui/components/previous-sync.js:43
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1755
+#: dist/js/sync-script.js:1012
 msgid "Failed."
 msgstr ""
 
 #. translators: number of errors
 #: assets/js/sync-ui/components/previous-sync.js:48
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1758
+#: dist/js/sync-script.js:1017
+#, js-format
 msgid "Completed with %d error."
 msgid_plural "Completed with %d errors."
 msgstr[0] ""
 msgstr[1] ""
 
 #: assets/js/sync-ui/components/previous-sync.js:56
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1758
+#: dist/js/sync-script.js:1025
 msgid "Completed with errors."
 msgstr ""
 
 #: assets/js/sync-ui/components/previous-sync.js:58
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1760
+#: dist/js/sync-script.js:1027
 msgid "Stopped."
 msgstr ""
 
 #: assets/js/sync-ui/components/previous-sync.js:60
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1762
+#: dist/js/sync-script.js:1029
 msgid "Completed successfully."
 msgstr ""
 
 #: assets/js/sync-ui/components/previous-sync.js:62
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1764
+#: dist/js/sync-script.js:1031
 msgid "Completed."
 msgstr ""
 
 #: assets/js/sync-ui/components/previous-sync.js:71
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1773
+#: dist/js/sync-script.js:1040
 msgid "Manual sync from WP CLI."
 msgstr ""
 
 #: assets/js/sync-ui/components/previous-sync.js:76
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1777
+#: dist/js/sync-script.js:1045
 msgid "Automatic sync after settings change."
 msgstr ""
 
 #: assets/js/sync-ui/components/previous-sync.js:78
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1779
+#: dist/js/sync-script.js:1047
 msgid "Automatic sync after installation."
 msgstr ""
 
 #: assets/js/sync-ui/components/previous-sync.js:80
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1781
+#: dist/js/sync-script.js:1049
 msgid "Manual sync following an error in synonyms settings."
 msgstr ""
 
 #: assets/js/sync-ui/components/previous-sync.js:82
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1783
+#: dist/js/sync-script.js:1051
 msgid "Manual sync from Sync Settings."
 msgstr ""
 
 #: assets/js/sync-ui/components/previous-sync.js:84
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1785
+#: dist/js/sync-script.js:1053
 msgid "Automatic sync after plugin update."
 msgstr ""
 
 #. translators: %1$s Sync date and time. %2%s sync trigger.
 #: assets/js/sync-ui/components/previous-sync.js:115
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1831
+#: dist/js/sync-script.js:1084
+#, js-format
 msgctxt "Sync info"
 msgid "%1$s — %2$s"
 msgstr ""
 
 #: assets/js/sync-ui/components/progress.js:48
 #: assets/js/sync/index.js:238
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1912
+#: dist/js/sync-script.js:2591
+#: dist/js/sync-script.js:1146
+#: dist/js/sync-script.js:1695
 msgid "Sync failed"
 msgstr ""
 
 #: assets/js/sync-ui/components/progress.js:56
 #: assets/js/sync/index.js:384
 #: assets/js/sync/index.js:560
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1918
+#: dist/js/sync-script.js:2722
+#: dist/js/sync-script.js:2877
+#: dist/js/sync-script.js:1154
+#: dist/js/sync-script.js:1841
+#: dist/js/sync-script.js:2017
 msgid "Sync paused"
 msgstr ""
 
 #: assets/js/sync-ui/components/progress.js:60
 #: assets/js/sync/index.js:557
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1921
+#: dist/js/sync-script.js:2874
+#: dist/js/sync-script.js:1158
+#: dist/js/sync-script.js:2014
 msgid "WP CLI sync in progress"
 msgstr ""
 
 #: assets/js/sync-ui/components/progress.js:63
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1923
+#: dist/js/sync-script.js:1161
 msgid "Sync in progress"
 msgstr ""
 
 #. translators: %1$s Sync start date and time.
 #: assets/js/sync-ui/components/progress.js:73
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1929
+#: dist/js/sync-script.js:1171
+#, js-format
 msgid "Started manually from WP CLI at <time>%s</time>."
 msgstr ""
 
 #. translators: %1$s Sync start date and time.
 #: assets/js/sync-ui/components/progress.js:79
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1934
+#: dist/js/sync-script.js:1177
+#, js-format
 msgid "Started automatically after a change to feature settings at <time>%s</time>."
 msgstr ""
 
 #. translators: %1$s Sync start date and time.
 #: assets/js/sync-ui/components/progress.js:85
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1937
+#: dist/js/sync-script.js:1183
+#, js-format
 msgid "Started automatically after installing the ElasticPress plugin at <time>%s</time>."
 msgstr ""
 
 #. translators: %1$s Sync start date and time.
 #: assets/js/sync-ui/components/progress.js:91
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1940
+#: dist/js/sync-script.js:1189
+#, js-format
 msgid "Started manually from the Sync page at <time>%s</time>."
 msgstr ""
 
 #. translators: %1$s Sync start date and time.
 #: assets/js/sync-ui/components/progress.js:97
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1943
+#: dist/js/sync-script.js:1195
+#, js-format
 msgid "Started manually from an error on the Synonyms Settings page at <time>%s</time>."
 msgstr ""
 
 #. translators: %1$s Sync start date and time.
 #: assets/js/sync-ui/components/progress.js:103
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1946
+#: dist/js/sync-script.js:1201
+#, js-format
 msgid "Started automatically after updating the ElasticPress plugin at <time>%s</time>."
 msgstr ""
 
 #. translators: %1$s Sync start date and time.
 #: assets/js/sync-ui/components/progress.js:109
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:1949
+#: dist/js/sync-script.js:1207
+#, js-format
 msgid "Started on <time>%s</time>."
 msgstr ""
 
 #: assets/js/sync-ui/components/put-mapping.js:27
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:2086
+#: dist/js/sync-script.js:1277
 msgid "Search results could be out of date or returned in different order while the sync completes."
 msgstr ""
 
 #: assets/js/sync-ui/components/put-mapping.js:37
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:2090
+#: dist/js/sync-script.js:1287
 msgid "All indexed data on ElasticPress will be deleted without affecting anything on your WordPress website. This may take a few hours depending on the amount of content that needs to be synced and indexed. While this is happening, searches will use the default WordPress results."
 msgstr ""
 
 #: assets/js/sync-ui/components/put-mapping.js:42
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:2092
+#: dist/js/sync-script.js:1292
 msgid "Delete all data and start fresh sync"
 msgstr ""
 
 #: assets/js/sync-ui/index.js:46
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:5680
+#: dist/js/sync-script.js:3881
 msgid "Sync Settings"
 msgstr ""
 
 #. translators: %s: Index type. ElasticPress.io or Elasticsearch.
 #: assets/js/sync/index.js:264
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:2612
+#: dist/js/sync-script.js:1721
+#, js-format
 msgid "Your indexing process has been stopped by WP-CLI and your %s index could be missing content. To restart indexing, please click the Start button or use WP-CLI commands to perform the reindex. Please note that search results could be incorrect or incomplete until the reindex finishes."
 msgstr ""
 
 #: assets/js/sync/index.js:272
-#: dist/js/sync-script.js:1
+#: dist/js/sync-script.js:2612
+#: dist/js/sync-script.js:1729
 msgid "Sync interrupted by WP-CLI command."
 msgstr ""
 
-#: assets/js/sync/src/hooks.js:34
-#: dist/js/sync-script.js:1
+#: assets/js/sync/src/hooks.js:52
+#: dist/js/sync-script.js:3011
+#: dist/js/sync-script.js:2130
 msgid "ElasticPress: Unexpected response."
 msgstr ""
 
-#: assets/js/sync/src/hooks.js:50
-#: dist/js/sync-script.js:1
+#: assets/js/sync/src/hooks.js:68
+#: dist/js/sync-script.js:3023
+#: dist/js/sync-script.js:2146
 msgid "Permission denied. Reload the sync page and try again."
 msgstr ""
 
-#: assets/js/sync/src/hooks.js:67
-#: dist/js/sync-script.js:1
+#: assets/js/sync/src/hooks.js:85
+#: dist/js/sync-script.js:3035
+#: dist/js/sync-script.js:2163
 msgid "Something went wrong. Find troubleshooting steps at https://www.elasticpress.io/documentation/article/troubleshooting-guide-elasticpress-something-went-wrong-error/."
 msgstr ""
 
-#: assets/js/sync/src/hooks.js:93
-#: dist/js/sync-script.js:1
+#: assets/js/sync/src/hooks.js:111
+#: dist/js/sync-script.js:3056
+#: dist/js/sync-script.js:2189
 msgid "Unable to parse response. Find troubleshooting steps at https://www.elasticpress.io/documentation/article/troubleshooting-guide-elasticpress-something-went-wrong-error/."
 msgstr ""
 
 #: assets/js/synonyms/apps/synonyms-settings.js:48
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:225
+#: dist/js/synonyms-script.js:121
 msgid "Synonym settings saved."
 msgstr ""
 
 #: assets/js/synonyms/apps/synonyms-settings.js:53
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:228
+#: dist/js/synonyms-script.js:126
 msgid "Could not update index with synonyms. Make sure your data is synced."
 msgstr ""
 
 #: assets/js/synonyms/apps/synonyms-settings.js:69
 #: assets/js/weighting/apps/weighting.js:36
-#: dist/js/synonyms-script.js:1
-#: dist/js/weighting-script.js:1
+#: dist/js/synonyms-script.js:235
+#: dist/js/weighting-script.js:204
+#: dist/js/synonyms-script.js:142
+#: dist/js/weighting-script.js:109
 msgid "Something went wrong. Please try again."
 msgstr ""
 
 #. translators: Synonyms count
 #: assets/js/synonyms/apps/synonyms-settings.js:87
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:256
+#: dist/js/synonyms-script.js:160
+#, js-format
 msgid "Synonyms (%d)"
 msgstr ""
 
 #. translators: Hyponyms count
 #: assets/js/synonyms/apps/synonyms-settings.js:98
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:268
+#: dist/js/synonyms-script.js:171
+#, js-format
 msgid "Hyponyms (%d)"
 msgstr ""
 
 #. translators: Replacements count
 #: assets/js/synonyms/apps/synonyms-settings.js:109
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:280
+#: dist/js/synonyms-script.js:182
+#, js-format
 msgid "Replacements (%d)"
 msgstr ""
 
 #: assets/js/synonyms/apps/synonyms-settings.js:121
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:300
+#: dist/js/synonyms-script.js:194
 msgid "Switch to visual editor"
 msgstr ""
 
 #: assets/js/synonyms/apps/synonyms-settings.js:122
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:300
+#: dist/js/synonyms-script.js:195
 msgid "Switch to advanced text editor"
 msgstr ""
 
 #: assets/js/synonyms/apps/synonyms-settings.js:126
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:307
+#: dist/js/synonyms-script.js:199
 msgid "Synonym rules enable a more flexible search experience that returns relevant results even without an exact match. Rules can be defined as synonyms, for terms with similar meanings; hyponyms, for terms with a hierarchical relationship; or replacements, for corrections and substitutions."
 msgstr ""
 
 #: assets/js/synonyms/apps/synonyms-settings.js:154
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:385
+#: dist/js/synonyms-script.js:227
 msgid "Advanced Synonyms Editor"
 msgstr ""
 
 #: assets/js/synonyms/apps/synonyms-settings.js:158
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:399
+#: dist/js/synonyms-script.js:231
 msgid "ElasticPress uses the Solr format to define your synonym rules for Elasticsearch. Advanced users can use the field below to edit the synonym rules in this format directly. This can also be used to import a large dictionary of synonyms, or to export your synonyms for use on another site."
 msgstr ""
 
 #: assets/js/synonyms/components/common/edit-panel.js:112
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:606
+#: dist/js/synonyms-script.js:364
 msgid "Cancel"
 msgstr ""
 
 #: assets/js/synonyms/components/common/list-table.js:149
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:832
+#: dist/js/synonyms-script.js:559
 msgid "Delete selected"
 msgstr ""
 
 #: assets/js/synonyms/components/common/row-actions.js:42
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:994
+#: dist/js/synonyms-script.js:625
 msgid "Edit"
 msgstr ""
 
 #: assets/js/synonyms/components/common/row-actions.js:50
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1012
+#: dist/js/synonyms-script.js:633
 msgid "Delete"
 msgstr ""
 
 #: assets/js/synonyms/components/editors/solr-editor.js:34
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1072
+#: dist/js/synonyms-script.js:674
 msgid "Solr synonyms"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:26
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1594
+#: dist/js/synonyms-script.js:1046
 msgid "<p><strong>Hyponyms</strong> are terms with a more specific meaning than another more generic terms, called a <strong>hypernym</strong>. For example, <em>aqua</em>, <em>azure</em>, and <em>cerulean</em> are all hyponyms of <em>blue</em>, their hypernym.</p>"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:32
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1594
+#: dist/js/synonyms-script.js:1052
 msgid "<p>Use hyponyms when you want search queries for a parent term to return results relevant to itself or any of its child terms, but search queries for a child term to only return results that are relevant to that term. For example, when a search for \"blue\" should return anything blue, whether it be aqua, azure, or cerulean, but a search for \"cerulean\" should return only items that are specifically cerulean blue.</p>"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:40
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1596
+#: dist/js/synonyms-script.js:1060
 msgid "Add hyponyms"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:41
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1597
+#: dist/js/synonyms-script.js:1061
 msgid "Edit Hyponyms"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:42
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1598
+#: dist/js/synonyms-script.js:1062
 msgid "Add Hyponyms"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:43
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1599
+#: dist/js/synonyms-script.js:1063
 msgid "Hypernym"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:44
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1600
+#: dist/js/synonyms-script.js:1064
 msgid "Hyponyms"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:47
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1603
+#: dist/js/synonyms-script.js:1067
 msgid "Added hyponyms."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:48
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1604
+#: dist/js/synonyms-script.js:1068
 msgid "Deleted hyponyms."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:49
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1605
+#: dist/js/synonyms-script.js:1069
 msgid "Hyponym sets require a hypernym and at least one hyponym that is not the hypernym."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/hyponyms.js:53
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1606
+#: dist/js/synonyms-script.js:1073
 msgid "Updated hyponyms."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:26
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1666
+#: dist/js/synonyms-script.js:1107
 msgid "<p><strong>Replacements</strong> are terms that replace other incorrect or obsolete terms.</p>"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:32
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1666
+#: dist/js/synonyms-script.js:1113
 msgid "<p>Use replacements when you want search queries for certain terms to return results that are only relevant to another term, or set of terms. This can be useful for supporting specific typos or incorrect phrasing. For example, when a search for the phrase \"intensive purposes\" should only return results including the phrase \"intents and purposes\".</p>"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:40
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1673
+#: dist/js/synonyms-script.js:1121
 msgid "You may need to <a>disable fuzziness</a> to have it working properly."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:58
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1690
+#: dist/js/synonyms-script.js:1139
 msgid "Add replacements"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:59
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1691
+#: dist/js/synonyms-script.js:1140
 msgid "Edit Replacements"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:60
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1692
+#: dist/js/synonyms-script.js:1141
 msgid "Add Replacements"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:62
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1694
+#: dist/js/synonyms-script.js:1143
 msgid "Replacements"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:65
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1697
+#: dist/js/synonyms-script.js:1146
 msgid "Added replacements."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:66
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1698
+#: dist/js/synonyms-script.js:1147
 msgid "Deleted replacements."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:67
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1699
+#: dist/js/synonyms-script.js:1148
 msgid "Replacement sets require at least one term and one replacement."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/replacements.js:71
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1700
+#: dist/js/synonyms-script.js:1152
 msgid "Updated replacements."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/synonyms.js:26
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1760
+#: dist/js/synonyms-script.js:1186
 msgid "<p><strong>Synonyms</strong> are terms with similar meanings. For example, <em>sneaker</em>, <em>tennis shoe</em>, <em>trainer</em>, and <em>running shoe</em> could all refer to a particular type of shoe.</p>"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/synonyms.js:32
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1760
+#: dist/js/synonyms-script.js:1192
 msgid "<p>Use synonyms when you want queries for a specific term to also return results relevant to any of its synonyms. This can be useful for supporting products and services whose names have changed over time or regional variations in terminology. For example, when a search for \"sneaker\" should return sneakers, tennis shoes, trainers and running shoes.</p>"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/synonyms.js:40
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1762
+#: dist/js/synonyms-script.js:1200
 msgid "Add synonyms"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/synonyms.js:41
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1763
+#: dist/js/synonyms-script.js:1201
 msgid "Edit Synonyms"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/synonyms.js:42
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1764
+#: dist/js/synonyms-script.js:1202
 msgid "Add Synonyms"
 msgstr ""
 
 #: assets/js/synonyms/components/groups/synonyms.js:46
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1768
+#: dist/js/synonyms-script.js:1206
 msgid "Added synonyms."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/synonyms.js:47
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1769
+#: dist/js/synonyms-script.js:1207
 msgid "Deleted synonyms."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/synonyms.js:48
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1770
+#: dist/js/synonyms-script.js:1208
 msgid "Synonym sets require at least two synonyms."
 msgstr ""
 
 #: assets/js/synonyms/components/groups/synonyms.js:49
-#: dist/js/synonyms-script.js:1
+#: dist/js/synonyms-script.js:1771
+#: dist/js/synonyms-script.js:1209
 msgid "Updated synonyms."
 msgstr ""
 
 #: assets/js/weighting/apps/weighting.js:34
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:202
+#: dist/js/weighting-script.js:107
 msgid "Settings saved."
 msgstr ""
 
 #: assets/js/weighting/apps/weighting.js:43
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:214
+#: dist/js/weighting-script.js:116
 msgid "This dashboard enables you to select which fields ElasticPress should sync, whether to use those fields in searches, and how heavily to weight fields in the search algorithm. In general, increasing the Weight of a field will increase the relevancy score of a post that has matching text in that field."
 msgstr ""
 
 #: assets/js/weighting/apps/weighting.js:49
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:221
+#: dist/js/weighting-script.js:122
 msgid "For example, adding more weight to the title attribute will cause search matches on the post title to appear more prominently."
 msgstr ""
 
 #: assets/js/weighting/components/field.js:61
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:380
+#: dist/js/weighting-script.js:199
 msgid "Searchable"
 msgstr ""
 
 #: assets/js/weighting/components/field.js:69
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:399
+#: dist/js/weighting-script.js:207
 msgid "Weight"
 msgstr ""
 
 #. translators: Field name
 #: assets/js/weighting/components/group.js:111
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:574
+#: dist/js/weighting-script.js:340
+#, js-format
 msgid "%s is already being synced."
 msgstr ""
 
 #: assets/js/weighting/components/group.js:178
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:672
+#: dist/js/weighting-script.js:407
 msgid "Make sure to Sync after adding new fields to ensure that the fields are synced for any existing content that uses them."
 msgstr ""
 
 #: assets/js/weighting/components/group.js:182
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:673
+#: dist/js/weighting-script.js:411
 msgid "Add field"
 msgstr ""
 
 #: assets/js/weighting/components/group.js:185
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:676
+#: dist/js/weighting-script.js:414
 msgid "Metadata key"
 msgstr ""
 
 #: assets/js/weighting/components/group.js:191
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:697
+#: dist/js/weighting-script.js:420
 msgid "Add"
 msgstr ""
 
 #: assets/js/weighting/index.js:26
-#: dist/js/weighting-script.js:1
+#: dist/js/weighting-script.js:4431
+#: dist/js/weighting-script.js:3259
 msgid "Manage Search Fields & Weighting"
 msgstr ""
 
 #. translators: %d: Number of options in the list.
 #: assets/js/woocommerce/admin/orders/app/components/combobox.js:42
-#: dist/js/woocommerce-order-search-script.js:1
+#: dist/js/woocommerce-order-search-script.js:1132
+#: dist/js/woocommerce-order-search-script.js:1056
+#, js-format
 msgid "%d suggestion available, use the up and down keys to browse and the enter key to open"
 msgid_plural "%d suggestions available, use the up and down keys to browse and the enter key to open"
 msgstr[0] ""
@@ -3741,7 +4195,9 @@ msgstr[1] ""
 
 #. translators: %1$d: Order item count. %2$s: Order time.
 #: assets/js/woocommerce/admin/orders/app/components/suggestion.js:59
-#: dist/js/woocommerce-order-search-script.js:1
+#: dist/js/woocommerce-order-search-script.js:1471
+#: dist/js/woocommerce-order-search-script.js:1327
+#, js-format
 msgid "%1$d item @ %2$s"
 msgid_plural "%1$d items @ %2$s"
 msgstr[0] ""

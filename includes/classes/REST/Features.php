@@ -29,10 +29,17 @@ class Features {
 			'elasticpress/v1',
 			'features',
 			[
-				'args'                => $this->get_args(),
-				'callback'            => [ $this, 'update_settings' ],
-				'methods'             => 'PUT',
-				'permission_callback' => [ $this, 'check_permission' ],
+				[
+					'callback'            => [ $this, 'get_features' ],
+					'methods'             => 'GET',
+					'permission_callback' => [ $this, 'check_permission' ],
+				],
+				[
+					'args'                => $this->get_args(),
+					'callback'            => [ $this, 'update_settings' ],
+					'methods'             => 'PUT',
+					'permission_callback' => [ $this, 'check_permission' ],
+				],
 			]
 		);
 	}
@@ -78,6 +85,9 @@ class Features {
 						$property['type']   = 'string';
 						$property['format'] = 'uri';
 						break;
+					case 'field_group':
+						$property['type']       = 'object';
+						$property['properties'] = [];
 				}
 
 				$properties[ $schema['key'] ] = $property;
@@ -88,6 +98,10 @@ class Features {
 				'properties'  => $properties,
 				'type'        => 'object',
 			];
+
+			if ( method_exists( $feature, 'sanitize_settings_callback' ) ) {
+				$args[ $feature->slug ]['sanitize_callback'] = [ $feature, 'sanitize_settings_callback' ];
+			}
 		}
 
 		return $args;
@@ -138,10 +152,30 @@ class Features {
 			$schema = $feature->get_settings_schema();
 
 			foreach ( $schema as $schema ) {
-				$key = $schema['key'];
+				$key  = $schema['key'];
+				$type = $schema['type'] ?? '';
 
 				if ( isset( $param[ $key ] ) ) {
-					$new_settings[ $slug ][ $key ] = $param[ $key ];
+					// Handle field group values
+					if ( 'field_group' === $type ) {
+						// Save the nested structure for the settings UI
+						$new_settings[ $slug ][ $key ] = $param[ $key ];
+
+						// Flatten the field group values into the main settings array
+						foreach ( $schema['fields'] as $field ) {
+							$field_key = $field['key'];
+							if ( isset( $param[ $key ][ $field_key ] ) ) {
+								$new_settings[ $slug ][ $field_key ] = $param[ $key ][ $field_key ];
+
+								// Only apply to current settings if no sync required
+								if ( empty( $schema['requires_sync'] ) ) {
+									$current_settings[ $slug ][ $field_key ] = $param[ $key ][ $field_key ];
+								}
+							}
+						}
+					} else {
+						$new_settings[ $slug ][ $key ] = $param[ $key ];
+					}
 
 					// Only apply to the current settings if does not require a sync or if it is activating it
 					if ( ! empty( $schema['requires_sync'] ) && ! empty( $param[ $key ] ) ) {
@@ -169,7 +203,17 @@ class Features {
 
 		foreach ( $settings_that_requires_features as $feature => $fields ) {
 			foreach ( $fields as $field_key => $field_data ) {
-				if ( ! empty( $current_settings[ $field_data['required_feature'] ]['active'] ) ) {
+				$required_features = (array) $field_data['required_feature'];
+
+				$all_required_active = true;
+				foreach ( $required_features as $required_feature_slug ) {
+					if ( empty( $current_settings[ $required_feature_slug ]['active'] ) ) {
+						$all_required_active = false;
+						break;
+					}
+				}
+
+				if ( $all_required_active ) {
 					$current_settings[ $feature ][ $field_key ] = $field_data['value'];
 				}
 			}
@@ -184,8 +228,44 @@ class Features {
 		}
 
 		return [
-			'data'    => $current_settings,
 			'success' => true,
 		];
+	}
+
+	/**
+	 * Return the current features payload along with persisted settings.
+	 *
+	 * @since 5.3.0
+	 * @return array
+	 */
+	public function get_features() {
+		$store = FeaturesStore::factory();
+
+		$settings       = $store->get_feature_settings();
+		$settings_draft = $store->get_feature_settings_draft();
+
+		return [
+			'features'      => $this->get_features_payload(),
+			'settings'      => is_array( $settings ) ? $settings : [],
+			'settingsDraft' => is_array( $settings_draft ) ? $settings_draft : null,
+			'success'       => true,
+		];
+	}
+
+	/**
+	 * Build the serialized features payload.
+	 *
+	 * @since 5.3.0
+	 * @return array
+	 */
+	protected function get_features_payload() {
+		$features_objects = FeaturesStore::factory()->registered_features;
+
+		foreach ( $features_objects as $feature ) {
+			$feature->reset_settings_schema();
+		}
+
+		$features_data = array_map( fn( $feature ) => $feature->get_json(), $features_objects );
+		return array_values( $features_data );
 	}
 }
