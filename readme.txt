@@ -88,7 +88,7 @@ __Added:__
 
 __Changed:__
 
-* Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad).
+* Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad) and [@felipeelia](https://github.com/felipeelia).
 
 __Fixed:__
 
@@ -103,6 +103,9 @@ __Fixed:__
 * Disable `cache_results` for cross-site queries (`site__in`, `site__not_in`, or `ep_search_scope` set to `all`) and when a persistent object cache is in use. The posts cache is per-blog and keyed by post ID only, so a later `get_post()` for a local ID could return another site's content. Props [@burhandodhy](https://github.com/burhandodhy) and [@dannyreaktiv](https://github.com/dannyreaktiv).
 * Guard the `post_author` read in `format_hits_as_posts()`, preventing PHP warnings and a fatal error when the field is missing or malformed in an Elasticsearch hit. Props [@freibergergarcia](https://github.com/freibergergarcia).
 * Load React admin screens and Instant Results on WordPress 6.2 by registering the `react-jsx-runtime` script handle that 10up-toolkit requires and WordPress only ships from 6.6. Props [@felipeelia](https://github.com/felipeelia).
+* Prevent a WordPress 7.1 deprecation warning by using the `help` prop instead of `__experimentalShowHowTo` on FormTokenField. Props [@burhandodhy](https://github.com/burhandodhy).
+* Fix the Features page notice layout on WordPress 7.1. Props [@burhandodhy](https://github.com/burhandodhy).
+* Update ElasticPress.io article URLs to the `/resources/articles/` path. Props [@burhandodhy](https://github.com/burhandodhy).
 
 __Security:__
 
