@@ -208,54 +208,6 @@ class TestSettings extends BaseTestCase {
 	}
 
 	/**
-	 * Test that checking the "remove token" checkbox clears the stored token.
-	 *
-	 * @group screen
-	 * @group settings-screen
-	 */
-	public function test_action_admin_init_remove_token_checkbox_clears_stored_token() {
-		global $_POST;
-
-		if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) {
-			$this->markTestSkipped( 'EP_CREDENTIALS constant overrides the option.' );
-		}
-
-		$previous_epio_environment = getenv( 'IS_EPIO_ENVIRONMENT' );
-		// Make is_epio() true so get_epio_credentials() reads the option.
-		putenv( 'IS_EPIO_ENVIRONMENT=1' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
-
-		try {
-			$settings = new Settings();
-
-			Utils\update_option(
-				'ep_credentials',
-				[
-					'username' => 'u',
-					'token'    => 'secret',
-				]
-			);
-
-			$_POST = [
-				'ep_settings_nonce' => wp_create_nonce( 'elasticpress_settings' ),
-				'ep_language'       => 'site-default',
-				'ep_host'           => Utils\get_host(),
-				'ep_credentials'    => [
-					'username' => 'u',
-					'token'    => '',
-				],
-				'ep_remove_token'   => '1',
-			];
-
-			$settings->action_admin_init();
-
-			$this->assertSame( '', Utils\get_option( 'ep_credentials' )['token'] );
-			$this->assertSame( 'u', Utils\get_option( 'ep_credentials' )['username'] );
-		} finally {
-			putenv( false === $previous_epio_environment ? 'IS_EPIO_ENVIRONMENT' : "IS_EPIO_ENVIRONMENT={$previous_epio_environment}" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
-		}
-	}
-
-	/**
 	 * Test the `add_validation_notice` method
 	 *
 	 * @group screen
@@ -280,6 +232,47 @@ class TestSettings extends BaseTestCase {
 				'It was not possible to connect to your Elasticsearch server.',
 				$output
 			);
+		}
+
+		$this->assertStringContainsString( 'Please check your settings and try again.', $output );
+		$this->assertStringNotContainsString(
+			'If you are trying to disconnect your account, disable the ElasticPress plugin instead.',
+			$output
+		);
+	}
+
+	/**
+	 * Test that the revert notice tells ElasticPress.io users how to disconnect.
+	 *
+	 * @group screen
+	 * @group settings-screen
+	 */
+	public function test_add_validation_notice_disconnect_guidance() {
+		$settings = new Settings();
+
+		$previous_epio_environment = getenv( 'IS_EPIO_ENVIRONMENT' );
+		putenv( 'IS_EPIO_ENVIRONMENT=1' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+
+		try {
+			$reflection = new \ReflectionClass( $settings );
+			$property   = $reflection->getProperty( 'prev_ep_host' );
+			$property->setAccessible( true );
+			$property->setValue( $settings, 'https://example.elasticpress.io' );
+
+			ob_start();
+			$settings->add_validation_notice();
+			$output = ob_get_clean();
+
+			$this->assertStringContainsString(
+				'It was not possible to connect to your ElasticPress.io account. Your settings were reverted.',
+				$output
+			);
+			$this->assertStringContainsString(
+				'If you are trying to disconnect your account, disable the ElasticPress plugin instead.',
+				$output
+			);
+		} finally {
+			putenv( false === $previous_epio_environment ? 'IS_EPIO_ENVIRONMENT' : "IS_EPIO_ENVIRONMENT={$previous_epio_environment}" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
 		}
 	}
 }

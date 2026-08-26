@@ -98,21 +98,11 @@ class Settings {
 		}
 
 		if ( isset( $post['ep_credentials'] ) && ( ! defined( 'EP_CREDENTIALS' ) || ! EP_CREDENTIALS ) ) {
-			if ( ! empty( $post['ep_remove_token'] ) ) {
-				$username    = isset( $post['ep_credentials']['username'] )
-					? sanitize_text_field( $post['ep_credentials']['username'] )
-					: ( $this->prev_ep_credentials['username'] ?? '' );
-				$credentials = [
-					'username' => $username,
-					'token'    => '',
-				];
-			} else {
-				$credentials = Utils\sanitize_credentials( $post['ep_credentials'] );
+			$credentials = Utils\sanitize_credentials( $post['ep_credentials'] );
 
-				// Preserve the existing token if the field was left empty (it is always empty on load).
-				if ( empty( $credentials['token'] ) ) {
-					$credentials['token'] = $this->prev_ep_credentials['token'];
-				}
+			// Preserve the existing token if the field was left empty (it is always empty on load).
+			if ( empty( $credentials['token'] ) ) {
+				$credentials['token'] = $this->prev_ep_credentials['token'];
 			}
 
 			Utils\update_option( 'ep_credentials', $credentials );
@@ -143,7 +133,9 @@ class Settings {
 			_x( 'ElasticPress.io account', 'Settings validation message', 'elasticpress' ) :
 			_x( 'Elasticsearch server', 'Settings validation message', 'elasticpress' );
 
-		if ( empty( $this->prev_ep_host ) ) {
+		$is_first_setup = empty( $this->prev_ep_host );
+
+		if ( $is_first_setup ) {
 			// Setting it for the first time -- probably during the install process.
 			$message = sprintf(
 				/* translators: EP.io account or ES server. */
@@ -162,6 +154,11 @@ class Settings {
 			<p>
 				<?php echo wp_kses( $message, 'ep-html' ); ?>
 			</p>
+			<?php if ( Utils\is_epio() && ! $is_first_setup ) : ?>
+				<p>
+					<?php esc_html_e( 'If you are trying to disconnect your account, disable the ElasticPress plugin instead.', 'elasticpress' ); ?>
+				</p>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
