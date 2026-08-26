@@ -206,17 +206,17 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await activatePlugin(loggedInPage, 'enable-debug-bar');
 
 			// Enable payment gateway
-			await wpCliEval(`
-				$settings = get_option( 'woocommerce_cod_settings', [] );
-				if ( ! is_array( $settings ) ) {
-					$settings = [];
-				}
-				$settings['enabled'] = 'yes';
-				update_option( 'woocommerce_cod_settings', $settings );
-				if ( function_exists( 'WC' ) && WC()->payment_gateways() ) {
-					WC()->payment_gateways()->init();
-				}
-			`);
+			await goToAdminPage(
+				loggedInPage,
+				'admin.php?page=wc-settings&tab=checkout&section=cod',
+			);
+			const checkboxLabel = (await isWcVersionAtLeast('9.8.0'))
+				? 'Enable cash on delivery payments'
+				: 'Enable cash on delivery';
+
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 
 			// Disable coming soon option
 			await wpCli('option update woocommerce_coming_soon off');
@@ -255,24 +255,20 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.locator('#email, #billing_email').clear();
 			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
 
-			// WooCommerce hides the radio and checks it for us when cash on
-			// delivery is the only gateway available, so it can only be selected
-			// when a second gateway makes it visible.
-			const codMethod = loggedInPage.locator('#payment_method_cod');
-			if ((await codMethod.count()) > 0 && !(await codMethod.isChecked())) {
-				await codMethod.check();
-			}
+			/**
+			 * Blurring the last field lets the Checkout block push the customer
+			 * data and re-render before we submit. Without this the blur happens
+			 * on mousedown, the button is re-rendered before mouseup, and the
+			 * browser never fires a click event.
+			 */
+			await loggedInPage.locator('#email, #billing_email').blur();
+			await loggedInPage.waitForLoadState('networkidle');
 
-			// WooCommerce 8.3 made the checkout block the default for new
-			// installs; older versions still render the shortcode checkout.
-			if (await isWcVersionAtLeast('8.3.0')) {
-				await loggedInPage.waitForTimeout(1000);
-				await loggedInPage
-					.locator('.wc-block-components-checkout-place-order-button')
-					.click();
-			} else {
-				await loggedInPage.locator('#place_order').click();
-			}
+			const placeOrderResponse = loggedInPage.waitForResponse((response) =>
+				response.url().includes('/wp-json/wc/store/v1/checkout'),
+			);
+			await loggedInPage.locator('.wc-block-components-checkout-place-order-button').click();
+			await placeOrderResponse;
 
 			// Ensure order is placed
 			await expect(loggedInPage).toHaveURL(/.*\/checkout\/order-received/);
@@ -914,18 +910,15 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await activatePlugin(loggedInPage, 'enable-debug-bar');
 
 			// Enable payment gateway
-			// Enable payment gateway
-			await wpCliEval(`
-				$settings = get_option( 'woocommerce_cod_settings', [] );
-				if ( ! is_array( $settings ) ) {
-					$settings = [];
-				}
-				$settings['enabled'] = 'yes';
-				update_option( 'woocommerce_cod_settings', $settings );
-				if ( function_exists( 'WC' ) && WC()->payment_gateways() ) {
-					WC()->payment_gateways()->init();
-				}
-			`);
+			await goToAdminPage(
+				loggedInPage,
+				'admin.php?page=wc-settings&tab=checkout&section=cod',
+			);
+			const checkboxLabel = 'Enable cash on delivery payments';
+
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 
 			// Disable coming soon option
 			await wpCli('option update woocommerce_coming_soon off');
@@ -964,9 +957,20 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.locator('#email, #billing_email').clear();
 			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
 
-			// Check WooCommerce version and place order accordingly
-			await loggedInPage.waitForTimeout(1000);
+			/**
+			 * Blurring the last field lets the Checkout block push the customer
+			 * data and re-render before we submit. Without this the blur happens
+			 * on mousedown, the button is re-rendered before mouseup, and the
+			 * browser never fires a click event.
+			 */
+			await loggedInPage.locator('#email, #billing_email').blur();
+			await loggedInPage.waitForLoadState('networkidle');
+
+			const placeOrderResponse = loggedInPage.waitForResponse((response) =>
+				response.url().includes('/wp-json/wc/store/v1/checkout'),
+			);
 			await loggedInPage.locator('.wc-block-components-checkout-place-order-button').click();
+			await placeOrderResponse;
 
 			// Ensure order is placed
 			await expect(loggedInPage).toHaveURL(/.*\/checkout\/order-received/);
