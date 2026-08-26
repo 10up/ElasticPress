@@ -84,7 +84,7 @@ test.describe('Settings page Subscription Token field', { tag: '@group1' }, () =
 		).toBeVisible();
 		await expect(
 			notice.getByText(
-				'If you are trying to disconnect your account, disable the ElasticPress plugin instead.',
+				"If you are trying to deactivate your site's communication with ElasticPress.io, temporarily disable the ElasticPress plugin instead.",
 			),
 		).toBeVisible();
 	});

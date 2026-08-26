@@ -156,7 +156,7 @@ class Settings {
 			</p>
 			<?php if ( Utils\is_epio() && ! $is_first_setup ) : ?>
 				<p>
-					<?php esc_html_e( 'If you are trying to disconnect your account, disable the ElasticPress plugin instead.', 'elasticpress' ); ?>
+					<?php esc_html_e( 'If you are trying to deactivate your site\'s communication with ElasticPress.io, temporarily disable the ElasticPress plugin instead.', 'elasticpress' ); ?>
 				</p>
 			<?php endif; ?>
 		</div>

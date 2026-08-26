@@ -236,7 +236,7 @@ class TestSettings extends BaseTestCase {
 
 		$this->assertStringContainsString( 'Please check your settings and try again.', $output );
 		$this->assertStringNotContainsString(
-			'If you are trying to disconnect your account, disable the ElasticPress plugin instead.',
+			'If you are trying to deactivate your site&#039;s communication with ElasticPress.io, temporarily disable the ElasticPress plugin instead.',
 			$output
 		);
 	}
@@ -268,7 +268,7 @@ class TestSettings extends BaseTestCase {
 				$output
 			);
 			$this->assertStringContainsString(
-				'If you are trying to disconnect your account, disable the ElasticPress plugin instead.',
+				'If you are trying to deactivate your site&#039;s communication with ElasticPress.io, temporarily disable the ElasticPress plugin instead.',
 				$output
 			);
 		} finally {
