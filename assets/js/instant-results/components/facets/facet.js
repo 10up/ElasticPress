@@ -29,7 +29,7 @@ export default ({ index, label, name, postTypes, type }) => {
 	 * Filter the filter label.
 	 *
 	 * @filter ep.InstantResults.filter.label
-	 * @since 5.3.0
+	 * @since 5.4.0
 	 *
 	 * @param {string} label Filter label.
 	 * @param {string} name Filter name.

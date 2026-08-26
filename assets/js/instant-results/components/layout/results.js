@@ -9,7 +9,7 @@ import { _n, sprintf, __ } from '@wordpress/i18n';
  */
 import { useApiSearch } from '../../../api-search';
 import Pagination from '../results/pagination';
-import Result from '../results/result';
+import ResultsList from '../results/results-list';
 import Sort from '../tools/sort';
 import DidYouMean from '../results/did-you-mean';
 
@@ -20,6 +20,7 @@ import DidYouMean from '../results/did-you-mean';
  */
 export default () => {
 	const {
+		aggregations,
 		args: { offset, per_page, highlight },
 		nextPage,
 		previousPage,
@@ -106,9 +107,13 @@ export default () => {
 				suggestedTerms={suggestedTerms}
 				totalResults={totalResults}
 			/>
-			{searchResults.map((hit) => (
-				<Result key={hit._id} hit={hit} searchTerm={searchTerm} highlightTag={highlight} />
-			))}
+			<ResultsList
+				aggregations={aggregations}
+				highlightTag={highlight}
+				searchResults={searchResults}
+				searchTerm={searchTerm}
+				totalResults={totalResults}
+			/>
 
 			<Pagination
 				offset={offset}

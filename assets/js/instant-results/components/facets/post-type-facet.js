@@ -72,7 +72,7 @@ export default ({ defaultIsOpen, label }) => {
 		 * Filter the post type filter options.
 		 *
 		 * @filter ep.InstantResults.filter.postType.options
-		 * @since 5.3.0
+		 * @since 5.4.0
 		 *
 		 * @param {object[]} options Post type filter options.
 		 * @returns {object[]} Filtered post type filter options.

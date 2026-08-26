@@ -198,7 +198,7 @@ const Pagination = (props) => {
 	 * Filter the pagination component.
 	 *
 	 * @filter ep.InstantResults.component.pagination
-	 * @since 5.3.0
+	 * @since 5.4.0
 	 *
 	 * @param {WPElement} pagination Pagination component.
 	 * @param {object} props Props.

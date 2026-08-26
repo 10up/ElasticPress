@@ -73,7 +73,7 @@ export default (props) => {
 	 * Filter the did you mean component.
 	 *
 	 * @filter ep.InstantResults.component.didYouMean
-	 * @since 5.3.0
+	 * @since 5.4.0
 	 *
 	 * @param {WPElement} didYouMean Did you mean component.
 	 * @param {object} props Props.
