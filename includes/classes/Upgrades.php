@@ -51,6 +51,7 @@ class Upgrades {
 			'4.5.0' => [ 'upgrade_4_5_0', 'init' ],
 			'4.7.0' => [ 'upgrade_4_7_0', 'init' ],
 			'5.0.0' => [ 'upgrade_5_0_0', 'init' ],
+			'5.4.0' => [ 'upgrade_5_4_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -343,6 +344,50 @@ class Upgrades {
 
 		return $notices;
 	}
+
+	/**
+	 * Upgrade routine of v5.4.0.
+	 *
+	 * Query integration with WooCommerce Orders stored using HPOS is new in this
+	 * version and requires a sync before it can return accurate results. Sites
+	 * already running HPOS get the integration disabled so they keep their
+	 * current behavior and can opt in when they are ready.
+	 *
+	 * @since 5.4.0
+	 */
+	public function upgrade_5_4_0() {
+		// Fresh installations have nothing to preserve, so they use the default value.
+		if ( false === $this->old_version ) {
+			return;
+		}
+
+		if (
+			! function_exists( 'wc_get_container' )
+			|| ! class_exists( '\Automattic\WooCommerce\Internal\Features\FeaturesController' )
+		) {
+			return;
+		}
+
+		$features_controller = wc_get_container()->get( \Automattic\WooCommerce\Internal\Features\FeaturesController::class );
+		if ( ! $features_controller->feature_is_enabled( 'custom_order_tables' ) ) {
+			return;
+		}
+
+		$woocommerce = Features::factory()->get_registered_feature( 'woocommerce' );
+		if ( ! $woocommerce ) {
+			return;
+		}
+
+		$settings = (array) Utils\get_option( 'ep_feature_settings' );
+		if ( isset( $settings[ $woocommerce->slug ]['disable_hpos'] ) ) {
+			return;
+		}
+
+		$settings[ $woocommerce->slug ]['disable_hpos'] = '1';
+
+		Utils\update_option( 'ep_feature_settings', $settings );
+	}
+
 
 	/**
 	 * Check if a reindex is needed based on the version number.
