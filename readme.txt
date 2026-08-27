@@ -1,8 +1,8 @@
 === ElasticPress ===
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
-Tested up to: 7.0
-Stable tag:   5.3.3
+Tested up to: 7.1
+Stable tag:   5.3.4
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,60 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 5.3.4 - 2026-08-27 =
+
+__Added:__
+
+* `ep_instant_results_excluded_post_types` filter to exclude post types from Instant Results facets and search results. Props [@Sidsector9](https://github.com/Sidsector9) and [@feliciaoctocog](https://github.com/feliciaoctocog).
+* `ep_instant_results_excluded_term_ids` filter to exclude taxonomy terms from Instant Results facets. Props [@Sidsector9](https://github.com/Sidsector9) and [@feliciaoctocog](https://github.com/feliciaoctocog).
+
+__Changed:__
+
+* Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad) and [@felipeelia](https://github.com/felipeelia).
+
+__Fixed:__
+
+* Correct WooCommerce Filter by Price results when the shop displays prices including tax. Props [@faisalahammad](https://github.com/faisalahammad), [@stefanmm](https://github.com/stefanmm), and [@burhandodhy](https://github.com/burhandodhy).
+* Prevent TypeError in Elementor template parsing when `_elementor_data` is an array. Props [@muhitasraf](https://github.com/muhitasraf).
+* Prevent ElasticPress from corrupting cached `WP_Post` objects by encoding meta and taxonomy values as JSON. Props [@burhandodhy](https://github.com/burhandodhy) and [@marc-kohde](https://github.com/marc-kohde).
+* Resolve translation warnings when generating the POT file. Props [@faisalahammad](https://github.com/faisalahammad).
+* Respect `ep_is_facetable` false to disable faceting on queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@dmitrijCraq](https://github.com/dmitrijCraq).
+* Prevent `max_num_pages` from becoming negative when `posts_per_page` is -1. Props [@burhandodhy](https://github.com/burhandodhy) and [@dmitrijCraq](https://github.com/dmitrijCraq).
+* Guard `Utils\get_site()` and `is_site_indexable()` against non-existent site IDs. Props [@thisismyurl](https://github.com/thisismyurl).
+* Prevent WooCommerce `product_visibility` tax queries from forcing product-only site search results. Props [@ZacharyRener](https://github.com/ZacharyRener).
+* Disable `cache_results` for cross-site queries (`site__in`, `site__not_in`, or `ep_search_scope` set to `all`) and when a persistent object cache is in use. The posts cache is per-blog and keyed by post ID only, so a later `get_post()` for a local ID could return another site's content. Props [@burhandodhy](https://github.com/burhandodhy) and [@dannyreaktiv](https://github.com/dannyreaktiv).
+* Guard the `post_author` read in `format_hits_as_posts()`, preventing PHP warnings and a fatal error when the field is missing or malformed in an Elasticsearch hit. Props [@freibergergarcia](https://github.com/freibergergarcia).
+* Load React admin screens and Instant Results on WordPress 6.2 by registering the `react-jsx-runtime` script handle that 10up-toolkit requires and WordPress only ships from 6.6. Props [@felipeelia](https://github.com/felipeelia).
+* Prevent a WordPress 7.1 deprecation warning by using the `help` prop instead of `__experimentalShowHowTo` on FormTokenField. Props [@burhandodhy](https://github.com/burhandodhy).
+* Fix the Features page notice layout on WordPress 7.1. Props [@burhandodhy](https://github.com/burhandodhy).
+* Update ElasticPress.io article URLs to the `/resources/articles/` path. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Security:__
+
+* Bumped `react-router` from 7.14.1 to 7.18.2. Props [@dependabot](https://github.com/dependabot).
+* Bumped `uuid` from 11.0.5 to 14.0.0. Props [@dependabot](https://github.com/dependabot).
+* Bumped `@babel/plugin-transform-modules-systemjs` from 7.25.9 to 7.29.4. Props [@dependabot](https://github.com/dependabot).
+* Bumped `fast-uri` from 3.0.3 to 3.1.5. Props [@dependabot](https://github.com/dependabot).
+* Bumped `postcss` from 8.4.49 to 8.5.25. Props [@dependabot](https://github.com/dependabot).
+* Bumped `webpack-dev-server` from 5.2.3 to 5.2.6. Props [@dependabot](https://github.com/dependabot).
+* Bumped `esbuild` from 0.28.0 to 0.28.1. Props [@dependabot](https://github.com/dependabot).
+* Bumped `immutable` from 5.1.5 to 5.1.9. Props [@dependabot](https://github.com/dependabot).
+* Bumped `launch-editor` from 2.13.2 to 2.14.1. Props [@dependabot](https://github.com/dependabot).
+* Bumped `linkify-it` from 5.0.0 to 5.0.2. Props [@dependabot](https://github.com/dependabot).
+* Bumped `markdown-it` from 14.1.1 to 14.3.0. Props [@dependabot](https://github.com/dependabot).
+* Bumped `qs` from 6.14.2 to 6.15.3. Props [@dependabot](https://github.com/dependabot).
+* Bumped `svgo` from 3.3.3 to 3.3.4. Props [@dependabot](https://github.com/dependabot).
+* Bumped `ws` from 8.20.0 to 8.21.2 and from 7.5.10 to 7.5.13. Props [@dependabot](https://github.com/dependabot).
+* Bumped `websocket-driver` from 0.7.4 to 0.7.5. Props [@dependabot](https://github.com/dependabot).
+
+__Developer:__
+
+* Spell-checking with `crate-ci/typos` in CI. Props [@szepeviktor](https://github.com/szepeviktor), [@felipeelia](https://github.com/felipeelia), and [@Sidsector9](https://github.com/Sidsector9).
+* Add compatibility fixes for React 19. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@Sidsector9](https://github.com/Sidsector9).
+* Fix tests and tooling for WordPress 7.0 and updated GitHub token formats. Props [@ZacharyRener](https://github.com/ZacharyRener).
+* Update `10up-toolkit` to 7.0.0-next.1, `@wordpress/env` to 11, and Node to 24. Props [@felipeelia](https://github.com/felipeelia).
+* Overhaul the e2e environment: a single wp-env install, Makefile targets and a gitignored `.env`, a cached database, one Playwright worker, and expanded docs. Props [@felipeelia](https://github.com/felipeelia).
 
 = 5.3.3 - 2026-05-07 =
 

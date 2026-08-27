@@ -4,25 +4,62 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
-### Added
-* "Remove the saved subscription token" checkbox on the Settings page so subscribers can clear the stored token without editing `wp_options`. Props [@faisalahammad](https://github.com/faisalahammad) via [#4324](https://github.com/10up/ElasticPress/pull/4324).
-
-### Security
-* Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad) via [#4324](https://github.com/10up/ElasticPress/pull/4324).
-
-### Developer
-* Update `10up-toolkit` to 7.0.0-next.1, `@wordpress/env` to 11, and Node to 24. Props [@felipeelia](https://github.com/felipeelia) via [#4356](https://github.com/10up/ElasticPress/pull/4356).
-* Overhaul the e2e environment: a single wp-env install, Makefile targets and a gitignored `.env`, a cached database, one Playwright worker, and expanded docs. Props [@felipeelia](https://github.com/felipeelia) via [#4356](https://github.com/10up/ElasticPress/pull/4356).
-
-### Fixed
-* Load React admin screens and Instant Results on WordPress 6.2 by registering the `react-jsx-runtime` script handle that 10up-toolkit requires and WordPress only ships from 6.6. Props [@felipeelia](https://github.com/felipeelia) via [#4356](https://github.com/10up/ElasticPress/pull/4356).
-
 <!--
+### Added
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 -->
+
+## [5.3.4] - 2026-08-27
+
+### Added
+* `ep_instant_results_excluded_post_types` filter to exclude post types from Instant Results facets and search results. Props [@Sidsector9](https://github.com/Sidsector9) and [@feliciaoctocog](https://github.com/feliciaoctocog) via [#4290](https://github.com/10up/ElasticPress/pull/4290).
+* `ep_instant_results_excluded_term_ids` filter to exclude taxonomy terms from Instant Results facets. Props [@Sidsector9](https://github.com/Sidsector9) and [@feliciaoctocog](https://github.com/feliciaoctocog) via [#4290](https://github.com/10up/ElasticPress/pull/4290).
+
+### Changed
+* Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad) and [@felipeelia](https://github.com/felipeelia) via [#4324](https://github.com/10up/ElasticPress/pull/4324) and [#4361](https://github.com/10up/ElasticPress/pull/4361).
+
+### Fixed
+* Correct WooCommerce Filter by Price results when the shop displays prices including tax. Props [@faisalahammad](https://github.com/faisalahammad), [@stefanmm](https://github.com/stefanmm), and [@burhandodhy](https://github.com/burhandodhy) via [#4338](https://github.com/10up/ElasticPress/pull/4338) and [#4347](https://github.com/10up/ElasticPress/pull/4347).
+* Prevent TypeError in Elementor template parsing when `_elementor_data` is an array. Props [@muhitasraf](https://github.com/muhitasraf) via [#4341](https://github.com/10up/ElasticPress/pull/4341).
+* Prevent ElasticPress from corrupting cached `WP_Post` objects by encoding meta and taxonomy values as JSON. Props [@burhandodhy](https://github.com/burhandodhy) and [@marc-kohde](https://github.com/marc-kohde) via [#4342](https://github.com/10up/ElasticPress/pull/4342).
+* Resolve translation warnings when generating the POT file. Props [@faisalahammad](https://github.com/faisalahammad) via [#4323](https://github.com/10up/ElasticPress/pull/4323).
+* Respect `ep_is_facetable` false to disable faceting on queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@dmitrijCraq](https://github.com/dmitrijCraq) via [#4337](https://github.com/10up/ElasticPress/pull/4337).
+* Prevent `max_num_pages` from becoming negative when `posts_per_page` is -1. Props [@burhandodhy](https://github.com/burhandodhy) and [@dmitrijCraq](https://github.com/dmitrijCraq) via [#4336](https://github.com/10up/ElasticPress/pull/4336).
+* Guard `Utils\get_site()` and `is_site_indexable()` against non-existent site IDs. Props [@thisismyurl](https://github.com/thisismyurl) via [#4319](https://github.com/10up/ElasticPress/pull/4319).
+* Prevent WooCommerce `product_visibility` tax queries from forcing product-only site search results. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4321](https://github.com/10up/ElasticPress/pull/4321).
+* Disable `cache_results` for cross-site queries (`site__in`, `site__not_in`, or `ep_search_scope` set to `all`) and when a persistent object cache is in use. The posts cache is per-blog and keyed by post ID only, so a later `get_post()` for a local ID could return another site's content. Props [@burhandodhy](https://github.com/burhandodhy) and [@dannyreaktiv](https://github.com/dannyreaktiv) via [#4353](https://github.com/10up/ElasticPress/pull/4353) and [#4355](https://github.com/10up/ElasticPress/pull/4355).
+* Guard the `post_author` read in `format_hits_as_posts()`, preventing PHP warnings and a fatal error when the field is missing or malformed in an Elasticsearch hit. Props [@freibergergarcia](https://github.com/freibergergarcia) via [#4354](https://github.com/10up/ElasticPress/pull/4354).
+* Load React admin screens and Instant Results on WordPress 6.2 by registering the `react-jsx-runtime` script handle that 10up-toolkit requires and WordPress only ships from 6.6. Props [@felipeelia](https://github.com/felipeelia) via [#4356](https://github.com/10up/ElasticPress/pull/4356).
+* Prevent a WordPress 7.1 deprecation warning by using the `help` prop instead of `__experimentalShowHowTo` on FormTokenField. Props [@burhandodhy](https://github.com/burhandodhy) via [#4358](https://github.com/10up/ElasticPress/pull/4358).
+* Fix the Features page notice layout on WordPress 7.1. Props [@burhandodhy](https://github.com/burhandodhy) via [#4359](https://github.com/10up/ElasticPress/pull/4359).
+* Update ElasticPress.io article URLs to the `/resources/articles/` path. Props [@burhandodhy](https://github.com/burhandodhy) via [#4360](https://github.com/10up/ElasticPress/pull/4360).
+
+### Security
+* Bumped `react-router` from 7.14.1 to 7.18.2. Props [@dependabot](https://github.com/dependabot) via [#4351](https://github.com/10up/ElasticPress/pull/4351).
+* Bumped `uuid` from 11.0.5 to 14.0.0. Props [@dependabot](https://github.com/dependabot) via [#4314](https://github.com/10up/ElasticPress/pull/4314).
+* Bumped `@babel/plugin-transform-modules-systemjs` from 7.25.9 to 7.29.4. Props [@dependabot](https://github.com/dependabot) via [#4314](https://github.com/10up/ElasticPress/pull/4314).
+* Bumped `fast-uri` from 3.0.3 to 3.1.5. Props [@dependabot](https://github.com/dependabot) via [#4314](https://github.com/10up/ElasticPress/pull/4314) and [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `postcss` from 8.4.49 to 8.5.25. Props [@dependabot](https://github.com/dependabot) via [#4314](https://github.com/10up/ElasticPress/pull/4314) and [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `webpack-dev-server` from 5.2.3 to 5.2.6. Props [@dependabot](https://github.com/dependabot) via [#4314](https://github.com/10up/ElasticPress/pull/4314) and [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `esbuild` from 0.28.0 to 0.28.1. Props [@dependabot](https://github.com/dependabot) via [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `immutable` from 5.1.5 to 5.1.9. Props [@dependabot](https://github.com/dependabot) via [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `launch-editor` from 2.13.2 to 2.14.1. Props [@dependabot](https://github.com/dependabot) via [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `linkify-it` from 5.0.0 to 5.0.2. Props [@dependabot](https://github.com/dependabot) via [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `markdown-it` from 14.1.1 to 14.3.0. Props [@dependabot](https://github.com/dependabot) via [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `qs` from 6.14.2 to 6.15.3. Props [@dependabot](https://github.com/dependabot) via [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `svgo` from 3.3.3 to 3.3.4. Props [@dependabot](https://github.com/dependabot) via [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `ws` from 8.20.0 to 8.21.2 and from 7.5.10 to 7.5.13. Props [@dependabot](https://github.com/dependabot) via [#4343](https://github.com/10up/ElasticPress/pull/4343).
+* Bumped `websocket-driver` from 0.7.4 to 0.7.5. Props [@dependabot](https://github.com/dependabot) via [#4343](https://github.com/10up/ElasticPress/pull/4343).
+
+### Developer
+* Spell-checking with `crate-ci/typos` in CI. Props [@szepeviktor](https://github.com/szepeviktor), [@felipeelia](https://github.com/felipeelia), and [@Sidsector9](https://github.com/Sidsector9) via [#4311](https://github.com/10up/ElasticPress/pull/4311).
+* Add compatibility fixes for React 19. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@Sidsector9](https://github.com/Sidsector9) via [#4340](https://github.com/10up/ElasticPress/pull/4340).
+* Fix tests and tooling for WordPress 7.0 and updated GitHub token formats. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4321](https://github.com/10up/ElasticPress/pull/4321).
+* Update `10up-toolkit` to 7.0.0-next.1, `@wordpress/env` to 11, and Node to 24. Props [@felipeelia](https://github.com/felipeelia) via [#4356](https://github.com/10up/ElasticPress/pull/4356).
+* Overhaul the e2e environment: a single wp-env install, Makefile targets and a gitignored `.env`, a cached database, one Playwright worker, and expanded docs. Props [@felipeelia](https://github.com/felipeelia) via [#4356](https://github.com/10up/ElasticPress/pull/4356).
 
 ## [5.3.3] - 2026-05-07
 
@@ -2365,6 +2402,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.3.4]: https://github.com/10up/ElasticPress/compare/5.3.3...5.3.4
 [5.3.3]: https://github.com/10up/ElasticPress/compare/5.3.2.2...5.3.3
 [5.3.2.2]: https://github.com/10up/ElasticPress/compare/5.3.2.1...5.3.2.2
 [5.3.2.1]: https://github.com/10up/ElasticPress/compare/5.3.2...5.3.2.1
