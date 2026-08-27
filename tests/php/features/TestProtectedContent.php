@@ -668,8 +668,10 @@ class TestProtectedContent extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->found_posts );
-		$this->assertEquals( $post_1_id, $query->posts[0]->ID );
-		$this->assertEquals( $post_2_id, $query->posts[1]->ID );
+		$this->assertEqualsCanonicalizing(
+			[ $post_1_id, $post_2_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
 
 		$query = new \WP_Query(
 			[
@@ -680,7 +682,9 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->found_posts );
-		$this->assertEquals( $post_1_id, $query->posts[0]->ID );
-		$this->assertEquals( $post_2_id, $query->posts[1]->ID );
+		$this->assertEqualsCanonicalizing(
+			[ $post_1_id, $post_2_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
 	}
 }

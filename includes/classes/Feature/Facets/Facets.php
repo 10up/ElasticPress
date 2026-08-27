@@ -110,7 +110,7 @@ class Facets extends Feature {
 			)
 		) . '</p>';
 
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#filters', 'elasticpress' );
+		$this->docs_url = __( 'https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#filters', 'elasticpress' );
 	}
 
 	/**
@@ -270,8 +270,9 @@ class Facets extends Feature {
 			return true;
 		}
 
-		if ( ! empty( $query->get( 'ep_is_facetable' ) ) ) {
-			return true;
+		$ep_is_facetable = $query->get( 'ep_is_facetable', null );
+		if ( null !== $ep_is_facetable ) {
+			return (bool) $ep_is_facetable;
 		}
 
 		if ( is_admin() || is_feed() ) {

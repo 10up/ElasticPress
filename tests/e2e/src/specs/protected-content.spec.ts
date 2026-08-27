@@ -8,17 +8,23 @@ import {
 	createAutosavePost,
 	logout,
 	maybeDisableFeature,
+	openSyncLog,
+	refreshIndex,
+	getSyncTimeout,
 } from '../utils.js';
 
 test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 	const deleteOldDraftsAndSync = async () => {
-		const wpCliResponse = await wpCli('post list --post_status=draft --format=ids');
-		const ids = wpCliResponse.toString();
+		const ids = (await wpCli('post list --post_status=draft --format=ids'))
+			.toString()
+			.trim()
+			.replace(/\s+/g, ' ');
 		if (ids) {
 			await wpCli(`post delete ${ids} --force`);
 		}
 
-		await wpCli('elasticpress sync --setup --yes');
+		await wpCli('elasticpress sync --setup --yes', true);
+		await refreshIndex('post');
 	};
 
 	test('Can turn the feature on', async ({ loggedInPage }) => {
@@ -31,12 +37,12 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 		loggedInPage.on('dialog', (dialog) => dialog.accept());
 		await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
 
-		await loggedInPage.getByRole('button', { name: 'Log' }).click();
+		await openSyncLog(loggedInPage);
 
 		// Wait for sync messages
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');
-		await expect(syncMessages).toContainText('Mapping sent');
-		await expect(syncMessages).toContainText('Sync complete');
+		await expect(syncMessages).toContainText('Mapping sent', { timeout: getSyncTimeout() });
+		await expect(syncMessages).toContainText('Sync complete', { timeout: getSyncTimeout() });
 
 		// Verify feature is enabled via WP-CLI
 		const wpCliResponse = await wpCli('elasticpress list-features');
@@ -61,6 +67,7 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 			title: 'Test ElasticPress Draft',
 			status: 'draft',
 		});
+		await refreshIndex('post');
 
 		await goToAdminPage(loggedInPage, '/edit.php?post_status=draft&post_type=post');
 		const results = JSON.parse(
@@ -100,6 +107,7 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 			title: 'Autosave Test',
 			content: 'Test content',
 		});
+		await refreshIndex('post');
 
 		await goToAdminPage(loggedInPage, 'edit.php?post_status=draft&post_type=post');
 		const results = JSON.parse(

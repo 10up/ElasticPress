@@ -1,0 +1,267 @@
+# Privileged e2e: EP.io and @paidPlugins for pull requests that cannot
+# receive repository secrets (forks).
+#
+# Dispatch only. pull_request_target in the same file as an untrusted
+# checkout makes CodeQL's actions/untrusted-checkout/critical fire, and
+# GitHub code scanning ignores in-source # codeql[...] suppressions. The
+# safe-to-test label lives in playwright-privileged-gate.yml, which never
+# checks out PR code and instead dispatches this workflow.
+#
+# This workflow has access to secrets and checks out pull request code, then
+# runs npm ci, the setup script, and Playwright. That is only safe after a
+# maintainer has reviewed the commit being tested. Before dispatching,
+# review package.json scripts, bin/setup-e2e-env.sh, and tests/e2e.
+#
+# Caches are restore-only. workflow_dispatch can write the default-branch
+# cache, so this job never saves after checking out pull request code.
+# playwright.yml on push / same-repo pull_request populates the npm,
+# composer, and bin/.cache entries.
+#
+# Keep the remaining e2e job steps in sync with playwright.yml.
+
+name: E2e Tests (privileged)
+run-name: Privileged e2e for PR ${{ inputs.pr_number }}
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  CI: true
+  COMPOSER_VERSION: "2"
+  COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
+  COMPOSER_CACHE_DIR: "${{ github.workspace }}/.composer-cache"
+  NODE_VERSION: "24"
+  NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
+  npm_config_cache: "${{ github.workspace }}/node_modules_cache"
+  # npm ci would otherwise fetch Chromium, Firefox and WebKit. Only the
+  # explicit install below runs, and only Chromium is downloaded.
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to test
+        required: true
+        type: number
+
+concurrency:
+  group: privileged-e2e-${{ github.event.inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  resolve-pr:
+    name: Resolve pull request
+    runs-on: ubuntu-latest
+    outputs:
+      number: ${{ steps.pr.outputs.number }}
+      ref: ${{ steps.pr.outputs.ref }}
+      sha: ${{ steps.pr.outputs.sha }}
+    steps:
+    - name: Resolve pull request
+      id: pr
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.inputs.pr_number }}
+      run: |
+        if [ -z "$PR_NUMBER" ]; then
+          echo "Missing pull request number"
+          exit 1
+        fi
+
+        STATE="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .state)"
+        if [ "$STATE" != "open" ]; then
+          echo "Pull request #${PR_NUMBER} is not open"
+          exit 1
+        fi
+
+        SHA="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
+
+        echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+        echo "ref=refs/pull/${PR_NUMBER}/head" >> "$GITHUB_OUTPUT"
+        echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+
+    - name: Link this run on the pull request
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ steps.pr.outputs.number }}
+        SHA: ${{ steps.pr.outputs.sha }}
+      run: |
+        gh pr comment "$PR_NUMBER" --body "Privileged e2e (EP.io and @paidPlugins) started for \`${SHA}\`: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+  e2e_local:
+    name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
+    needs: resolve-pr
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      WP_ENV_PHP_VERSION: ${{ matrix.core.php }}
+    strategy:
+      fail-fast: false
+      matrix:
+        testGroup: ['@group1', '@group2', '@paidPlugins']
+        esVersion: ['7.10.1', '8.12.2', '9.1.5', 'EP.io']
+        core:
+          - {name: 'WP latest', version: '', wcVersion: '', php: '8.2'}
+          - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0', php: '8.0'}
+        # The local Elasticsearch versions are already covered by playwright.yml,
+        # so only EP.io runs the tagged groups here.
+        exclude:
+          - testGroup: '@group1'
+            esVersion: '7.10.1'
+          - testGroup: '@group1'
+            esVersion: '8.12.2'
+          - testGroup: '@group1'
+            esVersion: '9.1.5'
+          - testGroup: '@group2'
+            esVersion: '7.10.1'
+          - testGroup: '@group2'
+            esVersion: '8.12.2'
+          - testGroup: '@group2'
+            esVersion: '9.1.5'
+
+    steps:
+    # persist-credentials is false so the checked-out PR cannot push with
+    # GITHUB_TOKEN. workflow_dispatch is not a CodeQL checkoutTriggers()
+    # event, so this file must not also listen for pull_request_target.
+    - name: Checkout pull request
+      uses: actions/checkout@v7
+      with:
+        ref: ${{ needs.resolve-pr.outputs.ref }}
+        persist-credentials: false
+
+    - name: Set standard 10up cache directories
+      run: |
+        sudo npm config set cache "${{ env.NODE_CACHE }}" --global
+
+    - name: Restore npm cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ env.NODE_CACHE }}
+        key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          npm-${{ env.NODE_VERSION }}-
+    - name: Restore composer cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: :php-psr
+        tools: cs2pr
+        coverage: none
+
+    - name: Set composer cache directory
+      run: composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+
+    - name: composer install
+      run: composer install
+
+    - name: "Install node v${{ env.NODE_VERSION }}"
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install dependencies
+      run: npm ci --include=dev
+
+    # Playwright's own Chromium, not the runner's Google Chrome: the runner
+    # ships whatever Chrome is current, and versions past the one this
+    # Playwright release pins hang the click actionability check. ffmpeg is
+    # for video (retain-on-failure).
+    - name: Install Playwright browser
+      run: npx playwright install --with-deps chromium ffmpeg
+
+    - name: Set up WP environment with Elasticsearch
+      run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
+      if: matrix.esVersion != 'EP.io'
+
+    - name: Set up WP environment with Elasticsearch (EP.io)
+      run: |
+        npm run env start
+        npm run env:install-cli
+      if: matrix.esVersion == 'EP.io'
+
+    - name: Check ES response
+      run: curl --connect-timeout 5 --max-time 10 --retry 5 --retry-max-time 40 --retry-all-errors http://localhost:8890
+      if: matrix.esVersion != 'EP.io'
+
+    - name: Build asset
+      run: npm run build
+
+    # Keyed on everything that shapes the database, so a change to the setup
+    # script or the imported content produces a new cache rather than reusing a
+    # stale one. The Elasticsearch version is deliberately absent: the backend is
+    # configured through wp-config.php constants and the sync runs either way.
+    - name: Restore database cache
+      id: db-cache
+      uses: actions/cache/restore@v6
+      with:
+        path: bin/.cache
+        key: e2e-db-${{ matrix.core.version || 'latest' }}-${{ matrix.core.wcVersion || 'latest' }}-${{ matrix.core.php }}-${{ matrix.testGroup == '@paidPlugins' && 'acf' || 'noacf' }}-${{ hashFiles('bin/setup-e2e-env.sh', 'tests/e2e/src/wordpress-files/test-docs/content-example.xml') }}
+
+    - name: Set up database
+      run: |
+        if [ "${{ matrix.testGroup }}" == "@paidPlugins" ]; then
+          npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+        else
+          npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
+        fi
+      if: matrix.esVersion != 'EP.io'
+
+    - name: Set up database (EP.io)
+      run: |
+        if [ "${{ matrix.testGroup }}" == "@paidPlugins" ]; then
+          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_CREDENTIALS }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+        else
+          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_CREDENTIALS }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
+        fi
+      if: matrix.esVersion == 'EP.io'
+
+    # Do not save caches from this workflow. workflow_dispatch can write
+    # the default-branch cache; playwright.yml is the trusted writer.
+
+    # One group per job. Running two groups in the same job put the slower
+    # backends over the 60 minute limit, which cancelled the second group.
+    - name: Run Playwright tests
+      env:
+        PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ github.workspace }}/playwright-report
+      run: npm run playwright:test -- --grep ${{ matrix.testGroup }} --output ${{ github.workspace }}/test-results
+
+    - name: Stop Elasticsearch
+      if: ${{ always() && matrix.esVersion != 'EP.io' }}
+      run: cd bin/es-docker/ && docker compose down
+
+    - name: Delete Elasticsearch indices
+      if: ${{ always() && matrix.esVersion == 'EP.io' }}
+      run: |
+        PLUGIN_NAME=$(basename "$PWD")
+        ./bin/wp-env-cli wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
+        ./bin/wp-env-cli wordpress "wp --allow-root elasticpress-tests delete-all-indices"
+
+    - name: Test plugin uninstall
+      if: always()
+      run: |
+        PLUGIN_NAME=$(basename "$PWD")
+        ! ./bin/wp-env-cli wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
+        ! ./bin/wp-env-cli wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME}"
+        ./bin/wp-env-cli wordpress "cp -r wp-content/plugins/${PLUGIN_NAME} wp-content/plugins/ep-delete"
+        ./bin/wp-env-cli wordpress "wp --allow-root plugin uninstall ep-delete"
+
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v7
+      if: ${{ failure() || cancelled() }}
+      with:
+        name: playwright-report-${{ matrix.esVersion }}-${{ matrix.core.name }}-${{ matrix.testGroup }}
+        retention-days: 2
+        if-no-files-found: ignore
+        path: |
+          playwright-report/
+          test-results/
