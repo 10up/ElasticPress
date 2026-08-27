@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Fixed
 -->
 
-## [5.3.4] - 2026-XX-XX
+## [5.3.4] - 2026-08-27
 
 ### Added
 * `ep_instant_results_excluded_post_types` filter to exclude post types from Instant Results facets and search results. Props [@Sidsector9](https://github.com/Sidsector9) and [@feliciaoctocog](https://github.com/feliciaoctocog) via [#4290](https://github.com/10up/ElasticPress/pull/4290).
