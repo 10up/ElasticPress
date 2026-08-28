@@ -613,6 +613,10 @@ class Term extends Indexable {
 			$from_to['name'] = version_compare( (string) $es_version, '7.0', '<' ) ? 'name.raw' : 'name.sortable';
 		}
 
+		if ( 'none' === $orderby ) {
+			$orderby = 'id';
+		}
+
 		$orderby = $from_to[ $orderby ] ?? $orderby;
 
 		$sort[] = array(
