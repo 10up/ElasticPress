@@ -22,7 +22,9 @@ import { isNumberedPagination } from '../../config';
  * @param {number} props.total Total number of items.
  * @returns {WPElement} Element.
  */
-const Pagination = ({ offset, onNext, onPage = {}, onPrevious, perPage, total }) => {
+const Pagination = (props) => {
+	const { offset, onNext, onPage = {}, onPrevious, perPage, total } = props;
+
 	if (perPage <= 0) {
 		return null;
 	}
@@ -186,11 +188,23 @@ const Pagination = ({ offset, onNext, onPage = {}, onPrevious, perPage, total })
 		);
 	};
 
-	return (
+	const pagination = (
 		<nav className={`ep-search-pagination ${isNumbered ? 'is-numbered' : ''}`}>
 			{isNumbered ? renderNumberedNavigation() : renderButtonNavigation()}
 		</nav>
 	);
+
+	/**
+	 * Filter the pagination component.
+	 *
+	 * @filter ep.InstantResults.component.pagination
+	 * @since 5.4.0
+	 *
+	 * @param {WPElement} pagination Pagination component.
+	 * @param {object} props Props.
+	 * @returns {WPElement} Pagination component.
+	 */
+	return applyFilters('ep.InstantResults.component.pagination', pagination, props);
 };
 
 /**
