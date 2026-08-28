@@ -479,6 +479,89 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				);
 			});
 
+			test('Custom Results pointer order is respected in Instant Results', async ({
+				loggedInPage,
+			}) => {
+				const searchTerm = 'block';
+
+				await maybeEnableFeature('instant-results');
+				await maybeEnableFeature('searchordering');
+				await wpCli('elasticpress put-search-template', true);
+
+				// Remove any existing pointers to avoid pollution from prior tests.
+				await wpCliEval(`
+					$ep_pointers = get_posts(
+						[
+							'post_type'   => 'ep-pointer',
+							'numberposts' => 999,
+						]
+					);
+					foreach ( $ep_pointers as $pointer ) {
+						wp_delete_post( $pointer->ID, true );
+					}
+				`);
+
+				/**
+				 * Create a pointer that pins results for the search term in a
+				 * non-default order.
+				 */
+				await goToAdminPage(loggedInPage, 'post-new.php?post_type=ep-pointer');
+
+				const previewResponsePromise = loggedInPage.waitForResponse(
+					'**/wp-json/elasticpress/v1/pointer_preview*',
+				);
+				await loggedInPage.locator('#titlewrap input').pressSequentially(searchTerm);
+				await previewResponsePromise;
+
+				const initialOrder = await loggedInPage
+					.locator('.pointers .pointer .title')
+					.allTextContents();
+				expect(initialOrder.length).toBeGreaterThan(1);
+
+				// Swap the first two results via keyboard drag.
+				await loggedInPage
+					.locator('.pointers > div')
+					.first()
+					.locator('.dashicons-menu')
+					.focus();
+				await loggedInPage.keyboard.press('Space');
+				await loggedInPage.keyboard.press('ArrowDown');
+				await loggedInPage.keyboard.press('Space');
+
+				const expectedOrder = await loggedInPage
+					.locator('.pointers .pointer .title')
+					.allTextContents();
+				expect(expectedOrder).not.toEqual(initialOrder);
+
+				await loggedInPage.click('#publish');
+				await loggedInPage.waitForLoadState('networkidle');
+
+				// Allow Elasticsearch time to index the pointer assignments.
+				await loggedInPage.waitForTimeout(2000);
+
+				/**
+				 * Search via Instant Results and verify the modal returns the
+				 * pinned posts in the order configured on the pointer.
+				 */
+				const responsePromise = instantResultRequestPromise(
+					loggedInPage,
+					`search=${searchTerm}`,
+				);
+				await loggedInPage.goto('/');
+				await searchFor(loggedInPage, searchTerm);
+				await expect(loggedInPage.locator('.ep-search-modal')).toBeVisible();
+				await responsePromise;
+				await expect(loggedInPage.locator('.ep-search-result').first()).toBeVisible();
+
+				const irTitles = await loggedInPage
+					.locator('.ep-search-result__title')
+					.allTextContents();
+
+				for (let index = 0; index < expectedOrder.length; index++) {
+					expect(irTitles[index]).toBe(expectedOrder[index]);
+				}
+			});
+
 			test('Is possible to set the default post type from a search form', async ({
 				loggedInPage,
 			}) => {
