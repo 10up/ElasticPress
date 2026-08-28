@@ -97,7 +97,14 @@ function setup_wc() {
 	update_option( 'woocommerce_status_options', array( 'uninstall_data' => 1 ) );
 	include_once __DIR__ . '/../../vendor/woocommerce/uninstall.php';
 
+	// Enable HPOS. By default, it is disabled, so WooCommerce does not create the HPOS tables.
+	$feature_controller = wc_get_container()->get( \Automattic\WooCommerce\Internal\Features\FeaturesController::class );
+	$feature_controller->change_feature_enable( 'custom_order_tables', true );
+
 	\WC_Install::install();
+
+	// Disable HPOS.
+	$feature_controller->change_feature_enable( 'custom_order_tables', false );
 
 	$GLOBALS['wp_roles'] = new \WP_Roles();
 

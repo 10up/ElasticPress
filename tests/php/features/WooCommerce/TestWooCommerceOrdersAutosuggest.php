@@ -320,6 +320,46 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	}
 
 	/**
+	 * Test orders autosuggest is unavailable when HPOS query integration is disabled.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_is_available_when_hpos_query_integration_disabled() {
+		$this->force_epio();
+
+		$custom_orders_table = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		add_filter(
+			'pre_option_' . $custom_orders_table,
+			function () {
+				return 'yes';
+			}
+		);
+
+		add_filter(
+			'ep_woocommerce_hpos_min_version',
+			function () {
+				return '0.0.1';
+			}
+		);
+
+		$this->assertTrue( $this->orders_autosuggest->is_available() );
+
+		$disable_hpos_query_integration = function () {
+			return [
+				'woocommerce' => [
+					'disable_hpos' => '1',
+				],
+			];
+		};
+		add_filter( 'pre_option_ep_feature_settings', $disable_hpos_query_integration );
+		add_filter( 'pre_site_option_ep_feature_settings', $disable_hpos_query_integration );
+
+		$this->assertFalse( $this->orders_autosuggest->is_available() );
+	}
+
+	/**
 	 * Test the `is_enabled` method
 	 *
 	 * @since 5.1.0
@@ -366,6 +406,15 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	public function test_is_hpos_compatible() {
 		$this->assertTrue( $this->orders_autosuggest->is_hpos_compatible() );
 
+		// Force an unsupported WooCommerce version requirement.
+		$change_min_version = function () {
+			return '99.0.0';
+		};
+		add_filter( 'ep_woocommerce_hpos_min_version', $change_min_version );
+
+		// Orders stored as posts are supported on any WooCommerce version.
+		$this->assertTrue( $this->orders_autosuggest->is_hpos_compatible() );
+
 		// Turn HPOS on
 		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
 		$change_custom_orders_table = function () {
@@ -373,14 +422,18 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 		};
 		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
 
-		// Disable legacy mode
-		$legacy_mode        = \Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::ORDERS_DATA_SYNC_ENABLED_OPTION;
-		$change_legacy_mode = function () {
-			return 'no';
-		};
-		add_filter( 'pre_option_' . $legacy_mode, $change_legacy_mode );
-
 		$this->assertFalse( $this->orders_autosuggest->is_hpos_compatible() );
+
+		// HPOS is supported on WooCommerce versions that allow query integration.
+		remove_filter( 'ep_woocommerce_hpos_min_version', $change_min_version );
+		add_filter(
+			'ep_woocommerce_hpos_min_version',
+			function () {
+				return '0.0.1';
+			}
+		);
+
+		$this->assertTrue( $this->orders_autosuggest->is_hpos_compatible() );
 	}
 
 	/**
@@ -427,8 +480,17 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 		};
 		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
 
+		// Force an unsupported WooCommerce version requirement.
+		add_filter(
+			'ep_woocommerce_hpos_min_version',
+			function () {
+				return '99.0.0';
+			}
+		);
+
 		$new_settings_schema = $this->orders_autosuggest->add_settings_schema( [] );
-		$this->assertStringContainsString( 'Currently, autosuggest for orders is only available', $new_settings_schema[0]['help'] );
+		$this->assertStringContainsString( 'autosuggest for orders with HPOS requires WooCommerce', $new_settings_schema[0]['help'] );
+		$this->assertStringContainsString( '99.0.0', $new_settings_schema[0]['help'] );
 	}
 
 	/**

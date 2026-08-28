@@ -35,9 +35,14 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		phoneNumber: '1234567890',
 	};
 
-	const isMinWcVersion = async () => {
-		const wcVersion = await wpCli('plugin get woocommerce --field=version');
-		return wcVersion.toString().trim() === '6.4.0';
+	const isWcVersionAtLeast = async (minVersion: string) => {
+		const wcVersion = (await wpCli('plugin get woocommerce --field=version')).toString();
+		return (
+			wcVersion.localeCompare(minVersion, undefined, {
+				numeric: true,
+				sensitivity: 'base',
+			}) >= 0
+		);
 	};
 
 	const checkMainEsQuery = async (loggedInPage: Page) => {
@@ -201,17 +206,17 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await activatePlugin(loggedInPage, 'enable-debug-bar');
 
 			// Enable payment gateway
-			await wpCliEval(`
-				$settings = get_option( 'woocommerce_cod_settings', [] );
-				if ( ! is_array( $settings ) ) {
-					$settings = [];
-				}
-				$settings['enabled'] = 'yes';
-				update_option( 'woocommerce_cod_settings', $settings );
-				if ( function_exists( 'WC' ) && WC()->payment_gateways() ) {
-					WC()->payment_gateways()->init();
-				}
-			`);
+			await goToAdminPage(
+				loggedInPage,
+				'admin.php?page=wc-settings&tab=checkout&section=cod',
+			);
+			const checkboxLabel = (await isWcVersionAtLeast('9.8.0'))
+				? 'Enable cash on delivery payments'
+				: 'Enable cash on delivery';
+
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 
 			// Disable coming soon option
 			await wpCli('option update woocommerce_coming_soon off');
@@ -250,23 +255,20 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.locator('#email, #billing_email').clear();
 			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
 
-			// WooCommerce hides the radio and checks it for us when cash on
-			// delivery is the only gateway available, so it can only be selected
-			// when a second gateway makes it visible.
-			const codMethod = loggedInPage.locator('#payment_method_cod');
-			if ((await codMethod.count()) > 0 && !(await codMethod.isChecked())) {
-				await codMethod.check();
-			}
+			/**
+			 * Blurring the last field lets the Checkout block push the customer
+			 * data and re-render before we submit. Without this the blur happens
+			 * on mousedown, the button is re-rendered before mouseup, and the
+			 * browser never fires a click event.
+			 */
+			await loggedInPage.locator('#email, #billing_email').blur();
+			await loggedInPage.waitForLoadState('networkidle');
 
-			// Check WooCommerce version and place order accordingly
-			if (await isMinWcVersion()) {
-				await loggedInPage.locator('#place_order').click();
-			} else {
-				await loggedInPage.waitForTimeout(1000);
-				await loggedInPage
-					.locator('.wc-block-components-checkout-place-order-button')
-					.click();
-			}
+			const placeOrderResponse = loggedInPage.waitForResponse((response) =>
+				response.url().includes('/wp-json/wc/store/v1/checkout'),
+			);
+			await loggedInPage.locator('.wc-block-components-checkout-place-order-button').click();
+			await placeOrderResponse;
 
 			// Ensure order is placed
 			await expect(loggedInPage).toHaveURL(/.*\/checkout\/order-received/);
@@ -587,6 +589,601 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.waitForResponse('**/api/v1/search/orders/*');
 			await listbox.locator('> *').nth(1).click();
 			await expect(loggedInPage).toHaveURL(/.*post\.php\?post=/);
+		});
+	});
+
+	test.describe('Orders (HPOS)', () => {
+		test.beforeAll(async () => {
+			test.skip(
+				!(await isWcVersionAtLeast('9.8.0')),
+				'HPOS integration requires WooCommerce 9.8.0 or greater',
+			);
+
+			await wpCli('plugin activate woocommerce');
+
+			await wpCli('wc hpos compatibility-mode enable');
+			await wpCli('wc hpos sync');
+			await wpCli('wc hpos enable --ignore-plugin-compatibility');
+			const status = (await wpCli('wc hpos status')).toString();
+			expect(status).toMatch(/HPOS.*enabled|Authoritative.*orders/i);
+
+			await maybeEnableFeature('woocommerce');
+			await maybeEnableFeature('protected_content');
+			await wpCli('elasticpress sync --setup --yes');
+		});
+
+		test('Can fetch orders from Elasticsearch', async ({ loggedInPage }) => {
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+		});
+
+		test('Can show and dismiss HPOS query integration disabled notice', async ({
+			loggedInPage,
+		}) => {
+			await wpCli(
+				'option delete ep_hide_wc_orders_hpos_query_integration_disabled_notice',
+				true,
+			);
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await loggedInPage
+				.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+			await loggedInPage
+				.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+
+			const disableHposCheckbox = loggedInPage.getByRole('checkbox', {
+				name: 'Disable query integration with WooCommerce Orders using HPOS',
+			});
+			const enableApiRequestPromise = loggedInPage.waitForResponse(
+				'/wp-json/elasticpress/v1/features*',
+			);
+			await disableHposCheckbox.setChecked(true);
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+			await enableApiRequestPromise;
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+			const notice = loggedInPage.locator(
+				'div[data-ep-notice="wc_orders_hpos_query_integration_disabled"]',
+			);
+			await expect(notice).toBeVisible();
+			await expect(notice).toContainText('not being retrieved from Elasticsearch');
+
+			const dismissResponse = loggedInPage.waitForResponse((response) => {
+				const request = response.request();
+				return (
+					request.url().includes('admin-ajax.php') &&
+					request.method() === 'POST' &&
+					(request.postData() || '').includes('ep_notice_dismiss')
+				);
+			});
+			await notice.locator('.notice-dismiss').click();
+			await dismissResponse;
+			await expect(notice).not.toBeVisible();
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+			await expect(
+				loggedInPage.locator(
+					'div[data-ep-notice="wc_orders_hpos_query_integration_disabled"]',
+				),
+			).not.toBeVisible();
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await loggedInPage
+				.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+			await loggedInPage
+				.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+
+			const disableApiRequestPromise = loggedInPage.waitForResponse(
+				'/wp-json/elasticpress/v1/features*',
+			);
+			await loggedInPage
+				.getByRole('checkbox', {
+					name: 'Disable query integration with WooCommerce Orders using HPOS',
+				})
+				.setChecked(false);
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+			await disableApiRequestPromise;
+
+			await wpCli(
+				'option delete ep_hide_wc_orders_hpos_query_integration_disabled_notice',
+				true,
+			);
+		});
+
+		test('Can fetch orders from Elasticsearch when HPOS query integration is enabled', async ({
+			loggedInPage,
+		}) => {
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await loggedInPage
+				.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+			await loggedInPage
+				.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+
+			const disableHposCheckbox = loggedInPage.getByRole('checkbox', {
+				name: 'Disable query integration with WooCommerce Orders using HPOS',
+			});
+
+			if (await disableHposCheckbox.isChecked()) {
+				const apiRequestPromise = loggedInPage.waitForResponse(
+					'/wp-json/elasticpress/v1/features*',
+				);
+				await disableHposCheckbox.setChecked(false);
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+				await apiRequestPromise;
+			}
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+		});
+
+		test('Can search orders from ElasticPress in WP Dashboard', async ({ loggedInPage }) => {
+			// Disable Orders Autosuggest.
+			if (isEpIo()) {
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				await loggedInPage
+					.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+					.click();
+				await loggedInPage
+					.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+					.click();
+
+				const showSuggestionsCheck = loggedInPage
+					.locator('label:has-text("Show suggestions")')
+					.locator('..')
+					.locator('input');
+
+				if (await showSuggestionsCheck.isChecked()) {
+					const apiRequestPromise = loggedInPage.waitForResponse(
+						'/wp-json/elasticpress/v1/features*',
+					);
+
+					await showSuggestionsCheck.uncheck();
+					await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+					await apiRequestPromise;
+				}
+			}
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+			await expect(loggedInPage.locator('#orders-search-input-search-input')).toBeVisible();
+
+			const checkAllOrders = async () => {
+				const allOrders = await loggedInPage.locator('.order_number .order-view').all();
+				for await (const order of allOrders) {
+					await expect(order).toContainText(`${userData.firstName} ${userData.lastName}`);
+				}
+			};
+
+			// Search order by user's name
+			await loggedInPage.locator('#orders-search-input-search-input').clear();
+			await loggedInPage
+				.locator('#orders-search-input-search-input')
+				.fill(`${userData.firstName} ${userData.lastName}`);
+			await loggedInPage.locator('#order-search-filter').selectOption('customers');
+			await loggedInPage.locator('#orders-search-input-search-input').press('Enter');
+
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+			await checkAllOrders();
+
+			// Search order by user's email
+			await loggedInPage.locator('#orders-search-input-search-input').clear();
+			await loggedInPage.locator('#orders-search-input-search-input').fill(userData.email);
+			await loggedInPage.locator('#order-search-filter').selectOption('customer_email');
+			await loggedInPage.locator('#orders-search-input-search-input').press('Enter');
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+			await checkAllOrders();
+
+			// Search order by product
+			await loggedInPage.locator('#orders-search-input-search-input').clear();
+			await loggedInPage
+				.locator('#orders-search-input-search-input')
+				.fill('fantastic-silk-knife');
+			await loggedInPage.locator('#order-search-filter').selectOption('products');
+			await loggedInPage.locator('#orders-search-input-search-input').press('Enter');
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+			await checkAllOrders();
+
+			// Search order by order ID
+			await loggedInPage.locator('#orders-search-input-search-input').clear();
+			await loggedInPage.locator('#orders-search-input-search-input').fill('1988');
+			await loggedInPage.locator('#order-search-filter').selectOption('order_id');
+			await loggedInPage.locator('#orders-search-input-search-input').press('Enter');
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+
+			const allOrders = await loggedInPage.locator('.order_number .order-view').all();
+			for await (const order of allOrders) {
+				await expect(order).toContainText('1988');
+			}
+		});
+
+		test('Can fetch orders from Elasticsearch when Date filter is applied', async ({
+			loggedInPage,
+		}) => {
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+
+			await loggedInPage.locator('#filter-by-date').selectOption({ index: 1 });
+			await loggedInPage.locator('#filter-by-date').press('Enter');
+
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+
+			await expect(
+				loggedInPage
+					.locator('.order_number .order-view')
+					.filter({
+						hasText: `${userData.firstName} ${userData.lastName}`,
+					})
+					.first(),
+			).toBeVisible();
+		});
+
+		test('Can fetch orders from Elasticsearch when Sales Channel filter is applied', async ({
+			loggedInPage,
+		}) => {
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders&action=new');
+			await loggedInPage
+				.locator('.order_data_column_container  .order_data_column > h3 > .edit_address')
+				.first()
+				.click();
+			await loggedInPage.locator('#_billing_first_name').fill(userData.firstName);
+			await loggedInPage.locator('#_billing_last_name').fill(userData.lastName);
+			await loggedInPage.locator('#_billing_address_1').fill(userData.address);
+			await loggedInPage.locator('#_billing_city').fill(userData.city);
+			await loggedInPage.locator('#_billing_postcode').fill(userData.postCode);
+			await loggedInPage.locator('#_billing_phone').fill(userData.phoneNumber);
+			await loggedInPage.locator('#_billing_email').fill(userData.email);
+			await loggedInPage.locator('.order_actions.submitbox .save_order').click();
+			await loggedInPage.waitForURL(/[?&]id=\d+/);
+
+			// Grab the id query string from the url
+			const url = new URL(loggedInPage.url());
+			const id = url.searchParams.get('id');
+			if (!id) {
+				throw new Error('Order ID missing from URL after saving order');
+			}
+
+			// Allow the new order to be indexed.
+			await loggedInPage.waitForTimeout(2000);
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+
+			await loggedInPage.locator('#filter-by-created-via').selectOption('admin');
+			await loggedInPage.locator('#filter-by-created-via').press('Enter');
+
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+
+			await expect(
+				loggedInPage
+					.locator('.order_number .order-view')
+					.filter({ hasText: `#${id}` })
+					.first(),
+			).toBeVisible();
+		});
+
+		test('Can not display other users orders on the My Account Order page', async ({
+			loggedInPage,
+		}) => {
+			await activatePlugin(loggedInPage, 'enable-debug-bar');
+
+			// Enable payment gateway
+			await goToAdminPage(
+				loggedInPage,
+				'admin.php?page=wc-settings&tab=checkout&section=cod',
+			);
+			const checkboxLabel = 'Enable cash on delivery payments';
+
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+
+			// Disable coming soon option
+			await wpCli('option update woocommerce_coming_soon off');
+
+			await logout(loggedInPage);
+
+			// Create new user
+			await createUser(loggedInPage, {
+				username: userData.username,
+				email: userData.email,
+				login: true,
+			});
+
+			// Add product to cart
+			await loggedInPage.goto('product/fantastic-silk-knife');
+			await loggedInPage.locator('.single_add_to_cart_button').click();
+
+			// Checkout and place order
+			await loggedInPage.goto('checkout');
+			await loggedInPage
+				.locator('#billing-first_name, #billing_first_name')
+				.fill(userData.firstName);
+			await loggedInPage
+				.locator('#billing-last_name, #billing_last_name')
+				.fill(userData.lastName);
+			await loggedInPage
+				.locator('#billing-address_1, #billing_address_1')
+				.fill(userData.address);
+			await loggedInPage.locator('#billing-city, #billing_city').fill(userData.city);
+			await loggedInPage
+				.locator('#billing-postcode, #billing_postcode')
+				.fill(userData.postCode);
+			await loggedInPage
+				.locator('#billing-phone, #billing_phone')
+				.fill(userData.phoneNumber, { force: true });
+			await loggedInPage.locator('#email, #billing_email').clear();
+			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
+
+			/**
+			 * Blurring the last field lets the Checkout block push the customer
+			 * data and re-render before we submit. Without this the blur happens
+			 * on mousedown, the button is re-rendered before mouseup, and the
+			 * browser never fires a click event.
+			 */
+			await loggedInPage.locator('#email, #billing_email').blur();
+			await loggedInPage.waitForLoadState('networkidle');
+
+			const placeOrderResponse = loggedInPage.waitForResponse((response) =>
+				response.url().includes('/wp-json/wc/store/v1/checkout'),
+			);
+			await loggedInPage.locator('.wc-block-components-checkout-place-order-button').click();
+			await placeOrderResponse;
+
+			// Ensure order is placed
+			await expect(loggedInPage).toHaveURL(/.*\/checkout\/order-received/);
+
+			// Give Elasticsearch time to process
+			await loggedInPage.waitForTimeout(2000);
+
+			// Ensure order is visible to user
+			await loggedInPage.goto('my-account/orders');
+			await expect(loggedInPage.locator('.woocommerce-orders-table tbody tr')).toHaveCount(1);
+
+			// Test orderby parameter
+			await expect(
+				loggedInPage
+					.locator('.ep-query-debug')
+					.filter({
+						has: loggedInPage.locator('.ep-query-type', { hasText: 'post' }),
+					})
+					.first(),
+			).toContainText('shop_order');
+			await expect(
+				loggedInPage
+					.locator('.ep-query-debug')
+					.filter({
+						has: loggedInPage.locator('.ep-query-type', { hasText: 'post' }),
+					})
+					.first(),
+			).toContainText("'orderby' => 'date'");
+
+			await logout(loggedInPage);
+
+			await createUser(loggedInPage, {
+				username: 'buyer',
+				email: 'buyer@example.com',
+				login: true,
+			});
+
+			// Ensure no order is shown for different user
+			await loggedInPage.goto('my-account/orders');
+			await expect(loggedInPage.locator('.woocommerce-orders-table tbody tr')).toHaveCount(0);
+
+			await expect(
+				loggedInPage
+					.locator('.ep-query-debug')
+					.filter({
+						has: loggedInPage.locator('.ep-query-type', { hasText: 'post' }),
+					})
+					.first(),
+			).toContainText('shop_order');
+			await expect(
+				loggedInPage
+					.locator('.ep-query-debug')
+					.filter({
+						has: loggedInPage.locator('.ep-query-type', { hasText: 'post' }),
+					})
+					.first(),
+			).toContainText('HTTP 200');
+		});
+	});
+
+	test.describe('Orders Autosuggest (HPOS)', () => {
+		test.beforeAll(async () => {
+			test.skip(
+				!(await isWcVersionAtLeast('9.8.0')),
+				'HPOS integration requires WooCommerce 9.8.0 or greater',
+			);
+
+			await wpCli('plugin activate woocommerce');
+
+			await wpCli('wc hpos compatibility-mode enable');
+			await wpCli('wc hpos sync');
+			await wpCli('wc hpos enable --ignore-plugin-compatibility');
+			const status = (await wpCli('wc hpos status')).toString();
+			expect(status).toMatch(/HPOS.*enabled|Authoritative.*orders/i);
+
+			await maybeEnableFeature('woocommerce');
+			await maybeEnableFeature('protected_content');
+			await wpCli('elasticpress sync --setup --yes');
+		});
+
+		test('Will require a sync when enabling Orders Autosuggest', async ({ loggedInPage }) => {
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+
+			// Enable the feature
+			await loggedInPage
+				.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+			await loggedInPage
+				.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+
+			const showSuggestionsCheck = loggedInPage
+				.locator('label:has-text("Show suggestions")')
+				.locator('..')
+				.locator('input');
+
+			if (!isEpIo()) {
+				await expect(showSuggestionsCheck).toBeDisabled();
+				return;
+			}
+
+			const apiRequestPromise = loggedInPage.waitForResponse(
+				'/wp-json/elasticpress/v1/features*',
+			);
+
+			await showSuggestionsCheck.check();
+			loggedInPage.on('dialog', (dialog) => dialog.accept());
+			await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
+
+			await apiRequestPromise;
+
+			// Syncing should complete
+			await loggedInPage.getByRole('button', { name: 'Log' }).click();
+			const syncMessages = loggedInPage.locator('.ep-sync-messages');
+			await expect(syncMessages).toContainText('Mapping sent');
+			await expect(syncMessages).toContainText('Sync complete');
+		});
+
+		test('Will show a navigable list of suggested results when searching orders', async ({
+			loggedInPage,
+		}) => {
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+
+			// The combobox will not render if not using ElasticPress.io
+			if (!isEpIo()) {
+				await expect(
+					loggedInPage.locator('#wc-orders-filter .ep-combobox__input'),
+				).not.toBeVisible();
+				return;
+			}
+
+			// Prepare aliases
+			const apiRequestPromise = loggedInPage.waitForResponse('**/api/v1/search/orders/*');
+			const input = loggedInPage.locator('#wc-orders-filter .ep-combobox__input');
+			const description = loggedInPage.locator(
+				'#wc-orders-filter .ep-combobox > .screen-reader-text',
+			);
+			const listbox = loggedInPage.locator('#wc-orders-filter .ep-combobox__list');
+			const submit = loggedInPage.locator('#wc-orders-filter .search-box .button');
+
+			// Search for "Antwon". 3 suggestions should appear
+			await input.fill('Antwon');
+			await apiRequestPromise;
+			await expect(input).toHaveAttribute('aria-expanded', 'true');
+			await expect(description).toContainText('4 suggestions available');
+			await expect(listbox).toBeVisible();
+			await expect(listbox.locator('> *')).toHaveCount(4);
+
+			// Test arrow key navigation
+			await input.press('ArrowDown');
+			await expect(listbox.locator('> *').first()).toHaveAttribute('aria-selected', 'true');
+
+			await input.press('ArrowDown');
+			await input.press('ArrowDown');
+			await input.press('ArrowDown');
+			await expect(listbox.locator('> *').nth(3)).toHaveAttribute('aria-selected', 'true');
+			await expect(listbox.locator('> *').first()).not.toHaveAttribute(
+				'aria-selected',
+				'true',
+			);
+
+			await input.press('ArrowDown');
+			await expect(listbox.locator('> *').first()).toHaveAttribute('aria-selected', 'true');
+			await expect(listbox.locator('> *').nth(3)).not.toHaveAttribute(
+				'aria-selected',
+				'true',
+			);
+
+			await input.press('ArrowUp');
+			await expect(listbox.locator('> *').nth(3)).toHaveAttribute('aria-selected', 'true');
+			await expect(listbox.locator('> *').first()).not.toHaveAttribute(
+				'aria-selected',
+				'true',
+			);
+
+			await input.press('ArrowUp');
+			await expect(listbox.locator('> *').nth(2)).toHaveAttribute('aria-selected', 'true');
+			await expect(listbox.locator('> *').nth(3)).not.toHaveAttribute(
+				'aria-selected',
+				'true',
+			);
+
+			// Test escape key
+			await input.press('Escape');
+			await expect(listbox).not.toBeVisible();
+			await input.press('ArrowDown');
+			await expect(listbox).toBeVisible();
+			await expect(listbox.locator('> *').first()).toHaveAttribute('aria-selected', 'true');
+
+			// Test focus management
+			await submit.focus();
+			await expect(listbox).not.toBeVisible();
+			await input.focus();
+			await expect(listbox).toBeVisible();
+
+			// Test partial name searches
+			await input.press('Backspace');
+			await input.press('Backspace');
+			await loggedInPage.waitForResponse('**/api/v1/search/orders/*');
+			await expect(listbox.locator('> *')).toHaveCount(4);
+
+			// Test enter key navigation
+			await input.press('ArrowDown');
+			await input.press('ArrowDown');
+			await input.press('Enter');
+			await expect(loggedInPage).toHaveURL(/page=wc-orders&action=edit&id=\d+/);
+
+			// Test clicking suggestions
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+			await input.fill('Antwon');
+			await loggedInPage.waitForResponse('**/api/v1/search/orders/*');
+			await listbox.locator('> *').nth(1).click();
+			await expect(loggedInPage).toHaveURL(/page=wc-orders&action=edit&id=\d+/);
 		});
 	});
 });

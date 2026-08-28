@@ -309,13 +309,13 @@ export async function openSyncLog(page: Page) {
 
 export async function maybeOpenEditorSettings(page: Page) {
 	const selector =
-		process.env.WP_VERSION === '6.2'
+		process.env.WP_VERSION === '6.4'
 			? '.interface-interface-skeleton__sidebar .interface-complementary-area'
 			: '.interface-interface-skeleton__sidebar .interface-complementary-area__fill';
 	const editorSettings = page.locator(selector);
 
 	try {
-		if (process.env.WP_VERSION !== '6.2') {
+		if (process.env.WP_VERSION !== '6.4') {
 			await editorSettings.waitFor({ state: 'visible', timeout: 5 });
 		}
 	} catch (error) {
@@ -336,7 +336,7 @@ export async function maybeOpenSettingsTab(page: Page, tabName: string) {
 
 	let tab: Locator;
 	let isTabActive: string | boolean | null;
-	if (process.env.WP_VERSION === '6.2') {
+	if (process.env.WP_VERSION === '6.4') {
 		tab = page.locator('.edit-post-sidebar__panel-tab, .edit-widgets-sidebar__panel-tab', {
 			hasText: tabName,
 		});
@@ -367,7 +367,7 @@ export async function setPostPassword(
 	await maybeOpenEditorSettings(page);
 	await maybeOpenSettingsTab(page, 'Post');
 
-	if (process.env.WP_VERSION === '6.2') {
+	if (process.env.WP_VERSION === '6.4') {
 		await page.locator('.edit-post-post-visibility__toggle').click();
 		await page
 			.getByRole('radio', { name: password !== '' ? 'Password protected' : 'Public' })
@@ -457,7 +457,7 @@ export async function publishPost(
 		if (!isInCodeEditorMode) {
 			await changeMode(page);
 		}
-		if (process.env.WP_VERSION === '6.2') {
+		if (process.env.WP_VERSION === '6.4') {
 			await page.locator('.wp-block-post-title').fill(newPostData.title);
 		} else {
 			await page.locator('.wp-block-post-title textarea').fill(newPostData.title);
