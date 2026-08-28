@@ -116,6 +116,9 @@ class TestDidYouMean extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 
+		// Force no results so the suggestion is displayed.
+		$query->found_posts = 0;
+
 		$expected = sprintf( '<span class="ep-spell-suggestion">Did you mean: <a href="%s">test</a>?</span>', get_search_link( 'test' ) );
 		$this->assertEquals( $expected, ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
 	}
@@ -142,6 +145,9 @@ class TestDidYouMean extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 
 		$query = $query->query( $args );
+
+		// Force no results so the suggestion is displayed.
+		$wp_query->found_posts = 0;
 
 		$expected = sprintf( '<span class="ep-spell-suggestion">Did you mean: <a href="%s">test</a>?</span>', get_search_link( 'test' ) );
 		$this->assertEquals( $expected, ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion() );
@@ -180,6 +186,10 @@ class TestDidYouMean extends BaseTestCase {
 				's' => 'teet',
 			]
 		);
+
+		// Force no results so the suggestion is displayed.
+		$query->found_posts = 0;
+
 		$this->assertEquals( $expected_result, ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
 	}
 
@@ -338,6 +348,9 @@ class TestDidYouMean extends BaseTestCase {
 		$wp_the_query = $query;
 		$wp_query     = $query;
 
+		// Force no results so the suggestion is displayed.
+		$query->found_posts = 0;
+
 		ob_start();
 		do_action( 'ep_suggestions' );
 		$output = ob_get_clean();
@@ -370,6 +383,9 @@ class TestDidYouMean extends BaseTestCase {
 		);
 
 		parse_str( 'ep_suggestion_original_term=Original Term', $_GET );
+
+		// Force no results so the suggestion is displayed.
+		$query->found_posts = 0;
 
 		ob_start();
 		do_action( 'ep_suggestions', $query );
@@ -456,5 +472,100 @@ class TestDidYouMean extends BaseTestCase {
 			[ 'active', 'search_behavior' ],
 			$settings_keys
 		);
+	}
+
+	/**
+	 * Tests that get_suggestion returns false when the current search term already has results.
+	 */
+	public function testGetSuggestionNotShownWhenResultsExist() {
+		$this->ep_factory->post->create( [ 'post_content' => 'Shirt product' ] );
+		$this->ep_factory->post->create( [ 'post_content' => 'Shift product' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'shirt',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertGreaterThan( 0, $query->found_posts );
+		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
+	}
+
+	/**
+	 * Tests that `ep_suggestion_suppress_when_results_exist` filter can restore the suggestion when results exist.
+	 */
+	public function testGetSuggestionSuppressWhenResultsExistFilter() {
+		$query                        = new \WP_Query(
+			[
+				's' => 'shirt',
+			]
+		);
+		$query->found_posts           = 1;
+		$query->suggested_terms       = [
+			'options' => [
+				[
+					'text' => 'shift',
+				],
+			],
+		];
+		$query->query_vars['s']       = 'shirt';
+		$query->elasticsearch_success = true;
+
+		// Default behavior: suppressed because the query already has results.
+		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
+
+		add_filter( 'ep_suggestion_suppress_when_results_exist', '__return_false' );
+
+		$expected = sprintf( '<span class="ep-spell-suggestion">Did you mean: <a href="%s">shift</a>?</span>', get_search_link( 'shift' ) );
+		$this->assertEquals( $expected, ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
+	}
+
+	/**
+	 * Tests that get_suggestion returns false when the top suggestion matches the original term.
+	 */
+	public function testGetSuggestionNotShownWhenTopSuggestionMatchesOriginalTerm() {
+		$query                        = new \WP_Query(
+			[
+				's' => 'shirt',
+			]
+		);
+		$query->found_posts           = 0;
+		$query->suggested_terms       = [
+			'options' => [
+				[
+					'text' => 'shirt',
+				],
+			],
+		];
+		$query->query_vars['s']       = 'shirt';
+		$query->elasticsearch_success = true;
+
+		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
+	}
+
+	/**
+	 * Tests that get_suggestion returns false when the top suggestion matches the original term with different casing.
+	 */
+	public function testGetSuggestionNotShownWhenTopSuggestionMatchesOriginalTermCaseInsensitive() {
+		$query                        = new \WP_Query(
+			[
+				's' => 'shirt',
+			]
+		);
+		$query->found_posts           = 0;
+		$query->suggested_terms       = [
+			'options' => [
+				[
+					'text' => 'Shirt',
+				],
+			],
+		];
+		$query->query_vars['s']       = 'shirt';
+		$query->elasticsearch_success = true;
+
+		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
 	}
 }
