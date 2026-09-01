@@ -120,7 +120,7 @@ class Comments {
 
 		$return = [];
 		foreach ( $comment_query->comments as $comment ) {
-			if ( post_password_required( (int) $comment->comment_post_ID ) ) {
+			if ( ! $this->can_read_comment( $comment ) ) {
 				continue;
 			}
 
@@ -140,6 +140,30 @@ class Comments {
 		 * @return {array} New value
 		 */
 		return apply_filters( 'ep_comment_search_widget_response', $return );
+	}
+
+	/**
+	 * Whether the current user can read a comment's parent post.
+	 *
+	 * Mirrors WP_REST_Comments_Controller::check_read_post_permission() for a
+	 * collection search: password-protected parents stay hidden unless the
+	 * visitor has the password cookie or can edit the post.
+	 *
+	 * @since 5.3.5
+	 * @param \WP_Comment $comment Comment object.
+	 * @return bool
+	 */
+	protected function can_read_comment( $comment ) {
+		$post = get_post( (int) $comment->comment_post_ID );
+		if ( ! $post ) {
+			return false;
+		}
+
+		if ( post_password_required( $post ) ) {
+			return current_user_can( 'edit_post', $post->ID );
+		}
+
+		return true;
 	}
 
 	/**
