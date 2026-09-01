@@ -120,6 +120,10 @@ class Comments {
 
 		$return = [];
 		foreach ( $comment_query->comments as $comment ) {
+			if ( post_password_required( (int) $comment->comment_post_ID ) ) {
+				continue;
+			}
+
 			$return[ $comment->comment_ID ] = [
 				'id'      => $comment->comment_ID,
 				'content' => $comment->comment_content,
