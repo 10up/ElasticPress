@@ -795,7 +795,130 @@ class TestProtectedContent extends BaseTestCase {
 		$this->assertNotContains( 'private', $all_authors_statuses );
 		$this->assertContains( 'publish', $all_authors_statuses );
 
-		$this->assertSame( 'private', $should[1]['bool']['must'][1]['term']['post_status'] );
+		$author_clause_statuses = $should[1]['bool']['must'][1]['terms']['post_status'];
+		$this->assertContains( 'private', $author_clause_statuses );
 		$this->assertSame( $author_id, $should[1]['bool']['must'][2]['term']['post_author.id'] );
+	}
+
+	/**
+	 * Authors must see their own custom-private posts, but not other authors'.
+	 *
+	 * WordPress author-restricts every status from get_post_stati( [ 'private' => true ] ),
+	 * not only the built-in `private` status.
+	 *
+	 * @since 5.3.5
+	 * @group protected-content
+	 */
+	public function test_author_can_see_own_custom_private_status_posts_but_not_others() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$custom_status = 'ep_custom_private';
+		register_post_status(
+			$custom_status,
+			[
+				'label'                     => 'Custom Private',
+				'private'                   => true,
+				'public'                    => false,
+				'protected'                 => false,
+				'show_in_admin_all_list'    => true,
+				'show_in_admin_status_list' => true,
+			]
+		);
+
+		try {
+			$author_1_id = $this->factory->user->create( [ 'role' => 'author' ] );
+			$author_2_id = $this->factory->user->create( [ 'role' => 'author' ] );
+			$admin_id    = get_current_user_id();
+
+			$author_1_custom_id = $this->ep_factory->post->create(
+				[
+					'post_title'  => 'Author 1 Custom Private Post',
+					'post_status' => $custom_status,
+					'post_author' => $author_1_id,
+				]
+			);
+			$author_2_custom_id = $this->ep_factory->post->create(
+				[
+					'post_title'  => 'Author 2 Custom Private Secret',
+					'post_status' => $custom_status,
+					'post_author' => $author_2_id,
+				]
+			);
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+			wp_set_current_user( $author_1_id );
+			$this->assertFalse( current_user_can( 'read_private_posts' ) );
+
+			$post = new \ElasticPress\Indexable\Post\Post();
+			$args = $post->format_args(
+				[
+					'post_type'   => [ 'post' ],
+					'post_status' => $custom_status,
+				],
+				new \WP_Query()
+			);
+
+			$should               = $args['post_filter']['bool']['should'];
+			$all_authors_statuses = $should[0]['bool']['must'][1]['terms']['post_status'];
+			$author_statuses      = $should[1]['bool']['must'][1]['terms']['post_status'];
+			$this->assertNotContains( $custom_status, $all_authors_statuses );
+			$this->assertContains( $custom_status, $author_statuses );
+			$this->assertContains( 'private', $author_statuses );
+
+			$query = new \WP_Query(
+				[
+					'ep_integrate' => true,
+					'orderby'      => 'date',
+				]
+			);
+			$this->assertTrue( $query->elasticsearch_success );
+			$this->assertContains( $author_1_custom_id, wp_list_pluck( $query->posts, 'ID' ) );
+			$this->assertNotContains( $author_2_custom_id, wp_list_pluck( $query->posts, 'ID' ) );
+
+			$query = new \WP_Query(
+				[
+					'post_status'  => $custom_status,
+					'ep_integrate' => true,
+					'orderby'      => 'date',
+				]
+			);
+			$this->assertTrue( $query->elasticsearch_success );
+			$this->assertEquals( 1, $query->found_posts );
+			$this->assertEquals( [ $author_1_custom_id ], wp_list_pluck( $query->posts, 'ID' ) );
+
+			$query = new \WP_Query(
+				[
+					'post_status'  => $custom_status,
+					's'            => 'Author 2 Custom Private Secret',
+					'ep_integrate' => true,
+				]
+			);
+			$this->assertTrue( $query->elasticsearch_success );
+			$this->assertEquals( 0, $query->found_posts );
+
+			wp_set_current_user( $admin_id );
+
+			$query = new \WP_Query(
+				[
+					'post_status'  => $custom_status,
+					'ep_integrate' => true,
+					'orderby'      => 'date',
+				]
+			);
+			$this->assertTrue( $query->elasticsearch_success );
+			$this->assertEquals( 2, $query->found_posts );
+			$this->assertEqualsCanonicalizing(
+				[ $author_1_custom_id, $author_2_custom_id ],
+				wp_list_pluck( $query->posts, 'ID' )
+			);
+		} finally {
+			global $wp_post_statuses;
+			unset( $wp_post_statuses[ $custom_status ] );
+		}
 	}
 }

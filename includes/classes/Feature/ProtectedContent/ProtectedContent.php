@@ -458,10 +458,11 @@ class ProtectedContent extends Feature {
 	/**
 	 * Filter private posts for current user.
 	 *
-	 * Private statuses are never added to the all-authors clause. Users without
-	 * `read_private_posts` can still match their own private posts via the
-	 * author-restricted clause below. Merging a requested `post_status=private`
-	 * into the all-authors list would otherwise expose other authors' private posts.
+	 * Private statuses (including custom ones from `get_post_stati( [ 'private' => true ] )`)
+	 * are never added to the all-authors clause. Users without `read_private_posts` can
+	 * still match their own private posts via the author-restricted clause below. Merging
+	 * a requested private status into the all-authors list would otherwise expose other
+	 * authors' private posts.
 	 *
 	 * @param array $formatted_args Formatted Elasticsearch query
 	 * @param array $args Query variables
@@ -532,15 +533,17 @@ class ProtectedContent extends Feature {
 				],
 			];
 
-			$should_clauses[] = [
-				'bool' => [
-					'must' => [
-						[ 'terms' => [ 'post_type.raw' => array_values( $post_types_without_capability ) ] ],
-						[ 'term' => [ 'post_status' => 'private' ] ],
-						[ 'term' => [ 'post_author.id' => get_current_user_id() ] ],
+			if ( ! empty( $private_statuses ) ) {
+				$should_clauses[] = [
+					'bool' => [
+						'must' => [
+							[ 'terms' => [ 'post_type.raw' => array_values( $post_types_without_capability ) ] ],
+							[ 'terms' => [ 'post_status' => array_values( $private_statuses ) ] ],
+							[ 'term' => [ 'post_author.id' => get_current_user_id() ] ],
+						],
 					],
-				],
-			];
+				];
+			}
 		}
 
 		if ( ! empty( $should_clauses ) ) {
