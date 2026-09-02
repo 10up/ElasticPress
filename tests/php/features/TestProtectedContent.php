@@ -687,4 +687,115 @@ class TestProtectedContent extends BaseTestCase {
 			wp_list_pluck( $query->posts, 'ID' )
 		);
 	}
+
+	/**
+	 * Authors filtering by private status must not see other authors' private posts.
+	 *
+	 * @since 5.3.5
+	 * @group protected-content
+	 */
+	public function test_author_cannot_see_other_authors_private_posts_when_filtering_by_private_status() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$author_1_id = $this->factory->user->create( [ 'role' => 'author' ] );
+		$author_2_id = $this->factory->user->create( [ 'role' => 'author' ] );
+		$admin_id    = get_current_user_id();
+
+		$author_1_private_id = $this->ep_factory->post->create(
+			[
+				'post_title'  => 'Author 1 Private Post',
+				'post_status' => 'private',
+				'post_author' => $author_1_id,
+			]
+		);
+		$author_2_private_id = $this->ep_factory->post->create(
+			[
+				'post_title'  => 'Author 2 Secret Private Title',
+				'post_status' => 'private',
+				'post_author' => $author_2_id,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_set_current_user( $author_1_id );
+		$this->assertFalse( current_user_can( 'read_private_posts' ) );
+
+		$query = new \WP_Query(
+			[
+				'post_status'  => 'private',
+				'ep_integrate' => true,
+				'orderby'      => 'date',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( [ $author_1_private_id ], wp_list_pluck( $query->posts, 'ID' ) );
+
+		$query = new \WP_Query(
+			[
+				'post_status'  => 'private',
+				's'            => 'Author 2 Secret Private Title',
+				'ep_integrate' => true,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 0, $query->found_posts );
+
+		wp_set_current_user( $admin_id );
+
+		$query = new \WP_Query(
+			[
+				'post_status'  => 'private',
+				'ep_integrate' => true,
+				'orderby'      => 'date',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEqualsCanonicalizing(
+			[ $author_1_private_id, $author_2_private_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
+	}
+
+	/**
+	 * Private status must not appear in the all-authors clause for users without the cap.
+	 *
+	 * @since 5.3.5
+	 * @group protected-content
+	 */
+	public function test_private_status_is_not_in_all_authors_clause_for_users_without_capability() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$author_id = $this->factory->user->create( [ 'role' => 'author' ] );
+		wp_set_current_user( $author_id );
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+		$args = $post->format_args(
+			[
+				'post_type'   => [ 'post' ],
+				'post_status' => 'private',
+			],
+			new \WP_Query()
+		);
+
+		$should = $args['post_filter']['bool']['should'];
+		$this->assertCount( 2, $should );
+
+		$all_authors_statuses = $should[0]['bool']['must'][1]['terms']['post_status'];
+		$this->assertNotContains( 'private', $all_authors_statuses );
+		$this->assertContains( 'publish', $all_authors_statuses );
+
+		$this->assertSame( 'private', $should[1]['bool']['must'][1]['term']['post_status'] );
+		$this->assertSame( $author_id, $should[1]['bool']['must'][2]['term']['post_author.id'] );
+	}
 }
