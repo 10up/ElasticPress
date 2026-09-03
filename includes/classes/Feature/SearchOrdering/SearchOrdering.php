@@ -655,7 +655,7 @@ class SearchOrdering extends Feature {
 			$to_inject = array();
 
 			foreach ( $posts as $key => &$post ) {
-				$terms = json_decode( wp_specialchars_decode( $post->terms, ENT_QUOTES ), true );
+				$terms = is_string( $post->terms ) ? json_decode( wp_specialchars_decode( $post->terms, ENT_QUOTES ), true ) : (array) $post->terms;
 				if ( isset( $terms[ self::TAXONOMY_NAME ] ) ) {
 					foreach ( $terms[ self::TAXONOMY_NAME ] as $current_term ) {
 						if ( strtolower( $current_term['name'] ) === $search_query ) {
