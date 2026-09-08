@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [5.3.5] - 2026-09-XX
 
+### Fixed
+* Prevent an array-to-string conversion warning in Custom Search Results when post terms are not a string. Props [@burhandodhy](https://github.com/burhandodhy) and [@leedxw](https://github.com/leedxw) via [#4364](https://github.com/10up/ElasticPress/pull/4364).
+
 ## [5.3.4] - 2026-08-27
 
 ### Added

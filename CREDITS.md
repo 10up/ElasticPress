@@ -290,8 +290,9 @@ Thank you to all the people who have already contributed to this repository via 
 [Stefan (@stefanmm)](https://github.com/stefanmm),
 [@feliciaoctocog](https://github.com/feliciaoctocog),
 [Danny C (@dannyreaktiv)](https://github.com/dannyreaktiv),
+[Bruno Freiberger Garcia (@freibergergarcia)](https://github.com/freibergergarcia),
 and
-[Bruno Freiberger Garcia (@freibergergarcia)](https://github.com/freibergergarcia).
+[Lee (@leedxw)](https://github.com/leedxw).
 
 ## Libraries
 

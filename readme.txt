@@ -79,6 +79,12 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
+= 5.3.5 - 2026-09-XX =
+
+__Fixed:__
+
+* Prevent an array-to-string conversion warning in Custom Search Results when post terms are not a string. Props [@burhandodhy](https://github.com/burhandodhy) and [@leedxw](https://github.com/leedxw).
+
 = 5.3.4 - 2026-08-27 =
 
 __Added:__
