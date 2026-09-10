@@ -1,6 +1,6 @@
 {
   "name": "elasticpress",
-  "version": "5.3.4",
+  "version": "5.3.5",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "private": true,
@@ -15,7 +15,7 @@
     "uuid": "^14.0.1"
   },
   "devDependencies": {
-    "@wordpress/env": "^11.13.0",
+    "@wordpress/env": "^11.14.0",
     "10up-toolkit": "^7.0.0-next.1",
     "classnames": "^2.5.1",
     "eslint-import-resolver-typescript": "^3.6.1",

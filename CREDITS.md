@@ -290,8 +290,15 @@ Thank you to all the people who have already contributed to this repository via 
 [Stefan (@stefanmm)](https://github.com/stefanmm),
 [@feliciaoctocog](https://github.com/feliciaoctocog),
 [Danny C (@dannyreaktiv)](https://github.com/dannyreaktiv),
+[Bruno Freiberger Garcia (@freibergergarcia)](https://github.com/freibergergarcia),
+[Lee (@leedxw)](https://github.com/leedxw),
+[Wesley Wang (@Zyy0530)](https://github.com/Zyy0530),
+[@lzhou1110](https://github.com/lzhou1110),
+[Strickland (@Str1ckl4nd)](https://github.com/Str1ckl4nd),
+[@mauriceng98](https://github.com/mauriceng98),
+[七号公园 (@7thParkk)](https://github.com/7thParkk),
 and
-[Bruno Freiberger Garcia (@freibergergarcia)](https://github.com/freibergergarcia).
+[@mrglwglwgl](https://github.com/mrglwglwgl).
 
 ## Libraries
 
