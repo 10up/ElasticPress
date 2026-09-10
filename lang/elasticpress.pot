@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 5.3.4\n"
+"Project-Id-Version: ElasticPress 5.3.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-27T14:02:35+00:00\n"
+"POT-Creation-Date: 2026-09-10T17:12:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: elasticpress\n"
@@ -1189,11 +1189,11 @@ msgstr ""
 msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure."
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:561
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:570
 msgid "Enable to use WordPress default sort for searches inside the WP Dashboard."
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:562
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:571
 msgid "Use default WordPress sort on the WP Dashboard"
 msgstr ""
 
@@ -3824,10 +3824,14 @@ msgid "Permission denied. Reload the sync page and try again."
 msgstr ""
 
 #: assets/js/sync/src/hooks.js:85
+#: dist/js/sync-script.js:3035
+#: dist/js/sync-script.js:2163
 msgid "Something went wrong. Find troubleshooting steps at https://www.elasticpress.io/resources/articles/troubleshooting-guide-elasticpress-something-went-wrong-error/."
 msgstr ""
 
 #: assets/js/sync/src/hooks.js:111
+#: dist/js/sync-script.js:3056
+#: dist/js/sync-script.js:2189
 msgid "Unable to parse response. Find troubleshooting steps at https://www.elasticpress.io/resources/articles/troubleshooting-guide-elasticpress-something-went-wrong-error/."
 msgstr ""
 
@@ -4209,16 +4213,6 @@ msgid "%1$d item @ %2$s"
 msgid_plural "%1$d items @ %2$s"
 msgstr[0] ""
 msgstr[1] ""
-
-#: dist/js/sync-script.js:3035
-#: dist/js/sync-script.js:2163
-msgid "Something went wrong. Find troubleshooting steps at https://www.elasticpress.io/documentation/article/troubleshooting-guide-elasticpress-something-went-wrong-error/."
-msgstr ""
-
-#: dist/js/sync-script.js:3056
-#: dist/js/sync-script.js:2189
-msgid "Unable to parse response. Find troubleshooting steps at https://www.elasticpress.io/documentation/article/troubleshooting-guide-elasticpress-something-went-wrong-error/."
-msgstr ""
 
 #: assets/js/blocks/comments/block.json
 msgctxt "block title"
