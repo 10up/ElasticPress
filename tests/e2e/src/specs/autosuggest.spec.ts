@@ -14,11 +14,13 @@ import {
 /**
  * Homepage search. Twenty Twenty-One can render both a header `.search-field`
  * and a sidebar Search block, so an unqualified searchbox role is ambiguous.
+ * WordPress 7.1 also exposes the admin-bar search as a searchbox, so target
+ * the classic widget class autosuggest binds to by default.
  *
  * @param page Playwright page object
- * @returns Locator for the first searchbox on the page
+ * @returns Locator for the first classic search-field
  */
-const frontendSearch = (page: Page) => page.getByRole('searchbox').first();
+const frontendSearch = (page: Page) => page.locator('input.search-field').first();
 
 test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async ({ browser }) => {
