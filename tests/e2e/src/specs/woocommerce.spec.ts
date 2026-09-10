@@ -263,9 +263,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 				await loggedInPage.locator('#place_order').click();
 			} else {
 				await loggedInPage.waitForTimeout(1000);
-				await loggedInPage
-					.locator('.wc-block-components-checkout-place-order-button')
-					.click();
+				await loggedInPage.getByRole('button', { name: 'Place order' }).click();
 			}
 
 			// Ensure order is placed

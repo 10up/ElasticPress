@@ -52,6 +52,9 @@ export const defaultFeatures = {
 	protected_content: {
 		active: false,
 	},
+	'instant-results': {
+		active: false,
+	},
 	acf_repeater: {
 		active: true,
 	},
@@ -314,21 +317,21 @@ export async function maybeOpenEditorSettings(page: Page) {
 			: '.interface-interface-skeleton__sidebar .interface-complementary-area__fill';
 	const editorSettings = page.locator(selector);
 
-	try {
-		if (process.env.WP_VERSION !== '6.2') {
-			await editorSettings.waitFor({ state: 'visible', timeout: 5 });
-		}
-	} catch (error) {
-		// Do nothing
+	if (await editorSettings.isVisible()) {
+		return;
 	}
 
-	const isEditorSettingsVisible = await editorSettings.isVisible();
-	if (!isEditorSettingsVisible) {
-		await page
-			.locator('.edit-post-header, .edit-widgets-header')
-			.locator('button[aria-label="Settings"]')
-			.click();
+	const settingsButton = page
+		.locator('.editor-header, .edit-post-header, .edit-widgets-header')
+		.getByRole('button', { name: 'Settings' });
+
+	// aria-pressed is the reliable open state; a second click would close the sidebar.
+	if ((await settingsButton.getAttribute('aria-pressed')) === 'true') {
+		return;
 	}
+
+	await settingsButton.click();
+	await editorSettings.waitFor({ state: 'visible' });
 }
 
 export async function maybeOpenSettingsTab(page: Page, tabName: string) {

@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
 Tested up to: 7.1
-Stable tag:   5.3.4
+Stable tag:   5.3.5
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,28 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 5.3.5 - 2026-09-10 =
+
+**This is a security release** addressing two issues in specific configurations:
+
+* **Protected Content:** If the feature is active, Authors filtering the admin list by private status could see other authors' private posts.
+* **Comments:** If the feature is active and the site has password-protected posts, anonymous comment search could return those comments.
+
+__Fixed:__
+
+* Prevent an array-to-string conversion warning in Custom Search Results when post terms are not a string. Props [@burhandodhy](https://github.com/burhandodhy) and [@leedxw](https://github.com/leedxw).
+
+__Security:__
+
+* Prevent an explicit private-status filter in the admin post list from exposing other authors' private posts, including custom private statuses, to users without `read_private_posts`. Props [@Zyy0530](https://github.com/Zyy0530), [@lzhou1110](https://github.com/lzhou1110), [@Str1ckl4nd](https://github.com/Str1ckl4nd), [@mauriceng98](https://github.com/mauriceng98), [@7thParkk](https://github.com/7thParkk), [@felipeelia](https://github.com/felipeelia), and [@jeffpaul](https://github.com/jeffpaul).
+* Prevent the Comments REST search from disclosing approved comments on password-protected posts to unauthenticated visitors. Props [@mrglwglwgl](https://github.com/mrglwglwgl) and [@felipeelia](https://github.com/felipeelia).
+* Bumped `postcss-selector-parser` from 7.1.0 to 7.1.5. Props [@dependabot](https://github.com/dependabot).
+* Bumped `fast-uri` from 3.1.5 to 3.1.7. Props [@dependabot](https://github.com/dependabot).
+
+__Developer:__
+
+* Update `@wordpress/env` from 11.13.0 to 11.15.0. Props [@felipeelia](https://github.com/felipeelia).
 
 = 5.3.4 - 2026-08-27 =
 
