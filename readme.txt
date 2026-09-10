@@ -79,7 +79,7 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
-= 5.3.5 - 2026-09-XX =
+= 5.3.5 - 2026-09-10 =
 
 **This is a security release** addressing two issues in specific configurations:
 

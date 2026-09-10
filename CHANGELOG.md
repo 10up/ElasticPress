@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Fixed
 -->
 
-## [5.3.5] - 2026-09-XX
+## [5.3.5] - 2026-09-10
 
 **This is a security release** addressing two issues in specific configurations:
 
