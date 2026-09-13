@@ -798,7 +798,7 @@ class Products {
 	 * @return array
 	 */
 	public function get_supported_post_types( \WP_Query $query ): array {
-		$post_types = [ 'product_variation' ];
+		$post_types = [];
 
 		$is_main_post_type_archive = $query->is_main_query() && $query->is_post_type_archive( 'product' );
 		$has_ep_integrate_set_true = isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN );
