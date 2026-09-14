@@ -613,6 +613,28 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		});
 
 		test('Can fetch orders from Elasticsearch', async ({ loggedInPage }) => {
+			// Ensure HPOS is enabled
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await loggedInPage
+				.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+			await loggedInPage
+				.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+
+			const disableHposCheckbox = loggedInPage.getByRole('checkbox', {
+				name: 'Disable query integration with WooCommerce Orders using HPOS',
+			});
+
+			if (await disableHposCheckbox.isChecked()) {
+				const apiRequestPromise = loggedInPage.waitForResponse(
+					'/wp-json/elasticpress/v1/features*',
+				);
+				await disableHposCheckbox.setChecked(false);
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+				await apiRequestPromise;
+			}
+
 			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
 			await expect(
 				loggedInPage
