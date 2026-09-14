@@ -38,3 +38,4 @@ extend-ignore-re = [
 [default.extend-identifiers]
 "Automattic" = "Automattic"
 "avaiableServices" = "avaiableServices"
+"Str1ckl4nd" = "Str1ckl4nd"

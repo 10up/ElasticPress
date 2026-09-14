@@ -12,13 +12,19 @@ import {
 } from '../utils.js';
 
 /**
- * Homepage search. Twenty Twenty-One can render both a header `.search-field`
- * and a sidebar Search block, so an unqualified searchbox role is ambiguous.
+ * Visible site search, not the admin bar or a collapsed header field.
+ * Autosuggest adds one hidden `.ep-autosuggest` per matching input, so
+ * `.first()` is often the unused header list.
  *
  * @param page Playwright page object
- * @returns Locator for the first searchbox on the page
+ * @returns Locator for the visible site search field
  */
-const frontendSearch = (page: Page) => page.getByRole('searchbox').first();
+const frontendSearch = (page: Page) => page.locator('#page').getByRole('searchbox').first();
+
+const frontendAutosuggest = (page: Page) =>
+	frontendSearch(page)
+		.locator('xpath=ancestor::*[contains(@class, "ep-autosuggest-container")][1]')
+		.locator('.ep-autosuggest');
 
 test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async ({ browser }) => {
@@ -56,7 +62,7 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 		});
 		await frontendSearch(page).pressSequentially('a Blog page');
 		await responsePromise;
-		const autosuggest = page.locator('.ep-autosuggest').first();
+		const autosuggest = frontendAutosuggest(page);
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('a Blog page');
 	});
@@ -71,7 +77,7 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 		await frontendSearch(page).pressSequentially('Markup: HTML Tags and Formatting');
 		await responsePromise;
 
-		const autosuggest = page.locator('.ep-autosuggest').first();
+		const autosuggest = frontendAutosuggest(page);
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('Markup: HTML Tags and Formatting');
 
@@ -96,7 +102,7 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 
 		await page.goto('/');
 		await frontendSearch(page).pressSequentially('aciform');
-		const autosuggest = page.locator('.ep-autosuggest').first();
+		const autosuggest = frontendAutosuggest(page);
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('Keyboard navigation');
 
@@ -107,7 +113,7 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 		await page.goto('/');
 		await frontendSearch(page).pressSequentially('blog');
 
-		const firstLink = page.locator('.ep-autosuggest li a').first();
+		const firstLink = frontendAutosuggest(page).locator('li a').first();
 		const linkHref = (await firstLink.getAttribute('href')) ?? '';
 		if (linkHref) {
 			await firstLink.click();
@@ -129,7 +135,7 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 		await frontendSearch(page).pressSequentially('Markup: HTML Tags and Formatting');
 		await responsePromise;
 
-		const autosuggest = page.locator('.ep-autosuggest').first();
+		const autosuggest = frontendAutosuggest(page);
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('Markup: HTML Tags and Formatting');
 	});
@@ -138,7 +144,7 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 		await wpCli('wp plugin activate filter-autosuggest-navigate-callback');
 		await page.goto('/');
 		await frontendSearch(page).pressSequentially('blog');
-		await page.locator('.ep-autosuggest li a').first().click();
+		await frontendAutosuggest(page).locator('li a').first().click();
 		await expect(page).toHaveURL(/.*cypress=foobar/);
 	});
 
@@ -163,7 +169,7 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 		});
 		await frontendSearch(page).pressSequentially('a Blog page');
 		await responsePromise;
-		const autosuggest = page.locator('.ep-autosuggest').first();
+		const autosuggest = frontendAutosuggest(page);
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('a Blog page');
 
