@@ -373,21 +373,17 @@ class Upgrades {
 			return;
 		}
 
-		$woocommerce = Features::factory()->get_registered_feature( 'woocommerce' );
-		if ( ! $woocommerce ) {
+		$woocommerce_feature = Features::factory()->get_registered_feature( 'woocommerce' );
+
+		$settings = Utils\get_option( 'ep_feature_settings' );
+		if ( isset( $settings[ $woocommerce_feature->slug ]['disable_hpos'] ) ) {
 			return;
 		}
 
-		$settings = (array) Utils\get_option( 'ep_feature_settings' );
-		if ( isset( $settings[ $woocommerce->slug ]['disable_hpos'] ) ) {
-			return;
-		}
-
-		$settings[ $woocommerce->slug ]['disable_hpos'] = '1';
+		$settings[ $woocommerce_feature->slug ]['disable_hpos'] = '1';
 
 		Utils\update_option( 'ep_feature_settings', $settings );
 	}
-
 
 	/**
 	 * Check if a reindex is needed based on the version number.
