@@ -637,9 +637,13 @@ class OrdersHPOSQuery {
 	 * @return array Meta query clause.
 	 */
 	protected function parse_date_meta_shorthand( $value, string $meta_key ): array {
-		if ( ! is_string( $value ) || empty( $value ) ) {
+		if ( ( ! is_string( $value ) && ! is_numeric( $value ) ) || '' === $value ) {
 			return [];
 		}
+
+		// WooCommerce accepts Unix timestamps (ints) as well as date strings/shorthand
+		// for date_paid/date_completed; normalize to a string for the parsing below.
+		$value = (string) $value;
 
 		if ( str_contains( $value, '...' ) ) {
 			$dates = explode( '...', $value, 2 );

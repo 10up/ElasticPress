@@ -267,10 +267,20 @@ class OrdersHPOS {
 		$meta_data['_prices_include_tax'] = [ wc_bool_to_string( $order->get_prices_include_tax( 'edit' ) ) ];
 		$meta_data['_customer_note']      = [ method_exists( $order, 'get_customer_note' ) ? $order->get_customer_note( 'edit' ) : '' ];
 
+		/**
+		 * This filter is documented in includes/classes/Indexable/Post/Post.php
+		 */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $order_post );
+
 		foreach ( $order->get_meta_data() as $meta ) {
 			if ( isset( $meta_data[ $meta->key ] ) ) {
 				continue;
 			}
+
+			if ( is_protected_meta( $meta->key ) && true !== $allowed_protected_keys && ! in_array( $meta->key, $allowed_protected_keys, true ) ) {
+				continue;
+			}
+
 			$meta_data[ $meta->key ] = [ $meta->value ];
 		}
 
