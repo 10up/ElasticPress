@@ -601,7 +601,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 
 			await wpCli('plugin activate woocommerce');
 
-			await wpCli('wc hpos compatibility-mode enable');
+			await wpCli('wc hpos compatibility-mode disable');
 			await wpCli('wc hpos sync');
 			await wpCli('wc hpos enable --ignore-plugin-compatibility');
 			const status = (await wpCli('wc hpos status')).toString();
