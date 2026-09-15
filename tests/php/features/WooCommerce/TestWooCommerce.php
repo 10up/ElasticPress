@@ -222,7 +222,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
 
 		$this->assertSame(
-			[ 'active', 'orders' ],
+			[ 'active', 'orders', 'disable_hpos' ],
 			$settings_keys
 		);
 	}

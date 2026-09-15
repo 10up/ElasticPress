@@ -26,12 +26,20 @@ class Orders {
 	protected $woocommerce;
 
 	/**
+	 * OrdersHPOS object instance
+	 *
+	 * @var OrdersHPOS
+	 */
+	protected $orders_hpos;
+
+	/**
 	 * Class constructor
 	 *
 	 * @param WooCommerce $woocommerce WooCommerce feature object instance
 	 */
 	public function __construct( WooCommerce $woocommerce ) {
 		$this->woocommerce = $woocommerce;
+		$this->orders_hpos = new OrdersHPOS( $this );
 	}
 
 	/**
@@ -46,6 +54,13 @@ class Orders {
 		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 		add_filter( 'ep_admin_notices', [ $this, 'hpos_compatibility_notice' ] );
+		add_filter( 'ep_woocommerce_settings_schema', [ $this, 'add_settings_schema' ], 20 );
+
+		$protected_content = \ElasticPress\Features::factory()->get_registered_feature( 'protected_content' );
+		// Only setup HPOS if Protected Content is active and HPOS is enabled and compatible.
+		if ( $protected_content->is_active() && $this->is_hpos_enabled() && $this->is_hpos_compatible() ) {
+			$this->orders_hpos->setup();
+		}
 	}
 
 	/**
@@ -61,6 +76,12 @@ class Orders {
 		remove_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 		remove_action( 'parse_query', [ $this, 'search_order' ], 11 );
 		remove_action( 'pre_get_posts', [ $this, 'translate_args' ], 11 );
+		remove_filter( 'ep_woocommerce_settings_schema', [ $this, 'add_settings_schema' ], 20 );
+
+		$protected_content = \ElasticPress\Features::factory()->get_registered_feature( 'protected_content' );
+		if ( $protected_content->is_active() && $this->is_hpos_enabled() && $this->is_hpos_compatible() ) {
+			$this->orders_hpos->tear_down();
+		}
 	}
 
 	/**
@@ -337,9 +358,10 @@ class Orders {
 	}
 
 	/**
-	 * Display a notice if WooCommerce Orders are not compatible with ElasticPress
+	 * Display a notice when HPOS order queries are not integrated with ElasticPress.
 	 *
-	 * If the user has WooCommerce, Protected Content, and HPOS enabled, orders will not go through ElasticPress.
+	 * Shown when HPOS is unsupported, and when query integration has been activated
+	 * in the settings.
 	 *
 	 * @param array $notices Current EP notices
 	 * @return array
@@ -350,27 +372,46 @@ class Orders {
 			return $notices;
 		}
 
-		if ( \ElasticPress\Utils\get_option( 'ep_hide_wc_orders_incompatible_notice' ) ) {
-			return $notices;
-		}
-
 		$protected_content = \ElasticPress\Features::factory()->get_registered_feature( 'protected_content' );
 		if ( ! $protected_content->is_active() ) {
 			return $notices;
 		}
 
-		if (
-			! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
-			|| ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {
+		if ( ! $this->is_hpos_enabled() ) {
 			return $notices;
 		}
 
-		if ( ! \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
+		if ( $this->is_hpos_compatible() ) {
+			if (
+				! $this->is_hpos_query_integration_disabled()
+				|| \ElasticPress\Utils\get_option( 'ep_hide_wc_orders_hpos_query_integration_disabled_notice' )
+			) {
+				return $notices;
+			}
+
+			$notices['wc_orders_hpos_query_integration_disabled'] = [
+				'html'    => esc_html__( 'ElasticPress is compatible with WooCommerce HPOS, but the "Disable query integration with WooCommerce Orders using HPOS" setting is enabled. As a result, orders are not being retrieved from Elasticsearch.', 'elasticpress' ),
+				'type'    => 'warning',
+				'dismiss' => true,
+				'scope'   => 'site',
+			];
+
+			return $notices;
+		}
+
+		if (
+			$this->is_hpos_query_integration_disabled()
+			|| \ElasticPress\Utils\get_option( 'ep_hide_wc_orders_incompatible_notice' )
+		) {
 			return $notices;
 		}
 
 		$notices['wc_orders_incompatible'] = [
-			'html'    => esc_html__( "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list if WooCommerce's High-performance order storage is enabled.", 'elasticpress' ),
+			'html'    => sprintf(
+				/* translators: %s: Minimum WooCommerce version required for HPOS integration. */
+				esc_html__( "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list while WooCommerce's High-performance order storage is enabled. HPOS integration requires WooCommerce %s or greater.", 'elasticpress' ),
+				esc_html( apply_filters( 'ep_woocommerce_hpos_min_version', '9.8.0' ) )
+			),
 			'type'    => 'warning',
 			'dismiss' => true,
 			'scope'   => 'site',
@@ -470,6 +511,11 @@ class Orders {
 			return;
 		}
 
+		// Bail if HPOS is enabled and we are not generating the Orders Autosuggest search template.
+		if ( $this->is_hpos_enabled() && $this->is_hpos_compatible() && ! $query->get( 'ep_order_search_template' ) ) {
+			return;
+		}
+
 		$query->set( 'ep_integrate', true );
 
 		/**
@@ -479,6 +525,92 @@ class Orders {
 		$query->set( 'suppress_filters', false );
 
 		$this->maybe_set_search_fields( $query );
+	}
+
+	/**
+	 * Whether WooCommerce HPOS is enabled or not
+	 *
+	 * @since 5.4.0
+	 * @return boolean Whether WooCommerce HPOS is enabled or not
+	 */
+	public function is_hpos_enabled(): bool {
+		if (
+			! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
+			|| ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {
+			return false;
+		}
+
+		return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+	}
+
+	/**
+	 * Whether HPOS integration is compatible with current WooCommerce version.
+	 *
+	 * @since 5.4.0
+	 * @return bool
+	 */
+	public function is_hpos_compatible(): bool {
+		/**
+		 * Filter the minimum WooCommerce version required for HPOS integration.
+		 *
+		 * @hook ep_woocommerce_hpos_min_version
+		 * @since 5.4.0
+		 * @param {string} $min_version Minimum WooCommerce version
+		 * @return {string} Minimum WooCommerce version
+		 */
+		return version_compare( \WC_VERSION, apply_filters( 'ep_woocommerce_hpos_min_version', '9.8.0' ), '>=' );
+	}
+
+	/**
+	 * Add the HPOS query integration field to the WooCommerce feature schema.
+	 *
+	 * @since 5.4.0
+	 * @param array $settings_schema Current settings schema.
+	 * @return array
+	 */
+	public function add_settings_schema( array $settings_schema ): array {
+		$settings_schema[] = [
+			'default'       => '0',
+			'disabled'      => ! $this->is_hpos_enabled(),
+			'help'          => esc_html__( 'Enable this setting to stop ElasticPress from querying WooCommerce orders stored using HPOS.', 'elasticpress' ),
+			'key'           => 'disable_hpos',
+			'label'         => esc_html__( 'Disable query integration with WooCommerce Orders using HPOS', 'elasticpress' ),
+			'requires_sync' => false,
+			'type'          => 'checkbox',
+		];
+
+		return $settings_schema;
+	}
+
+	/**
+	 * Whether WooCommerce HPOS query integration is disabled.
+	 *
+	 * @since 5.4.0
+	 * @return bool
+	 */
+	public function is_hpos_query_integration_disabled(): bool {
+		return '1' === $this->woocommerce->get_setting( 'disable_hpos' );
+	}
+
+	/**
+	 * Check whether an HPOS order was fetched via Elasticsearch.
+	 *
+	 * @since 5.4.0
+	 * @param \WC_Abstract_Order $order Order object.
+	 * @return bool
+	 */
+	public function order_has_elasticsearch_success( \WC_Abstract_Order $order ): bool {
+		return $this->orders_hpos->order_has_elasticsearch_success( $order );
+	}
+
+	/**
+	 * Clear tracked HPOS Elasticsearch order IDs.
+	 *
+	 * @since 5.4.0
+	 * @return void
+	 */
+	public function clear_elasticsearch_success_order_ids(): void {
+		$this->orders_hpos->clear_elasticsearch_success_order_ids();
 	}
 
 	/**
