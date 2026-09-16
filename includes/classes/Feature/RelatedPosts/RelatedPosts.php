@@ -30,6 +30,10 @@ class RelatedPosts extends Feature {
 
 		$this->requires_install_reindex = false;
 
+		$this->default_settings = [
+			'decaying_enabled' => '0',
+		];
+
 		parent::__construct();
 	}
 
@@ -134,6 +138,7 @@ class RelatedPosts extends Feature {
 			'posts_per_page'      => $post_return,
 			'ep_integrate'        => true,
 			'ignore_sticky_posts' => true,
+			'orderby'             => 'relevance',
 		);
 
 		/**
@@ -168,6 +173,176 @@ class RelatedPosts extends Feature {
 	}
 
 	/**
+	 * Set the `settings_schema` attribute.
+	 *
+	 * @since 5.4.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => '0',
+				'help'    => __( 'When enabled, newer content will be favored over older content in related posts results.', 'elasticpress' ),
+				'key'     => 'decaying_enabled',
+				'label'   => __( 'Weight related posts by date', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+		];
+	}
+
+	/**
+	 * Returns whether date decay is enabled for related posts.
+	 *
+	 * @since 5.4.0
+	 * @param array $args WP_Query args.
+	 * @return bool
+	 */
+	public function is_decaying_enabled( $args = [] ) {
+		$settings = $this->get_settings();
+
+		$is_decaying_enabled = ! empty( $settings['decaying_enabled'] ) && '0' !== $settings['decaying_enabled'];
+
+		/**
+		 * Filter to enable or disable decay by date for related posts.
+		 *
+		 * @hook ep_related_posts_is_decaying_enabled
+		 * @since 5.4.0
+		 * @param {bool}  $is_decaying_enabled Whether decay by date is enabled or not.
+		 * @param {array} $settings            Related Posts feature settings.
+		 * @param {array} $args                WP_Query args.
+		 * @return {bool} New value.
+		 */
+		return apply_filters( 'ep_related_posts_is_decaying_enabled', $is_decaying_enabled, $settings, $args );
+	}
+
+	/**
+	 * Weight more recent content in related posts results.
+	 *
+	 * @param array $formatted_args Formatted ES args.
+	 * @param array $args WP_Query args.
+	 * @since 5.4.0
+	 * @return array
+	 */
+	public function weight_recent( $formatted_args, $args ) {
+		if ( empty( $args['more_like'] ) ) {
+			return $formatted_args;
+		}
+
+		if ( ! $this->is_decaying_enabled( $args ) ) {
+			return $formatted_args;
+		}
+
+		/**
+		 * Filter related posts date weighting decay function.
+		 *
+		 * @hook epwr_related_posts_decay_function
+		 * @since 5.4.0
+		 * @param {string} $decay_function Current decay function.
+		 * @param {array}  $formatted_args Formatted Elasticsearch arguments.
+		 * @param {array}  $args           WP_Query arguments.
+		 * @return {string} New decay function.
+		 */
+		$decay_function = apply_filters( 'epwr_related_posts_decay_function', 'exp', $formatted_args, $args );
+
+		/**
+		 * Filter related posts date weighting field.
+		 *
+		 * @hook epwr_related_posts_decay_field
+		 * @since 5.4.0
+		 * @param {string} $field          Current decay field.
+		 * @param {array}  $formatted_args Formatted Elasticsearch arguments.
+		 * @param {array}  $args           WP_Query arguments.
+		 * @return {string} New decay field.
+		 */
+		$field = apply_filters( 'epwr_related_posts_decay_field', 'post_date_gmt', $formatted_args, $args );
+
+		$date_score = array(
+			'function_score' => array(
+				'query'      => $formatted_args['query'],
+				'functions'  => array(
+					array(
+						$decay_function => array(
+							$field => array(
+								/**
+								 * Filter related posts date weighting scale.
+								 *
+								 * @hook epwr_related_posts_scale
+								 * @since 5.4.0
+								 * @param {string} $scale          Current scale.
+								 * @param {array}  $formatted_args Formatted Elasticsearch arguments.
+								 * @param {array}  $args           WP_Query arguments.
+								 * @return {string} New scale.
+								 */
+								'scale'  => apply_filters( 'epwr_related_posts_scale', '360d', $formatted_args, $args ),
+								/**
+								 * Filter related posts date weighting decay.
+								 *
+								 * @hook epwr_related_posts_decay
+								 * @since 5.4.0
+								 * @param {float} $decay          Current decay.
+								 * @param {array} $formatted_args Formatted Elasticsearch arguments.
+								 * @param {array} $args           WP_Query arguments.
+								 * @return {float} New decay.
+								 */
+								'decay'  => apply_filters( 'epwr_related_posts_decay', 0.5, $formatted_args, $args ),
+								/**
+								 * Filter related posts date weighting offset.
+								 *
+								 * @hook epwr_related_posts_offset
+								 * @since 5.4.0
+								 * @param {string} $offset         Current offset.
+								 * @param {array}  $formatted_args Formatted Elasticsearch arguments.
+								 * @param {array}  $args           WP_Query arguments.
+								 * @return {string} New offset.
+								 */
+								'offset' => apply_filters( 'epwr_related_posts_offset', '30d', $formatted_args, $args ),
+							),
+						),
+					),
+					array(
+						/**
+						 * Filter related posts date weight.
+						 *
+						 * @hook epwr_related_posts_weight
+						 * @since 5.4.0
+						 * @param {float} $weight         Current weight.
+						 * @param {array} $formatted_args Formatted Elasticsearch arguments.
+						 * @param {array} $args           WP_Query arguments.
+						 * @return {float} New weight.
+						 */
+						'weight' => apply_filters( 'epwr_related_posts_weight', 0.001, $formatted_args, $args ),
+					),
+				),
+				/**
+				 * Filter related posts date weighting score mode.
+				 *
+				 * @hook epwr_related_posts_score_mode
+				 * @since 5.4.0
+				 * @param {string} $score_mode     Current score mode.
+				 * @param {array}  $formatted_args Formatted Elasticsearch arguments.
+				 * @param {array}  $args           WP_Query arguments.
+				 * @return {string} New score mode.
+				 */
+				'score_mode' => apply_filters( 'epwr_related_posts_score_mode', 'sum', $formatted_args, $args ),
+				/**
+				 * Filter related posts date weighting boost mode.
+				 *
+				 * @hook epwr_related_posts_boost_mode
+				 * @since 5.4.0
+				 * @param {string} $boost_mode     Current boost mode.
+				 * @param {array}  $formatted_args Formatted Elasticsearch arguments.
+				 * @param {array}  $args           WP_Query arguments.
+				 * @return {string} New boost mode.
+				 */
+				'boost_mode' => apply_filters( 'epwr_related_posts_boost_mode', 'multiply', $formatted_args, $args ),
+			),
+		);
+
+		$formatted_args['query'] = $date_score;
+
+		return $formatted_args;
+	}
+
+	/**
 	 * Setup all feature filters
 	 *
 	 * @since  2.1
@@ -176,6 +351,7 @@ class RelatedPosts extends Feature {
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
 		add_filter( 'widget_types_to_hide_from_legacy_widget_block', [ $this, 'hide_legacy_widget' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'formatted_args' ], 10, 2 );
+		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 11, 2 );
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoint' ] );
 	}
