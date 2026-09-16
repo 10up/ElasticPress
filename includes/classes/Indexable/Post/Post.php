@@ -12,6 +12,7 @@ use WP_Query;
 use WP_User;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Indexable;
+use ElasticPress\Feature\Search\Weighting;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -852,8 +853,10 @@ class Post extends Indexable {
 	public function filter_allowed_metas( $metas, $post ) {
 		$filtered_metas = [];
 
-		$search = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
-		if ( $search && ! empty( $search->weighting ) && 'manual' === $search->weighting->get_meta_mode() ) {
+		$search    = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		$weighting = ( $search && ! empty( $search->weighting ) ) ? $search->weighting : new Weighting();
+
+		if ( 'manual' === $weighting->get_meta_mode() ) {
 			$filtered_metas = $this->filter_allowed_metas_manual( $metas, $post );
 		} else {
 			$filtered_metas = $this->filter_allowed_metas_auto( $metas, $post );
@@ -2552,8 +2555,10 @@ class Post extends Indexable {
 			return $filtered_metas;
 		}
 
-		$weighting     = $search_feature->weighting->get_weighting_configuration_with_defaults();
-		$is_searchable = in_array( $search_feature, $search_feature->get_searchable_post_types(), true );
+		$weighting_obj = ( $search_feature && ! empty( $search_feature->weighting ) ) ? $search_feature->weighting : new \ElasticPress\Feature\Search\Weighting();
+		$weighting     = $weighting_obj->get_weighting_configuration_with_defaults();
+		$is_searchable = $search_feature && in_array( $post->post_type, $search_feature->get_searchable_post_types(), true );
+
 		if ( empty( $weighting[ $post->post_type ] ) && $is_searchable ) {
 			return $filtered_metas;
 		}
