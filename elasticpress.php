@@ -318,3 +318,4 @@ register_activation_hook( __FILE__, __NAMESPACE__ . '\setup_roles' );
  * @hook elasticpress_loaded
  */
 do_action( 'elasticpress_loaded' );
+
