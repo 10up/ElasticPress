@@ -64,7 +64,7 @@
     "npm": ">=9"
   },
   "overrides": {
-    "adm-zip": "^0.6.0",
+    "adm-zip": "^0.6.1",
     "@typescript-eslint/typescript-estree": {
       "minimatch": "^9.0.7"
     },
