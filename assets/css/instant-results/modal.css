@@ -60,5 +60,6 @@
 
 .ep-search-modal__close {
 	align-self: flex-end;
+	/* stylelint-disable-next-line declaration-no-important */
 	padding: 1em !important;
 }

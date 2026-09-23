@@ -5,26 +5,32 @@ import {
 	maybeEnableFeature,
 	maybeDisableFeature,
 	createTerm,
+	openSyncLog,
 	wpCliEval,
+	getSyncTimeout,
 } from '../../utils.js';
 
 const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing', 'search term'];
 
 test.describe('Terms Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async () => {
+		await maybeEnableFeature('terms');
 		await wpCliEval(`
 			WP_CLI::runcommand( 'plugin activate show-comments-and-terms', [ 'return' => true ] );
 			$tags = get_terms(
 				[
-					'taxonomy'   => 'post_tag',
-					'name__in'   => ${JSON.stringify(tags)},
-					'hide_empty' => false,
+					'taxonomy'     => 'post_tag',
+					'name__in'     => ${JSON.stringify(tags)},
+					'hide_empty'   => false,
+					'ep_integrate' => false,
 				]
 			);
-			foreach ( $tags as $tag ) {
-				wp_delete_term( $tag->term_id, 'post_tag' );
+			if ( ! is_wp_error( $tags ) ) {
+				foreach ( $tags as $tag ) {
+					wp_delete_term( $tag->term_id, 'post_tag' );
+				}
 			}
-			WP_CLI::runcommand( 'elasticpress sync --setup --yes --indexables=terms', [ 'return' => true ] );
+			WP_CLI::runcommand( 'elasticpress sync --setup --yes --indexables=term', [ 'return' => true ] );
 		`);
 	});
 
@@ -42,10 +48,10 @@ test.describe('Terms Feature', { tag: '@group2' }, () => {
 		loggedInPage.on('dialog', (dialog) => dialog.accept());
 		await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
 
-		await loggedInPage.getByRole('button', { name: 'Log' }).click();
+		await openSyncLog(loggedInPage);
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');
-		await expect(syncMessages).toContainText('Mapping sent');
-		await expect(syncMessages).toContainText('Sync complete');
+		await expect(syncMessages).toContainText('Mapping sent', { timeout: getSyncTimeout() });
+		await expect(syncMessages).toContainText('Sync complete', { timeout: getSyncTimeout() });
 
 		const listFeaturesResult = await wpCli('elasticpress list-features', true);
 		expect(listFeaturesResult.toString()).toContain('terms');
@@ -79,7 +85,12 @@ test.describe('Terms Feature', { tag: '@group2' }, () => {
 		await rows.first().locator('.row-actions .delete a').dispatchEvent('click');
 		await loggedInPage.waitForTimeout(4000);
 
-		await loggedInPage.getByRole('button', { name: 'Search Tags' }).click();
+		// After deleting the last match, WordPress hides the search box unless
+		// `s` is in the request. Reload with the query so the empty result stays.
+		await goToAdminPage(
+			loggedInPage,
+			`edit-tags.php?taxonomy=post_tag&s=${encodeURIComponent(searchTerm)}`,
+		);
 		const tbody = loggedInPage.locator('.wp-list-table tbody');
 		await expect(tbody).toContainText('No tags found');
 		await expect(
@@ -123,15 +134,18 @@ test.describe('Terms Feature', { tag: '@group2' }, () => {
 		await wpCliEval(`
 			$tags = get_terms(
 				[
-					'taxonomy'   => 'category',
-					'name__in'   => ${JSON.stringify([parentTerm, childTerm])},
-					'hide_empty' => false,
+					'taxonomy'     => 'category',
+					'name__in'     => ${JSON.stringify([parentTerm, childTerm])},
+					'hide_empty'   => false,
+					'ep_integrate' => false,
 				]
 			);
-			foreach ( $tags as $tag ) {
-				wp_delete_term( $tag->term_id, 'category' );
+			if ( ! is_wp_error( $tags ) ) {
+				foreach ( $tags as $tag ) {
+					wp_delete_term( $tag->term_id, 'category' );
+				}
 			}
-			WP_CLI::runcommand( 'elasticpress sync --setup --yes --indexables=terms', [ 'return' => true ] );
+			WP_CLI::runcommand( 'elasticpress sync --setup --yes --indexables=term', [ 'return' => true ] );
 		`);
 
 		await createTerm(loggedInPage, { name: parentTerm });

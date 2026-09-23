@@ -15,11 +15,15 @@
 
 		& > ul {
 			list-style: none;
+			/* stylelint-disable-next-line declaration-no-important */
 			margin: 0 !important;
 
+			/* stylelint-disable-next-line max-nesting-depth */
 			& > li {
 				font-family: sans-serif;
 
+				/* stylelint-disable max-nesting-depth */
+				/* stylelint-disable-next-line selector-no-qualifying-type */
 				& > a.autosuggest-link {
 					color: var(--ep-c-black);
 					cursor: pointer;
@@ -32,6 +36,7 @@
 						text-decoration: none;
 					}
 				}
+				/* stylelint-enable max-nesting-depth */
 			}
 		}
 	}

@@ -7,14 +7,14 @@ import { registerBlockType } from '@wordpress/blocks';
  * Internal dependencies.
  */
 import icon from './icon';
-import { name } from './block.json';
+import block from './block.json';
 import edit from './edit';
 import transforms from './transforms';
 
 /**
  * Register block.
  */
-registerBlockType(name, {
+registerBlockType(block.name, {
 	icon,
 	edit,
 	save: () => {},

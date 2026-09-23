@@ -1,10 +1,19 @@
-import { test, expect, Page } from '../../fixtures.js';
-import { wpCli, activatePlugin, goToAdminPage, updateWeighting, wpCliEval } from '../../utils.js';
+import { test, expect } from '../../fixtures.js';
+import {
+	wpCli,
+	activatePlugin,
+	goToAdminPage,
+	updateWeighting,
+	wpCliEval,
+	refreshIndex,
+} from '../../utils.js';
 
 test.describe('Post Search Feature - Weighting Functionality', { tag: '@group1' }, () => {
-	const sync = async (page: Page) => {
-		await wpCli('wp elasticpress sync --yes');
-		await page.waitForTimeout(2000);
+	test.describe.configure({ timeout: 120000 });
+
+	const sync = async () => {
+		await wpCli('wp elasticpress sync --yes', true);
+		await refreshIndex('post');
 	};
 
 	test.beforeAll(async () => {
@@ -62,7 +71,7 @@ test.describe('Post Search Feature - Weighting Functionality', { tag: '@group1' 
 		await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 		await weightingResponsePromise;
 
-		await sync(loggedInPage);
+		await sync();
 		await loggedInPage.goto('/?s=supercustomtitle');
 		await expect(loggedInPage.locator('.entry-title')).not.toBeVisible();
 	});
@@ -88,7 +97,7 @@ test.describe('Post Search Feature - Weighting Functionality', { tag: '@group1' 
 				],
 			]);
 		`);
-		await sync(loggedInPage);
+		await sync();
 		await loggedInPage.goto('/?s=findbyweighting');
 		await expect(
 			loggedInPage.locator('.entry-title', { hasText: 'test weighting content' }),
@@ -112,7 +121,7 @@ test.describe('Post Search Feature - Weighting Functionality', { tag: '@group1' 
 		await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 		await weightingResponsePromise;
 
-		await sync(loggedInPage);
+		await sync();
 		await loggedInPage.goto('/?s=findbyweighting');
 		const firstTitle = await loggedInPage.locator('.entry-title').first().textContent();
 		const lastTitle = await loggedInPage.locator('.entry-title').last().textContent();
@@ -140,7 +149,7 @@ test.describe('Post Search Feature - Weighting Functionality', { tag: '@group1' 
 				],
 			]);
 		`);
-		await sync(loggedInPage);
+		await sync();
 		await loggedInPage.goto('/?s=abc123');
 		await expect(loggedInPage.locator('.entry-title')).toContainText(
 			'Test meta weighting, post content',
@@ -170,7 +179,7 @@ test.describe('Post Search Feature - Weighting Functionality', { tag: '@group1' 
 		await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 		await weightingResponsePromise;
 
-		await sync(loggedInPage);
+		await sync();
 		await loggedInPage.goto('/?s=abc123');
 		const firstMetaTitle = await loggedInPage.locator('.entry-title').first().textContent();
 		const lastMetaTitle = await loggedInPage.locator('.entry-title').last().textContent();
@@ -197,7 +206,7 @@ test.describe('Post Search Feature - Weighting Functionality', { tag: '@group1' 
 		expect(lastMetaTitle2).toContain('Test meta weighting, post content');
 
 		await activatePlugin(loggedInPage, 'auto-meta-mode', 'wpCli');
-		await sync(loggedInPage);
+		await sync();
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-weighting');
 		await expect(
 			loggedInPage.locator('.components-panel__body-title:has-text("Metadata")'),

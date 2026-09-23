@@ -8,7 +8,7 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import { useApiSearch } from '../../../api-search';
-import { postTypeLabels } from '../../config';
+import { excludedPostTypes, postTypeLabels } from '../../config';
 import CheckboxList from '../common/checkbox-list';
 import Panel from '../common/panel';
 import { ActiveConstraint } from '../tools/active-constraints';
@@ -41,6 +41,10 @@ export default ({ defaultIsOpen, label }) => {
 	const reduceOptions = useCallback(
 		(options, { doc_count, key }, index) => {
 			if (!Object.prototype.hasOwnProperty.call(postTypeLabels, key)) {
+				return options;
+			}
+
+			if (excludedPostTypes?.includes(key)) {
 				return options;
 			}
 

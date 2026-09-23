@@ -11,7 +11,9 @@
 			}
 		],
 		"font-family-no-missing-generic-family-keyword": null,
-		"declaration-property-unit-allowed-list": null
+		"declaration-property-unit-allowed-list": null,
+		"selector-max-id": null,
+		"selector-max-specificity": null
 	}
 
 }

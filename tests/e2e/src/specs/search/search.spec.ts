@@ -1,5 +1,12 @@
 import { test, expect } from '../../fixtures.js';
-import { wpCli, publishPost, goToAdminPage, setDefaultFeatureSettings } from '../../utils.js';
+import {
+	wpCli,
+	wpCliEval,
+	publishPost,
+	goToAdminPage,
+	setDefaultFeatureSettings,
+	refreshIndex,
+} from '../../utils.js';
 
 // Parity with Cypress: Post Search Feature
 
@@ -37,39 +44,46 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 	});
 
 	test('Can see newer matches showing higher', async ({ loggedInPage }) => {
-		const postTitle = 'Duplicated post';
+		const unique = Date.now();
+		const olderTitle = `Duplicated post older ${unique}`;
+		const newerTitle = `Duplicated post newer ${unique}`;
 
-		// Create two posts with 1 month difference
 		const now = new Date();
 		const oneMonthAgo = new Date(now.getTime() - 2678400000);
 		const yesterday = new Date(now.getTime() - 86400000);
-		const formatDate = (date: Date) => date.toISOString().slice(0, 19).replace('T', ' ');
+		const formatGmt = (date: Date) => date.toISOString().slice(0, 19).replace('T', ' ');
 
-		await wpCli(
-			`post create --post_title='${postTitle}' --post_content='Lorem ipsum veritas dolor' --post_author=1 --post_status='publish' --post_date='${formatDate(oneMonthAgo)}'`,
-		);
-		await wpCli(
-			`post create --post_title='${postTitle}' --post_content='Lorem ipsum veritas dolor' --post_author=1 --post_status='publish' --post_date='${formatDate(yesterday)}'`,
-		);
+		await wpCliEval(`
+			wp_insert_post(
+				[
+					'post_title'    => '${olderTitle}',
+					'post_content'  => 'Lorem ipsum veritas dolor',
+					'post_author'   => 1,
+					'post_status'   => 'publish',
+					'post_date'     => '${formatGmt(oneMonthAgo)}',
+					'post_date_gmt' => '${formatGmt(oneMonthAgo)}',
+				]
+			);
+			wp_insert_post(
+				[
+					'post_title'    => '${newerTitle}',
+					'post_content'  => 'Lorem ipsum veritas dolor',
+					'post_author'   => 1,
+					'post_status'   => 'publish',
+					'post_date'     => '${formatGmt(yesterday)}',
+					'post_date_gmt' => '${formatGmt(yesterday)}',
+				]
+			);
+		`);
+		await refreshIndex('post');
 
-		await loggedInPage.waitForTimeout(2000);
-		await loggedInPage.goto(`/?s=duplicated+post`);
+		await loggedInPage.goto(`/?s=${encodeURIComponent(`Duplicated post ${unique}`)}`);
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
-			postTitle,
+			newerTitle,
 		);
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(2) h2')).toHaveText(
-			postTitle,
+			olderTitle,
 		);
-
-		const htmlIdFirstPost = await loggedInPage
-			.locator('.site-content article:nth-of-type(1)')
-			.getAttribute('id');
-		const htmlIdSecondPost = await loggedInPage
-			.locator('.site-content article:nth-of-type(2)')
-			.getAttribute('id');
-		const firstPostId = Number(htmlIdFirstPost?.replace('post-', ''));
-		const secondPostId = Number(htmlIdSecondPost?.replace('post-', ''));
-		expect(firstPostId).toBeGreaterThan(secondPostId);
 	});
 
 	test('Can see highlighted text', async ({ loggedInPage }) => {

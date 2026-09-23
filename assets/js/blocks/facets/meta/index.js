@@ -8,13 +8,13 @@ import { registerBlockType } from '@wordpress/blocks';
  */
 import icon from '../common/icon';
 import edit from '../common/edit';
-import { name } from './block.json';
+import block from './block.json';
 import transforms from './transforms';
 
 /**
  * Register block.
  */
-registerBlockType(name, {
+registerBlockType(block.name, {
 	icon,
 	edit,
 	save: () => {},

@@ -112,7 +112,7 @@ class InstantResults extends Feature {
 		$this->summary = '<p>' . __( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed.', 'elasticpress' ) . '</p>' .
 		'<p>' . __( 'Requires an <a href="https://www.elasticpress.io/" target="_blank">ElasticPress.io plan</a> or a custom proxy to function.', 'elasticpress' ) . '</p>';
 
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results', 'elasticpress' );
+		$this->docs_url = __( 'https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#instant-results', 'elasticpress' );
 	}
 
 	/**
@@ -156,7 +156,7 @@ class InstantResults extends Feature {
 						'ElasticPress is network activated. Additional steps are required to ensure Instant Results works for all sites on the network. See our article on <a href="%s" target="_blank">running ElasticPress in network mode</a> for more details.',
 						'elasticpress'
 					),
-					'https://www.elasticpress.io/documentation/article/running-elasticpress-in-a-wordpress-multisite-network-mode/'
+					'https://www.elasticpress.io/resources/articles/running-elasticpress-in-a-wordpress-multisite-network-mode/'
 				)
 			);
 		}
@@ -232,6 +232,8 @@ class InstantResults extends Feature {
 				'apiHost'             => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $this->host ) : '',
 				'argsSchema'          => $this->get_args_schema(),
 				'currencyCode'        => $this->is_woocommerce ? get_woocommerce_currency() : false,
+				'excludedPostTypes'   => $this->get_excluded_post_types(),
+				'excludedTermIds'     => $this->get_excluded_term_ids(),
 				'facets'              => $this->get_facets_for_frontend(),
 				'highlightTag'        => $this->settings['highlight_tag'],
 				'isWooCommerce'       => $this->is_woocommerce,
@@ -278,7 +280,10 @@ class InstantResults extends Feature {
 	 * @return string The search template as JSON.
 	 */
 	public function get_search_template(): string {
-		$post_types    = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+		$post_types          = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+		$excluded_post_types = $this->get_excluded_post_types();
+		$post_types          = array_values( array_diff( $post_types, $excluded_post_types ) );
+
 		$post_statuses = get_post_stati(
 			[
 				'public'              => true,
@@ -582,6 +587,63 @@ class InstantResults extends Feature {
 		}
 
 		return $labels;
+	}
+
+	/**
+	 * Get post type slugs to exclude from the Instant Results post type filter.
+	 *
+	 * @since 5.3.4
+	 * @return string[] Post type slugs to exclude.
+	 */
+	public function get_excluded_post_types(): array {
+		/**
+		 * Filter post type slugs to exclude from Instant Results.
+		 *
+		 * Excluded post types are hidden from the Post Type facet and
+		 * removed from the search template so their content does not
+		 * appear in results. The search template is generated and
+		 * saved when Instant Results settings are saved,
+		 * so after changing this filter, re-save the Instant Results
+		 * or Weighting settings to regenerate the template.
+		 *
+		 * @hook ep_instant_results_excluded_post_types
+		 * @since 5.3.4
+		 * @param {string[]} $excluded Post type slugs to exclude (e.g., ['page']).
+		 * @return {string[]} Filtered exclusions.
+		 */
+		$post_types = apply_filters( 'ep_instant_results_excluded_post_types', [] );
+		$post_types = array_filter( (array) $post_types, 'is_scalar' );
+		$post_types = array_map( 'strval', $post_types );
+		$post_types = array_filter( $post_types );
+
+		return array_values( $post_types );
+	}
+
+	/**
+	 * Get term IDs to exclude from all Instant Results taxonomy filters.
+	 *
+	 * @since 5.3.4
+	 * @return int[] Term IDs to exclude.
+	 */
+	public function get_excluded_term_ids(): array {
+		/**
+		 * Filter term IDs to exclude from all Instant Results taxonomy filters.
+		 *
+		 * Excluded terms are hidden from every taxonomy facet
+		 * (Category, Tag, etc.) but posts associated with those
+		 * terms still appear in search results.
+		 *
+		 * @hook ep_instant_results_excluded_term_ids
+		 * @since 5.3.4
+		 * @param {int[]} $excluded Term IDs to exclude (e.g., [1, 120]).
+		 * @return {int[]} Filtered exclusions.
+		 */
+		$term_ids = apply_filters( 'ep_instant_results_excluded_term_ids', [] );
+		$term_ids = array_filter( (array) $term_ids, 'is_scalar' );
+		$term_ids = array_map( 'intval', $term_ids );
+		$term_ids = array_filter( $term_ids );
+
+		return array_values( $term_ids );
 	}
 
 	/**

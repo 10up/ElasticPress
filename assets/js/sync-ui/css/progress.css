@@ -1,4 +1,4 @@
-@keyframes epSyncRotation {
+@keyframes ep-sync-rotation {
 
 	from {
 		transform: rotate(0deg);
@@ -18,7 +18,7 @@
 	margin-bottom: 16px;
 
 	& svg {
-		animation: epSyncRotation 1500ms infinite linear;
+		animation: ep-sync-rotation 1500ms infinite linear;
 		animation-play-state: paused;
 		height: 24px;
 		width: 24px;
