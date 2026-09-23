@@ -237,6 +237,29 @@ class TestAutosuggest extends BaseTestCase {
 
 		$query = $this->get_feature()->generate_search_query();
 		$this->assertStringContainsString( '1234', $query['body'] );
+		$this->assertEquals( 1234, $query['results_limit'] );
+	}
+
+	/**
+	 * Test Custom Search Results can request more Autosuggest candidates than are displayed.
+	 */
+	public function testGenerateSearchQueryWithSearchOrdering() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->activate_feature( 'searchordering' );
+
+		$test_args_filter = function ( $args ) {
+			$args['posts_per_page'] = 4;
+			return $args;
+		};
+
+		add_filter( 'ep_autosuggest_query_args', $test_args_filter );
+
+		$query = $this->get_feature()->generate_search_query();
+		$this->assertStringContainsString( '10', $query['body'] );
+		$this->assertEquals( 4, $query['results_limit'] );
+		$this->assertEquals( 10, $query['query_vars']['posts_per_page'] );
+
+		remove_filter( 'ep_autosuggest_query_args', $test_args_filter );
 	}
 
 	/**

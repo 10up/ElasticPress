@@ -675,9 +675,11 @@ function init() {
 
 			if (response && response._shards && response._shards.successful > 0) {
 				const hits = checkForOrderedPosts(response.hits.hits, searchText);
-				cachedAutosuggestResults = hits;
+				const resultsLimit = parseInt(epas.resultsLimit, 10);
+				const limitedHits = resultsLimit > 0 ? hits.slice(0, resultsLimit) : hits;
+				cachedAutosuggestResults = limitedHits;
 
-				toggleAutosuggest(hits, input);
+				toggleAutosuggest(limitedHits, input);
 			} else {
 				hideAutosuggestBox();
 			}
