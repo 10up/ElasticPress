@@ -91,8 +91,8 @@ class ElasticsearchErrorInterpreter {
 					/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 					__( 'Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> and sync again.', 'elasticpress' ),
 					Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
-					'https://www.elasticpress.io/documentation/article/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
-					'https://www.elasticpress.io/documentation/article/how-to-exclude-metadata-from-indexing/'
+					'https://www.elasticpress.io/resources/articles/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
+					'https://www.elasticpress.io/resources/articles/how-to-exclude-metadata-from-indexing/'
 				),
 			];
 		}
@@ -111,7 +111,7 @@ class ElasticsearchErrorInterpreter {
 					'solution' => sprintf(
 						/* translators: ElasticPress.io Article URL */
 						__( 'Please refer to <a href="%s">this article</a> outlining how to address this issue.', 'elasticpress' ),
-						'https://www.elasticpress.io/documentation/article/how-to-fix-the-you-have-reached-the-limit-of-indices-of-your-plan-and-it-was-not-possible-to-create-a-new-index-error/'
+						'https://www.elasticpress.io/resources/articles/how-to-fix-the-you-have-reached-the-limit-of-indices-of-your-plan-and-it-was-not-possible-to-create-a-new-index-error/'
 					),
 				];
 			}

@@ -97,11 +97,13 @@ class Settings {
 			Utils\update_option( 'ep_host', $host );
 		}
 
-		if ( isset( $post['ep_credentials'] ) ) {
-			$credentials = ( isset( $post['ep_credentials'] ) ) ? Utils\sanitize_credentials( $post['ep_credentials'] ) : [
-				'username' => '',
-				'token'    => '',
-			];
+		if ( isset( $post['ep_credentials'] ) && ( ! defined( 'EP_CREDENTIALS' ) || ! EP_CREDENTIALS ) ) {
+			$credentials = Utils\sanitize_credentials( $post['ep_credentials'] );
+
+			// Preserve the existing token if the field was left empty (it is always empty on load).
+			if ( empty( $credentials['token'] ) ) {
+				$credentials['token'] = $this->prev_ep_credentials['token'];
+			}
 
 			Utils\update_option( 'ep_credentials', $credentials );
 		}
@@ -112,7 +114,11 @@ class Settings {
 
 		$es_info = \ElasticPress\Elasticsearch::factory()->get_elasticsearch_info( true );
 		if ( empty( $es_info['version'] ) ) {
-			add_action( 'admin_notices', [ $this, 'add_validation_notice' ] );
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				add_action( 'network_admin_notices', [ $this, 'add_validation_notice' ] );
+			} else {
+				add_action( 'admin_notices', [ $this, 'add_validation_notice' ] );
+			}
 
 			unset( $_POST['ep_host'] ); // Needed to prevent going to the next installation step
 			$this->reset_settings();
@@ -127,7 +133,9 @@ class Settings {
 			_x( 'ElasticPress.io account', 'Settings validation message', 'elasticpress' ) :
 			_x( 'Elasticsearch server', 'Settings validation message', 'elasticpress' );
 
-		if ( empty( $this->prev_ep_host ) ) {
+		$is_first_setup = empty( $this->prev_ep_host );
+
+		if ( $is_first_setup ) {
 			// Setting it for the first time -- probably during the install process.
 			$message = sprintf(
 				/* translators: EP.io account or ES server. */
@@ -146,6 +154,11 @@ class Settings {
 			<p>
 				<?php echo wp_kses( $message, 'ep-html' ); ?>
 			</p>
+			<?php if ( Utils\is_epio() && ! $is_first_setup ) : ?>
+				<p>
+					<?php esc_html_e( 'If you are trying to deactivate your site\'s communication with ElasticPress.io, temporarily disable the ElasticPress plugin instead.', 'elasticpress' ); ?>
+				</p>
+			<?php endif; ?>
 		</div>
 		<?php
 	}

@@ -83,7 +83,7 @@ export default () => {
 			title: (
 				<GroupTab isValid={!synonyms.some((s) => !s.valid)}>
 					{
-						/* translators: Synonyms count */
+						/* translators: %d: Number of synonyms. */
 						sprintf(__('Synonyms (%d)', 'elasticpress'), synonyms.length)
 					}
 				</GroupTab>
@@ -94,7 +94,7 @@ export default () => {
 			title: (
 				<GroupTab isValid={!hyponyms.some((s) => !s.valid)}>
 					{
-						/* translators: Hyponyms count */
+						/* translators: %d: Number of hyponyms. */
 						sprintf(__('Hyponyms (%d)', 'elasticpress'), hyponyms.length)
 					}
 				</GroupTab>
@@ -105,7 +105,7 @@ export default () => {
 			title: (
 				<GroupTab isValid={!replacements.some((s) => !s.valid)}>
 					{
-						/* translators: Replacements count */
+						/* translators: %d: Number of replacements. */
 						sprintf(__('Replacements (%d)', 'elasticpress'), replacements.length)
 					}
 				</GroupTab>

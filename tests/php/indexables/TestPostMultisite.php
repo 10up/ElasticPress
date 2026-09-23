@@ -2108,4 +2108,83 @@ class TestPostMultisite extends BaseTestCase {
 		$this->assertEquals( 4, $query->post_count );
 		$this->assertEquals( 4, $query->found_posts );
 	}
+
+	/**
+	 * Tests cache_results is disabled when the `site__in` parameter is used.
+	 *
+	 * @since 5.3.4
+	 * @group testMultipleTests
+	 */
+	public function test_cache_results_set_to_false_when_site__in_argument() {
+
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		$args = [
+			'ep_integrate' => true,
+			'site__in'     => 'all',
+		];
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertFalse( $query->get( 'cache_results' ) );
+	}
+
+	/**
+	 * Tests cache_results is disabled when the `site__not_in` parameter is used.
+	 *
+	 * @since 5.3.4
+	 * @group testMultipleTests
+	 */
+	public function test_cache_results_set_to_false_when_site__not_in_argument() {
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		$args = [
+			'ep_integrate' => true,
+			'site__not_in' => [ $sites[1]['blog_id'] ],
+		];
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertFalse( $query->get( 'cache_results' ) );
+	}
+
+	/**
+	 * Tests cache_results is disabled when the scope is set to all.
+	 *
+	 * @since 5.3.4
+	 * @group testMultipleTests
+	 */
+	public function test_cache_results_set_to_false_when_scope_is_all() {
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		$scope = function () {
+			return 'all';
+		};
+
+		add_filter( 'ep_search_scope', $scope );
+
+		$query = new \WP_Query( [ 'ep_integrate' => true ] );
+
+		remove_filter( 'ep_search_scope', $scope );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertFalse( $query->get( 'cache_results' ) );
+	}
 }

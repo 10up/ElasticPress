@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, Page } from '../fixtures.js';
 import {
 	wpCli,
 	deactivatePlugin,
@@ -11,12 +11,28 @@ import {
 	isEpIo,
 } from '../utils.js';
 
+/**
+ * Visible site search, not the admin bar or a collapsed header field.
+ * Autosuggest adds one hidden `.ep-autosuggest` per matching input, so
+ * `.first()` is often the unused header list.
+ *
+ * @param page Playwright page object
+ * @returns Locator for the visible site search field
+ */
+const frontendSearch = (page: Page) => page.locator('#page').getByRole('searchbox').first();
+
+const frontendAutosuggest = (page: Page) =>
+	frontendSearch(page)
+		.locator('xpath=ancestor::*[contains(@class, "ep-autosuggest-container")][1]')
+		.locator('.ep-autosuggest');
+
 test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async ({ browser }) => {
 		await wpCliEval(`
 			WP_CLI::runcommand( "plugin activate cpt-and-custom-tax", [ 'return' => 'all', 'exit_error' => false ] );
 			WP_CLI::runcommand( 'elasticpress sync --setup --yes' );
 			WP_CLI::runcommand( 'plugin deactivate filter-autosuggest-navigate-callback', [ 'return' => 'all', 'exit_error' => false ] );
+			WP_CLI::runcommand( 'widget add search sidebar-1', [ 'return' => true, 'exit_error' => false ] );
 		`);
 
 		if (isEpIo()) {
@@ -41,8 +57,12 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 
 	test('Can see autosuggest list', async ({ page }) => {
 		await page.goto('/');
-		await page.getByRole('searchbox').pressSequentially('blog');
-		const autosuggest = page.locator('.ep-autosuggest');
+		const responsePromise = page.waitForResponse((response) => {
+			return response.url().includes('_search') || response.url().includes('autosuggest');
+		});
+		await frontendSearch(page).pressSequentially('a Blog page');
+		await responsePromise;
+		const autosuggest = frontendAutosuggest(page);
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('a Blog page');
 	});
@@ -54,17 +74,17 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 			return response.url().includes('_search') || response.url().includes('autosuggest');
 		});
 
-		await page.getByRole('searchbox').pressSequentially('Markup: HTML Tags and Formatting');
+		await frontendSearch(page).pressSequentially('Markup: HTML Tags and Formatting');
 		await responsePromise;
 
-		const autosuggest = page.locator('.ep-autosuggest');
+		const autosuggest = frontendAutosuggest(page);
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('Markup: HTML Tags and Formatting');
 
 		// Test focus behavior
-		await page.getByRole('button', { name: 'Search' }).focus();
-		await page.getByRole('searchbox').click();
-		await page.getByRole('searchbox').focus();
+		await page.getByRole('button', { name: 'Search' }).first().focus();
+		await frontendSearch(page).click();
+		await frontendSearch(page).focus();
 
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('Markup: HTML Tags and Formatting');
@@ -81,8 +101,8 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 		});
 
 		await page.goto('/');
-		await page.getByRole('searchbox').pressSequentially('aciform');
-		const autosuggest = page.locator('.ep-autosuggest');
+		await frontendSearch(page).pressSequentially('aciform');
+		const autosuggest = frontendAutosuggest(page);
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('Keyboard navigation');
 
@@ -91,9 +111,9 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 
 	test('Can click on a post in autosuggest', async ({ page }) => {
 		await page.goto('/');
-		await page.getByRole('searchbox').pressSequentially('blog');
+		await frontendSearch(page).pressSequentially('blog');
 
-		const firstLink = page.locator('.ep-autosuggest li a').first();
+		const firstLink = frontendAutosuggest(page).locator('li a').first();
 		const linkHref = (await firstLink.getAttribute('href')) ?? '';
 		if (linkHref) {
 			await firstLink.click();
@@ -112,10 +132,10 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 			);
 		});
 
-		await page.getByRole('searchbox').pressSequentially('Markup: HTML Tags and Formatting');
+		await frontendSearch(page).pressSequentially('Markup: HTML Tags and Formatting');
 		await responsePromise;
 
-		const autosuggest = page.locator('.ep-autosuggest');
+		const autosuggest = frontendAutosuggest(page);
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('Markup: HTML Tags and Formatting');
 	});
@@ -123,8 +143,8 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 	test('Can use autosuggest navigate callback filter', async ({ page }) => {
 		await wpCli('wp plugin activate filter-autosuggest-navigate-callback');
 		await page.goto('/');
-		await page.getByRole('searchbox').pressSequentially('blog');
-		await page.locator('.ep-autosuggest li a').first().click();
+		await frontendSearch(page).pressSequentially('blog');
+		await frontendAutosuggest(page).locator('li a').first().click();
 		await expect(page).toHaveURL(/.*cypress=foobar/);
 	});
 
@@ -133,7 +153,7 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 	}) => {
 		await maybeEnableFeature('instant-results');
 		await page.goto('/');
-		await page.getByRole('searchbox').pressSequentially('blog');
+		await frontendSearch(page).pressSequentially('blog');
 		await page.keyboard.press('ArrowDown');
 		await page.keyboard.press('Enter');
 		await expect(page).toHaveURL(/.*blog/);
@@ -144,8 +164,12 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 		await page.goto('/');
 
 		// Verify autosuggest still works with the custom placeholder
-		await page.getByRole('searchbox').pressSequentially('blog');
-		const autosuggest = page.locator('.ep-autosuggest');
+		const responsePromise = page.waitForResponse((response) => {
+			return response.url().includes('_search') || response.url().includes('autosuggest');
+		});
+		await frontendSearch(page).pressSequentially('a Blog page');
+		await responsePromise;
+		const autosuggest = frontendAutosuggest(page);
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('a Blog page');
 

@@ -1,6 +1,8 @@
 #ep-dashboard {
 
 	& .components-notice {
+		align-items: center;
+		display: flex;
 		margin: 16px 0;
 	}
 
@@ -95,6 +97,7 @@
 	grid-gap: 16px;
 	grid-template-columns: minmax(0, 2fr) minmax(0, 5fr);
 
+	/* stylelint-disable-next-line no-descending-specificity */
 	& .components-notice {
 		margin: 16px 0;
 	}

@@ -19,22 +19,36 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	/* Retry on CI only */
 	retries: process.env.CI ? 2 : 0,
-	/* Opt out of parallel tests on CI. */
-	workers: process.env.CI ? 1 : undefined,
+	/* The suite runs against a single WordPress install and the tests toggle
+	 * features and weighting globally, so parallel workers interfere with each
+	 * other. */
+	workers: 1,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
-	reporter: 'html',
+	reporter: process.env.CI
+		? [
+				['list'],
+				['github'],
+				[
+					'html',
+					{
+						open: 'never',
+						outputFolder: process.env.PLAYWRIGHT_HTML_OUTPUT_DIR || 'playwright-report',
+					},
+				],
+			]
+		: 'html',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
 		/* Base URL to use in actions like `await page.goto('/')`. */
 		baseURL: 'http://localhost:8889',
 
-		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-		trace: 'on-first-retry',
+		/* Collect a trace on failure, including the first attempt. */
+		trace: 'retain-on-failure',
 
 		// Capture screenshot after each test failure.
 		screenshot: 'only-on-failure',
 
-		// Record video only when retrying a test for the first time.
+		// Record video on failure.
 		video: 'retain-on-failure',
 	},
 

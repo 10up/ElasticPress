@@ -1,3 +1,4 @@
+/* stylelint-disable-next-line no-descending-specificity */
 .editor-styles-wrapper .wp-block-elasticpress-related-posts ul,
 .wp-block-elasticpress-related-posts ul {
 	list-style-type: none;

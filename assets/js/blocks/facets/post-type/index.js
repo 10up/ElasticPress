@@ -8,9 +8,9 @@ import icon from '../common/icon';
  * Internal dependencies.
  */
 import edit from './edit';
-import { name } from './block.json';
+import block from './block.json';
 
-registerBlockType(name, {
+registerBlockType(block.name, {
 	edit,
 	save: () => {},
 	icon,

@@ -10,6 +10,9 @@ import {
 	wpCliEval,
 	setCustomPostTypes,
 	maybeDisableFeature,
+	openSyncLog,
+	refreshIndex,
+	getSyncTimeout,
 } from '../utils.js';
 import { openBlockInserter, insertBlock } from '../block-editor.js';
 
@@ -117,6 +120,11 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 		}
 	});
 
+	test.afterAll(async () => {
+		await wpCli('elasticpress deactivate-feature woocommerce', true);
+		await wpCli('plugin deactivate woocommerce', true);
+	});
+
 	test.beforeEach(async ({ loggedInPage }) => {
 		await deactivatePlugin(
 			loggedInPage,
@@ -184,10 +192,14 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 			await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
 
 			// Wait for sync messages
-			await loggedInPage.getByRole('button', { name: 'Log' }).click();
+			await openSyncLog(loggedInPage);
 			const syncMessages = loggedInPage.locator('.ep-sync-messages');
-			await expect(syncMessages).toContainText('Mapping sent');
-			await expect(syncMessages).toContainText('Sync complete');
+			await expect(syncMessages).toContainText('Mapping sent', {
+				timeout: getSyncTimeout(),
+			});
+			await expect(syncMessages).toContainText('Sync complete', {
+				timeout: getSyncTimeout(),
+			});
 
 			const result = await wpCli('elasticpress list-features');
 			expect(result.toString()).toContain('instant-results');
@@ -237,9 +249,6 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 
 				const searchModal = loggedInPage.locator('.ep-search-modal');
 				await expect(searchModal).toBeVisible(); // Should be visible immediately
-				// await expect(searchModal.locator('.ep-search-results__title')).toContainText(
-				// 	'Loading results',
-				// );
 				await expect(loggedInPage).toHaveURL(/.*search=new/);
 
 				await responsePromise;
@@ -263,19 +272,26 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await loggedInPage.locator('#ep-search-post-type-post').click();
 				await expect(loggedInPage).toHaveURL(/.*ep-post_type=post/);
 
-				// Show the modal in the same state after a reload
-				await loggedInPage.reload();
-				await expect(searchModal.locator('.ep-search-results__title')).toContainText(
-					'Loading results',
+				// Show the modal in the same state after a reload. The intermediate
+				// "Loading results" title is not asserted: the request can finish
+				// before the assertion first polls.
+				const reloadResponsePromise = instantResultRequestPromise(
+					loggedInPage,
+					'search=new',
 				);
+				await loggedInPage.reload();
 				await expect(loggedInPage).toHaveURL(/.*search=new/);
-				await responsePromise;
+				await reloadResponsePromise;
 				await expect(searchModal).toBeVisible();
 				await expect(searchModal).toContainText('new');
 
 				// Update the results when search term is changed
+				const updatedResponsePromise = instantResultRequestPromise(
+					loggedInPage,
+					'search=test',
+				);
 				await searchModal.locator('.ep-search-input').fill('test');
-				await responsePromise;
+				await updatedResponsePromise;
 				await expect(searchModal).toBeVisible();
 				await expect(searchModal).toContainText('test');
 				await expect(loggedInPage).toHaveURL(/.*search=test/);
@@ -547,6 +563,99 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await wpCli('elasticpress put-search-template', true);
 
 				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				await expect(
+					loggedInPage.getByRole('button', { name: 'Live Search' }),
+				).toBeVisible();
+				const apiResponsePromise = loggedInPage.waitForResponse(
+					'**/wp-json/elasticpress/v1/features*',
+				);
+
+				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+				await addInstantResultFilter(loggedInPage, '(category)');
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+
+				await apiResponsePromise;
+
+				/**
+				 * Perform a search.
+				 */
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=block');
+				await loggedInPage.goto('/');
+				await searchFor(loggedInPage, 'block');
+				await responsePromise;
+				await expect(loggedInPage.locator('.ep-search-modal')).toBeVisible();
+
+				/**
+				 * The number of terms displayed in the filter should be one.
+				 */
+				await expect(loggedInPage.locator('[id^="ep-search-tax-category-"]')).toHaveCount(
+					1,
+					{ timeout: 15000 },
+				);
+
+				await deactivatePlugin(
+					loggedInPage,
+					'filter-instant-results-category-terms',
+					'wpCli',
+				);
+			});
+
+			test('Is possible to exclude post types via ep_instant_results_excluded_post_types', async ({
+				loggedInPage,
+			}) => {
+				/**
+				 * Activate test plugin and regenerate the search template so the
+				 * excluded post type is dropped from the template.
+				 */
+				await maybeEnableFeature('instant-results');
+				await setCustomPostTypes();
+				await activatePlugin(
+					loggedInPage,
+					'filter-instant-results-excluded-post-types',
+					'wpCli',
+				);
+				await wpCli('elasticpress put-search-template', true);
+
+				/**
+				 * Perform a search.
+				 */
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=post');
+				await loggedInPage.goto('/');
+				await searchFor(loggedInPage, 'post');
+				await responsePromise;
+
+				/**
+				 * The excluded post type should not appear in the Post Type facet.
+				 */
+				await expect(loggedInPage.locator('#ep-search-post-type-page')).toHaveCount(0);
+
+				await deactivatePlugin(
+					loggedInPage,
+					'filter-instant-results-excluded-post-types',
+					'wpCli',
+				);
+				await wpCli('elasticpress put-search-template', true);
+			});
+
+			test('Is possible to exclude term IDs via ep_instant_results_excluded_term_ids', async ({
+				loggedInPage,
+			}) => {
+				/**
+				 * Activate test plugin.
+				 */
+				await maybeEnableFeature('instant-results');
+				await setCustomPostTypes();
+				await activatePlugin(
+					loggedInPage,
+					'filter-instant-results-excluded-term-ids',
+					'wpCli',
+				);
+
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				await expect(
+					loggedInPage.getByRole('button', { name: 'Live Search' }),
+				).toBeVisible();
 				const apiResponsePromise = loggedInPage.waitForResponse(
 					'**/wp-json/elasticpress/v1/features*',
 				);
@@ -566,35 +675,16 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await searchFor(loggedInPage, 'block');
 				await responsePromise;
 
-				await wpCliEval(
-					`
-					$output = WP_CLI::runcommand( 'elasticpress list-features', [ 'return' => 'all', 'exit_error' => false ] );
-					print_r( $output );
-
-					$output = WP_CLI::runcommand( 'plugin list', [ 'return' => 'all', 'exit_error' => false ] );
-					print_r( $output );
-
-					$posts = new \\WP_Query(
-						[
-							'post_type' => 'post',
-							'posts_per_page' => -1,
-							's' => 'markup html',
-						]
-					);
-					print_r( $posts );
-					`,
-				);
-
 				/**
-				 * The number of terms displayed in the filter should be one.
+				 * The excluded term should not appear in the category facet.
 				 */
-				await expect(loggedInPage.locator('[id^="ep-search-tax-category-"]')).toHaveCount(
-					1,
-				);
+				await expect(
+					loggedInPage.locator('[id^="ep-search-tax-category-"]', { hasText: 'Markup' }),
+				).toHaveCount(0);
 
 				await deactivatePlugin(
 					loggedInPage,
-					'filter-instant-results-category-terms',
+					'filter-instant-results-excluded-term-ids',
 					'wpCli',
 				);
 			});
@@ -627,6 +717,7 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 		});
 
 		test('Can use numbered pagination when enabled', async ({ loggedInPage }) => {
+			test.setTimeout(120000);
 			await maybeEnableFeature('instant-results');
 
 			await wpCliEval(`
@@ -641,8 +732,10 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				}
 			`);
 			await wpCli('wp elasticpress sync');
+			await refreshIndex('post');
 
 			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await expect(loggedInPage.getByRole('button', { name: 'Live Search' })).toBeVisible();
 			const apiResponsePromise = loggedInPage.waitForResponse(
 				'**/wp-json/elasticpress/v1/features*',
 			);
@@ -680,6 +773,7 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 			await pageTwoResponse;
 			await expect(loggedInPage).toHaveURL(new RegExp(`ep-offset=${perPage}`));
 			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await expect(loggedInPage.getByRole('button', { name: 'Live Search' })).toBeVisible();
 			const apiResponsePromise2 = loggedInPage.waitForResponse(
 				'**/wp-json/elasticpress/v1/features*',
 			);

@@ -45,6 +45,7 @@ function setup() {
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
 	add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\block_assets' );
+	add_action( 'init', __NAMESPACE__ . '\register_react_jsx_runtime', 1 );
 
 	if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
 		add_action( 'block_categories_all', __NAMESPACE__ . '\block_categories' );
@@ -67,6 +68,27 @@ function setup() {
 		add_action( 'manage_sites_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
 		add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
 	}
+}
+
+/**
+ * Register the `react-jsx-runtime` script handle on WordPress versions that
+ * do not ship it. WordPress added it in 6.6; 10up-toolkit emits it as a
+ * dependency of the React admin and Instant Results bundles, and without the
+ * handle those scripts never print on WordPress 6.2.
+ *
+ * @since 5.3.4
+ * @return void
+ */
+function register_react_jsx_runtime() {
+	if ( wp_script_is( 'react-jsx-runtime', 'registered' ) ) {
+		return;
+	}
+
+	wp_register_script( 'react-jsx-runtime', false, [ 'react' ], '18', true );
+	wp_add_inline_script(
+		'react-jsx-runtime',
+		'window.ReactJSXRuntime=window.ReactJSXRuntime||{Fragment:window.React.Fragment,jsx:function(type,config,maybeKey){var props=Object.assign({},config);if(maybeKey!==undefined){props.key=maybeKey;}return window.React.createElement(type,props);},jsxs:function(type,config,maybeKey){var props=Object.assign({},config);if(maybeKey!==undefined){props.key=maybeKey;}return window.React.createElement(type,props);}};'
+	);
 }
 
 /**
