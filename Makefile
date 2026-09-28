@@ -62,13 +62,13 @@ setup-e2e-tests:
 	npm run e2e:setup -- $(VERSION_ARGS) $(ACF_ARGS)
 
 setup-e2e-tests-min:
-	$(MAKE) setup-e2e-tests WP_VERSION=6.2 WC_VERSION=6.4.0
+	$(MAKE) setup-e2e-tests WP_VERSION=6.4 WC_VERSION=9.0.0
 
 setup-e2e-tests-epio: require-epio
 	npm run e2e:setup -- $(VERSION_ARGS) $(EPIO_ARGS) $(ACF_ARGS)
 
 setup-e2e-tests-epio-min:
-	$(MAKE) setup-e2e-tests-epio WP_VERSION=6.2 WC_VERSION=6.4.0
+	$(MAKE) setup-e2e-tests-epio WP_VERSION=6.4 WC_VERSION=9.0.0
 
 destroy-e2e:
 	npm run env destroy -- --force

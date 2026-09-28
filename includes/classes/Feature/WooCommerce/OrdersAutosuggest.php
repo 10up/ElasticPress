@@ -79,9 +79,9 @@ class OrdersAutosuggest {
 		add_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
-		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'filter_term_suggest' ], 15 );
 		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
-		add_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
+		add_filter( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
 		add_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
 		add_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ], 10, 2 );
 		add_filter( 'ep_pre_kill_sync_for_password_protected', [ $this, 'sync_password_protected_orders' ], 10, 3 );
@@ -100,9 +100,9 @@ class OrdersAutosuggest {
 		remove_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
 		remove_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
 		remove_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
-		remove_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ] );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'filter_term_suggest' ], 15 );
 		remove_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
-		remove_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ] );
+		remove_filter( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ] );
 		remove_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
 		remove_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ] );
 		remove_filter( 'ep_pre_kill_sync_for_password_protected', [ $this, 'sync_password_protected_orders' ] );
@@ -500,6 +500,9 @@ class OrdersAutosuggest {
 	 * @return boolean
 	 */
 	public function is_available(): bool {
+		$hpos_query_integration_enabled = ! $this->woocommerce->orders->is_hpos_enabled()
+			|| ! $this->woocommerce->orders->is_hpos_query_integration_disabled();
+
 		/**
 		 * Whether the autosuggest feature is available for non
 		 * ElasticPress.io customers.
@@ -508,7 +511,10 @@ class OrdersAutosuggest {
 		 * @hook ep_woocommerce_orders_autosuggest_available
 		 * @param {boolean} $available Whether the feature is available.
 		 */
-		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() && $this->is_hpos_compatible() );
+		return apply_filters(
+			'ep_woocommerce_orders_autosuggest_available',
+			Utils\is_epio() && $this->is_hpos_compatible() && $hpos_query_integration_enabled
+		);
 	}
 
 	/**
@@ -528,21 +534,11 @@ class OrdersAutosuggest {
 	 * @return boolean
 	 */
 	public function is_hpos_compatible() {
-		if (
-			! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
-			|| ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {
+		if ( ! $this->woocommerce->orders->is_hpos_enabled() ) {
 			return true;
 		}
 
-		if ( ! \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
-			return true;
-		}
-
-		if ( wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::class )->data_sync_is_enabled() ) {
-			return true;
-		}
-
-		return false;
+		return $this->woocommerce->orders->is_hpos_compatible();
 	}
 
 	/**
@@ -610,7 +606,12 @@ class OrdersAutosuggest {
 		}
 
 		if ( ! $this->is_hpos_compatible() ) {
-			return esc_html__( 'Currently, autosuggest for orders is only available if WooCommerce order data storage is set in legacy or compatibility mode.', 'elasticpress' );
+			return sprintf(
+				/* translators: %s: Minimum WooCommerce version required for HPOS integration. */
+				esc_html__( 'Currently, autosuggest for orders with HPOS requires WooCommerce %s or greater.', 'elasticpress' ),
+				/** This filter is documented in includes/classes/Feature/WooCommerce/Orders.php */
+				esc_html( apply_filters( 'ep_woocommerce_hpos_min_version', '9.8.0' ) )
+			);
 		}
 
 		/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
