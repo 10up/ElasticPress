@@ -569,13 +569,20 @@ class Orders {
 	 * @return array
 	 */
 	public function add_settings_schema( array $settings_schema ): array {
+		/* translators: 1: <a> tag (sync page); 2. </a>; */
+		$help = __( 'Enable this setting to stop ElasticPress from querying WooCommerce orders stored using HPOS.<br />Unchecking it re-enables query integration and may require a %1$ssync%2$s to ensure accurate results.', 'elasticpress' );
+
 		$settings_schema[] = [
 			'default'       => '0',
 			'disabled'      => ! $this->is_hpos_enabled(),
-			'help'          => esc_html__( 'Enable this setting to stop ElasticPress from querying WooCommerce orders stored using HPOS.', 'elasticpress' ),
+			'help'          => sprintf(
+				wp_kses( $help, 'ep-html' ),
+				'<a href="' . esc_url( \ElasticPress\Utils\get_sync_url() ) . '">',
+				'</a>'
+			),
 			'key'           => 'disable_hpos',
 			'label'         => esc_html__( 'Disable query integration with WooCommerce Orders using HPOS', 'elasticpress' ),
-			'requires_sync' => false,
+			'requires_sync' => '0',
 			'type'          => 'checkbox',
 		];
 
