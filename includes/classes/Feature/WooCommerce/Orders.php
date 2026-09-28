@@ -582,7 +582,7 @@ class Orders {
 			),
 			'key'           => 'disable_hpos',
 			'label'         => esc_html__( 'Disable query integration with WooCommerce Orders using HPOS', 'elasticpress' ),
-			'requires_sync' => '0',
+			'requires_sync' => false,
 			'type'          => 'checkbox',
 		];
 
