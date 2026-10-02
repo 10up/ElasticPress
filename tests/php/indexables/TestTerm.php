@@ -813,6 +813,91 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Tests prepare_object_ids() returns the same object IDs as get_objects_in_term(), whatever the chunk size.
+	 *
+	 * @param int $chunk_size       Number of object IDs fetched per query
+	 * @param int $expected_queries Number of queries expected to fetch the object IDs
+	 * @dataProvider prepareObjectIdsChunkSizeDataProvider
+	 * @since 5.4.0
+	 * @group term
+	 */
+	public function testPrepareObjectIds( $chunk_size, $expected_queries ) {
+		$term       = $this->factory->term->create_and_get( [ 'taxonomy' => 'post_tag' ] );
+		$other_term = $this->factory->term->create_and_get( [ 'taxonomy' => 'post_tag' ] );
+
+		$object_ids_in_term   = $this->factory->post->create_many( 4 );
+		$object_ids_in_term[] = $this->factory->post->create( [ 'post_status' => 'draft' ] );
+
+		// Term relationships are not limited to posts (links, users, custom objects), so add an object ID no post uses.
+		$object_ids_in_term[] = max( $object_ids_in_term ) + 100;
+
+		// Relate the highest IDs first, so the expected order does not depend on insertion order.
+		foreach ( array_reverse( $object_ids_in_term ) as $object_id ) {
+			wp_set_object_terms( $object_id, $term->term_id, 'post_tag' );
+		}
+
+		wp_set_object_terms( $this->factory->post->create(), $other_term->term_id, 'post_tag' );
+
+		add_filter(
+			'ep_term_object_ids_chunk_size',
+			function () use ( $chunk_size ) {
+				return $chunk_size;
+			}
+		);
+
+		// Count only the paginated object ID queries, which page with "tr.object_id >".
+		$queries = 0;
+		add_filter(
+			'query',
+			function ( $query ) use ( &$queries ) {
+				if ( false !== strpos( $query, 'SELECT tr.object_id' ) && false !== strpos( $query, 'tr.object_id >' ) ) {
+					++$queries;
+				}
+				return $query;
+			}
+		);
+
+		$object_ids = ElasticPress\Indexables::factory()->get( 'term' )->prepare_object_ids( $term->term_id, 'post_tag' );
+
+		$this->assertSame( $expected_queries, $queries );
+
+		sort( $object_ids_in_term );
+
+		$this->assertSame( $object_ids_in_term, $object_ids['value'] );
+		$this->assertSame( array_map( 'absint', get_objects_in_term( $term->term_id, 'post_tag' ) ), $object_ids['value'] );
+	}
+
+	/**
+	 * Data provider for the testPrepareObjectIds method.
+	 *
+	 * @return array
+	 */
+	public function prepareObjectIdsChunkSizeDataProvider(): array {
+		// 6 object IDs (5 posts and 1 non-post object). When the last chunk is full, one more (empty) query confirms there are no more IDs.
+		return [
+			'one per query'          => [ 1, 7 ],
+			'exact multiple'         => [ 2, 4 ],
+			'last chunk not full'    => [ 4, 2 ],
+			'all in the first query' => [ 10000, 1 ],
+		];
+	}
+
+	/**
+	 * Tests prepare_object_ids() for terms without objects and terms that do not exist.
+	 *
+	 * @since 5.4.0
+	 * @group term
+	 */
+	public function testPrepareObjectIdsWithoutObjects() {
+		$term_id   = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
+		$indexable = ElasticPress\Indexables::factory()->get( 'term' );
+
+		$this->assertSame( [ 'value' => 0 ], $indexable->prepare_object_ids( $term_id, 'post_tag' ) );
+		$this->assertSame( [ 'value' => 0 ], $indexable->prepare_object_ids( 0, 'post_tag' ) );
+		$this->assertSame( [ 'value' => 0 ], $indexable->prepare_object_ids( $term_id, 'category' ) );
+	}
+
+	/**
 	 * Test include/exclude logic in format_args().
 	 *
 	 * @since 3.4
