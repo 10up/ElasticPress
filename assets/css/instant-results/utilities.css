@@ -40,9 +40,10 @@
 	justify-content: space-between;
 
 	& svg {
-		fill: currentcolor;
+		color: inherit;
 		flex-shrink: 0;
 		height: 1em;
+		stroke: currentcolor;
 		width: 1em;
 	}
 }
