@@ -31,7 +31,7 @@ env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
   COMPOSER_CACHE_DIR: "${{ github.workspace }}/.composer-cache"
-  NODE_VERSION: "24"
+  NODE_VERSION: "26.11.0"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
   npm_config_cache: "${{ github.workspace }}/node_modules_cache"
   # npm ci would otherwise fetch Chromium, Firefox and WebKit. Only the
