@@ -817,11 +817,11 @@ class TestTerm extends BaseTestCase {
 	 *
 	 * @param int $chunk_size       Number of object IDs fetched per query
 	 * @param int $expected_queries Number of queries expected to fetch the object IDs
-	 * @dataProvider prepareObjectIdsChunkSizeDataProvider
+	 * @dataProvider prepare_object_ids_chunk_size_data_provider
 	 * @since 5.4.0
 	 * @group term
 	 */
-	public function testPrepareObjectIds( $chunk_size, $expected_queries ) {
+	public function test_prepare_object_ids( $chunk_size, $expected_queries ) {
 		$term       = $this->factory->term->create_and_get( [ 'taxonomy' => 'post_tag' ] );
 		$other_term = $this->factory->term->create_and_get( [ 'taxonomy' => 'post_tag' ] );
 
@@ -868,11 +868,11 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
-	 * Data provider for the testPrepareObjectIds method.
+	 * Data provider for the test_prepare_object_ids method.
 	 *
 	 * @return array
 	 */
-	public function prepareObjectIdsChunkSizeDataProvider(): array {
+	public function prepare_object_ids_chunk_size_data_provider(): array {
 		// 6 object IDs (5 posts and 1 non-post object). When the last chunk is full, one more (empty) query confirms there are no more IDs.
 		return [
 			'one per query'          => [ 1, 7 ],
@@ -888,7 +888,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 5.4.0
 	 * @group term
 	 */
-	public function testPrepareObjectIdsWithoutObjects() {
+	public function test_prepare_object_ids_without_objects() {
 		$term_id   = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
 		$indexable = ElasticPress\Indexables::factory()->get( 'term' );
 
