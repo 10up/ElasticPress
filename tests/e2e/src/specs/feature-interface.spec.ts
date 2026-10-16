@@ -224,6 +224,89 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 		await expect(loggedInPage.getByText('Highlighting Options')).toBeVisible();
 	});
 
+	test('Supports the combobox field type and custom controls', async ({ loggedInPage }) => {
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+		await expect(loggedInPage.locator('.ep-settings-page form')).toBeVisible();
+		await loggedInPage.waitForFunction(() => {
+			return !!(window as any).epDashboard && !!(window as any).epDashboard.features;
+		});
+
+		await loggedInPage.evaluate(() => {
+			const { addFilter } = (window as any).wp.hooks;
+			const { createElement } = (window as any).wp.element;
+
+			// Render the `test_custom` field type with a plugin component
+			addFilter(
+				'ep.Features.Control',
+				'ep-e2e/custom-control',
+				(component: any, type: string) =>
+					type === 'test_custom'
+						? ({ label, onChange, value, values }: any) =>
+								createElement(
+									'div',
+									{ className: 'test-custom-control' },
+									createElement('label', { htmlFor: 'test-custom-input' }, label),
+									createElement('input', {
+										id: 'test-custom-input',
+										onChange: (event: any) => onChange(event.target.value),
+										value,
+									}),
+									createElement(
+										'span',
+										{ className: 'test-custom-combobox-value' },
+										values.test_combobox_field,
+									),
+								)
+						: component,
+			);
+
+			const search = (window as any).epDashboard.features.find(
+				(feature: any) => feature.slug === 'search',
+			);
+
+			search.settingsSchema.push({
+				default: '',
+				key: 'test_combobox_field',
+				label: 'Test combobox field',
+				options: [
+					{ label: 'Option A', value: 'a' },
+					{ label: 'Option B', value: 'b' },
+				],
+				type: 'combobox',
+			});
+			search.settingsSchema.push({
+				default: 'initial',
+				key: 'test_custom_field',
+				label: 'Test custom field',
+				type: 'test_custom',
+			});
+		});
+
+		// Toggle Re-Render
+		await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+		await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
+		await loggedInPage.getByRole('button', { name: 'Post Search' }).click();
+
+		// The combobox filters its options as you type
+		const combobox = loggedInPage.getByRole('combobox', { name: 'Test combobox field' });
+		const suggestions = loggedInPage.getByRole('listbox').getByRole('option');
+		await combobox.fill('Option');
+		await expect(suggestions).toHaveCount(2);
+		await combobox.fill('B');
+		await expect(suggestions).toHaveCount(1);
+		await suggestions.filter({ hasText: 'Option B' }).click();
+		await expect(combobox).toHaveValue('Option B');
+
+		// The custom control renders with its value, and gets the other values before saving
+		const customInput = loggedInPage.getByLabel('Test custom field');
+		await expect(customInput).toHaveValue('initial');
+		await expect(loggedInPage.locator('.test-custom-combobox-value')).toHaveText('b');
+
+		// Its changes update the setting
+		await customInput.fill('changed');
+		await expect(customInput).toHaveValue('changed');
+	});
+
 	test.describe('Multiple Required Features', () => {
 		test.afterAll(async () => {
 			await wpCli('plugin deactivate multiple-required-features');

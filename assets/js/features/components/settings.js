@@ -130,6 +130,7 @@ export default ({ feature, settingsSchema }) => {
 				requiresSync={requires_sync}
 				type={type}
 				value={value}
+				values={{ ...defaultSettings, ...settings[feature] }}
 				fields={fields}
 			/>
 		);
