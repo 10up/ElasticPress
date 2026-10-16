@@ -87,6 +87,41 @@
 	& .components-card__header:first-of-type {
 		border-radius: 0;
 	}
+
+	/* A collapsible group's header is one full-width toggle button. */
+	& .ep-field-group__header {
+		padding: 0;
+	}
+
+	& .ep-field-group__toggle.components-button {
+		color: inherit;
+		height: auto;
+		justify-content: space-between;
+		padding: 16px 24px;
+		width: 100%;
+
+		&:hover,
+		&:focus:not(:disabled) {
+			color: var(--wp-admin-theme-color, #3858e9);
+		}
+	}
+
+	/* A short status next to the label, before the chevron. */
+	& .ep-field-group__badge {
+		background: var(--wp-components-color-gray-100, #f0f0f0);
+		border-radius: 2px;
+		color: var(--wp-components-color-foreground, #1e1e1e);
+		font-size: 12px;
+		font-weight: 400;
+		line-height: 1.5;
+		margin-left: auto;
+		margin-right: 12px;
+		padding: 0 8px;
+	}
+
+	& .components-card__header:not(.ep-field-group__header) .ep-field-group__badge {
+		margin-right: 0;
+	}
 }
 
 /* Group Content Structure */

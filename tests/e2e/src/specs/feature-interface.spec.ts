@@ -141,6 +141,89 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 		).toBeVisible();
 	});
 
+	test('Supports collapsible field groups with a badge', async ({ loggedInPage }) => {
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+		await expect(loggedInPage.locator('.ep-settings-page form')).toBeVisible();
+		await loggedInPage.waitForFunction(() => {
+			return !!(window as any).epDashboard && !!(window as any).epDashboard.features;
+		});
+
+		// Add three groups to Post Search, each with one field
+		await loggedInPage.evaluate(() => {
+			const search = (window as any).epDashboard.features.find(
+				(feature: any) => feature.slug === 'search',
+			);
+
+			search.fieldGroups.test_closed_group = {
+				label: 'Test Closed Group',
+				collapsible: true,
+				initialOpen: false,
+				badge: 'Not set up',
+			};
+			search.fieldGroups.test_open_group = {
+				label: 'Test Open Group',
+				collapsible: true,
+			};
+			search.fieldGroups.test_static_group = {
+				label: 'Test Static Group',
+				badge: 'Beta',
+			};
+
+			['closed', 'open', 'static'].forEach((group) => {
+				search.settingsSchema.push({
+					default: '',
+					key: `test_${group}_field`,
+					label: `Test ${group} field`,
+					type: 'text',
+					field_group_slug: `test_${group}_group`,
+				});
+			});
+		});
+
+		// Toggle Re-Render
+		await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+		await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
+		await loggedInPage.getByRole('button', { name: 'Post Search' }).click();
+
+		// A closed group shows its label and badge, but not its fields
+		const closedToggle = loggedInPage.getByRole('button', { name: /Test Closed Group/ });
+		await expect(closedToggle).toHaveAttribute('aria-expanded', 'false');
+		await expect(closedToggle.locator('.ep-field-group__badge')).toHaveText('Not set up');
+		await expect(loggedInPage.getByLabel('Test closed field')).not.toBeVisible();
+
+		// Its header opens and closes it
+		await closedToggle.click();
+		await expect(closedToggle).toHaveAttribute('aria-expanded', 'true');
+		await expect(loggedInPage.getByLabel('Test closed field')).toBeVisible();
+		const bodyId = await closedToggle.getAttribute('aria-controls');
+		await expect(loggedInPage.locator(`[id="${bodyId}"]`)).toContainText('Test closed field');
+
+		await closedToggle.click();
+		await expect(closedToggle).toHaveAttribute('aria-expanded', 'false');
+		await expect(loggedInPage.getByLabel('Test closed field')).not.toBeVisible();
+
+		// A collapsible group is open by default
+		const openToggle = loggedInPage.getByRole('button', { name: 'Test Open Group' });
+		await expect(openToggle).toHaveAttribute('aria-expanded', 'true');
+		await expect(loggedInPage.getByLabel('Test open field')).toBeVisible();
+
+		// A group that is not collapsible has no toggle, and can still show a badge
+		await expect(loggedInPage.getByRole('button', { name: /Test Static Group/ })).toHaveCount(
+			0,
+		);
+		const staticGroup = loggedInPage.locator('.ep-field-group', {
+			hasText: 'Test Static Group',
+		});
+		await expect(staticGroup.locator('.ep-field-group__badge')).toHaveText('Beta');
+		await expect(loggedInPage.getByLabel('Test static field')).toBeVisible();
+
+		// Existing groups are not collapsible
+		await expect(
+			loggedInPage.getByRole('button', { name: 'Highlighting Options' }),
+		).toHaveCount(0);
+		await expect(loggedInPage.getByText('Highlighting Options')).toBeVisible();
+	});
+
 	test.describe('Multiple Required Features', () => {
 		test.afterAll(async () => {
 			await wpCli('plugin deactivate multiple-required-features');
