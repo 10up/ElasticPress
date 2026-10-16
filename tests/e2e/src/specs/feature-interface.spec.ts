@@ -90,6 +90,18 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 					},
 				},
 			});
+			// A list of values: the field shows when test_field has any of them.
+			(window as any).epDashboard.features[0].settingsSchema.push({
+				default: '1',
+				key: 'test_field_3',
+				label: 'Testing Field 3',
+				type: 'text',
+				requires_fields: {
+					conditions: {
+						test_field: ['0', '2'],
+					},
+				},
+			});
 		});
 
 		// Toggle Re-Render
@@ -99,6 +111,11 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 		await expect(
 			loggedInPage.locator('.ep-dashboard-control', {
 				hasText: 'Testing Field 2',
+			}),
+		).not.toBeVisible();
+		await expect(
+			loggedInPage.locator('.ep-dashboard-control', {
+				hasText: 'Testing Field 3',
 			}),
 		).not.toBeVisible();
 
@@ -113,6 +130,13 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 		await expect(
 			loggedInPage.locator('.ep-dashboard-control', {
 				hasText: 'Testing Field 2',
+			}),
+		).toBeVisible();
+
+		// and Testing Field 3, as '0' is one of its values
+		await expect(
+			loggedInPage.locator('.ep-dashboard-control', {
+				hasText: 'Testing Field 3',
 			}),
 		).toBeVisible();
 	});
