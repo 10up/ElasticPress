@@ -412,7 +412,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\Screen::factory()->set_current_screen( null );
 
 		// Instant Results not available.
-		$not_available_full_text = '<a href="https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to <a href="https://www.elasticpress.io/documentation/article/considerations-for-self-hosted-elasticsearch-setups/">install and configure a PHP proxy</a>.';
+		$not_available_full_text = '<a href="https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to <a href="https://www.elasticpress.io/resources/articles/considerations-for-self-hosted-elasticsearch-setups/">install and configure a PHP proxy</a>.';
 		ElasticPress\AdminNotices::factory()->process_notices();
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
@@ -424,7 +424,7 @@ class TestAdminNotices extends BaseTestCase {
 		} else {
 			$features_url = admin_url( 'admin.php?page=elasticpress' );
 		}
-		$available_full_text = '<a href="https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click <a href="' . $features_url . '">here</a> to activate the feature and start your sync.';
+		$available_full_text = '<a href="https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click <a href="' . $features_url . '">here</a> to activate the feature and start your sync.';
 
 		// Instant Results available via custom proxy.
 		add_filter( 'ep_instant_results_available', '__return_true' );
