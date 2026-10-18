@@ -1,33 +1,74 @@
 name: Publish elasticpress-playwright-utils
 
+# Publishes tests/e2e to npm only when its package.json version is higher
+# than the latest version on npm. Otherwise the job succeeds without doing
+# anything.
+#
+# Authentication uses npm trusted publishing (OIDC): no npm token is stored
+# in this repository. The package must have a trusted publisher configured on
+# npmjs.com (package Settings > Trusted Publisher > GitHub Actions) pointing
+# to organization `10up`, repository `ElasticPress` and workflow filename
+# `publish-playwright-utils.yml`.
+
 on:
   push:
     branches:
       - develop
       - trunk
       - chore/e2e-playwright
+    paths:
+      - tests/e2e/**
+      - .github/workflows/publish-playwright-utils.yml
+
+permissions:
+  contents: read
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write # Required for npm trusted publishing (OIDC).
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - uses: actions/setup-node@v7
         with:
           node-version: 26.11.0
           registry-url: https://registry.npmjs.org
 
-      - run: npm ci
+      - name: Check if the version needs to be published
+        id: version
+        working-directory: tests/e2e
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          local_version="$(node -p "require('./package.json').version")"
+          # Empty when the package has never been published.
+          npm_version="$(npm view "$name" version 2>/dev/null || true)"
 
-      - run: npm test --if-present
+          echo "Local version: $local_version"
+          echo "Latest version on npm: ${npm_version:-none}"
+
+          highest="$(printf '%s\n%s\n' "$local_version" "$npm_version" | sed '/^$/d' | sort -V | tail -n1)"
+
+          if [ "$local_version" != "$npm_version" ] && [ "$highest" = "$local_version" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Nothing to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.version.outputs.publish == 'true'
+        run: npm ci
+
+      - if: steps.version.outputs.publish == 'true'
+        run: npm test --if-present
         working-directory: tests/e2e
 
-      - run: npm publish --access public
+      # Trusted publishing needs npm >= 11.5.1, which ships with Node 26.
+      - if: steps.version.outputs.publish == 'true'
+        run: npm publish --access public
         working-directory: tests/e2e
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
