@@ -45,7 +45,10 @@
     "symfony/finder": "^7.0"
   },
   "scripts": {
-    "lint": "phpcs . -s --runtime-set testVersion 7.4-",
+    "lint": [
+      "phpcs . -s --ignore=tests/* --runtime-set testVersion 7.4-",
+      "phpcs tests/. -s --runtime-set testVersion 8.2-"
+    ],
     "lint-fix": "phpcbf .",
     "test": "phpunit",
     "test-single-site": "phpunit -c single-site.xml.dist",

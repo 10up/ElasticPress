@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Deprecated
 ### Removed
 ### Fixed
+### Security
+### Developer
 -->
 
 ## [5.3.5] - 2026-09-10
