@@ -6,8 +6,8 @@ The following versions of this project are currently being supported with securi
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.1.2   | :white_check_mark: |
-| <5.1.1  | :x:                |
+| 5.3.5   | :white_check_mark: |
+| <=5.3.4  | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -38,5 +38,7 @@ Past security advisories, if any, are listed below.
 
 | Advisory Number | Type               | Versions affected | Reported by           | Additional Information      |
 |-----------------|--------------------|:-----------------:|-----------------------|-----------------------------|
+| GHSA-hg8f-cr8r-jg6m | Authorization Bypass | n/a - 5.3.4 | Zyy0530, lzhou1110, Str1ckl4nd, mauriceng98, 7thParkk | [GHSA link](https://github.com/10up/ElasticPress/security/advisories/GHSA-hg8f-cr8r-jg6m) |
+| — | Sensitive Data Exposure | 5.0.0 - 5.3.4 | mrglwglwgl | CVE pending |
 | CVE-2024-35684 | CSRF | n/a - 5.1.1 | Patchstack Team | [CVE link](https://www.cve.org/CVERecord?id=CVE-2024-35684) |
 | EP-2021-02-11 | CSRF Nonce Bypass | 3.5.2 - 3.5.3 | WordPress.org Plugin Review Team | [WPScan link](https://wpscan.com/vulnerability/ce655810-bd08-4042-ac3d-63def5c76994) |

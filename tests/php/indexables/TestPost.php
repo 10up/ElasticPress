@@ -10574,6 +10574,68 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Data provider for the `ep_pre_prepare_documents` test.
+	 *
+	 * @since 5.4.0
+	 * @return array
+	 */
+	public function pre_prepare_documents_methods_provider(): array {
+		return [
+			'index'                  => [ 'index', false ],
+			'bulk_index'             => [ 'bulk_index', true ],
+			'bulk_index_dynamically' => [ 'bulk_index_dynamically', true ],
+		];
+	}
+
+	/**
+	 * Test that `ep_pre_prepare_documents` fires once, with the object IDs, before any document is prepared
+	 *
+	 * @param string $method Indexable method to call.
+	 * @param bool   $bulk   Whether the method takes a list of IDs.
+	 * @dataProvider pre_prepare_documents_methods_provider
+	 * @since 5.4.0
+	 * @group post
+	 */
+	public function test_pre_prepare_documents_action( string $method, bool $bulk ) {
+		$post_ids = [
+			$this->ep_factory->post->create(),
+			$this->ep_factory->post->create(),
+		];
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+
+		$calls            = [];
+		$calls_at_prepare = [];
+
+		add_action(
+			'ep_pre_prepare_documents',
+			function ( $object_ids, $slug ) use ( &$calls ) {
+				$calls[] = [ $object_ids, $slug ];
+			},
+			10,
+			2
+		);
+		add_filter(
+			'ep_post_sync_args_post_prepare_meta',
+			function ( $args ) use ( &$calls, &$calls_at_prepare ) {
+				$calls_at_prepare[] = count( $calls );
+				return $args;
+			}
+		);
+
+		if ( $bulk ) {
+			$post_indexable->$method( $post_ids );
+			$expected_ids = $post_ids;
+		} else {
+			$post_indexable->$method( $post_ids[0], true );
+			$expected_ids = [ $post_ids[0] ];
+		}
+
+		$this->assertSame( [ [ $expected_ids, 'post' ] ], $calls );
+		$this->assertSame( array_fill( 0, count( $expected_ids ), 1 ), $calls_at_prepare );
+	}
+
+	/**
 	 * Throw an exception for the specific post.
 	 *
 	 * @since 5.3.0
@@ -10782,5 +10844,19 @@ class TestPost extends BaseTestCase {
 
 		$this->assertJson( wp_specialchars_decode( $post->terms, ENT_QUOTES ), true );
 		$this->assertJson( wp_specialchars_decode( $post->meta, ENT_QUOTES ), true );
+	}
+
+	/**
+	 * Test that cache_results is set to false when using a persistent object cache.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function test_cache_results_set_to_false_when_using_persistent_object_cache() {
+		// Set the persistent object cache to true.
+		wp_using_ext_object_cache( true );
+
+		$query = new \WP_Query( [ 'ep_integrate' => true ] );
+		$this->assertFalse( $query->get( 'cache_results' ) );
 	}
 }

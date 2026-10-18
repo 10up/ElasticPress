@@ -977,3 +977,27 @@ function get_post_types_for_tax_query( ?\WP_Query $query = null ): array {
 
 	return array_values( array_filter( $taxonomy_object->object_type, 'post_type_exists' ) );
 }
+
+/**
+ * Field types the feature settings screen can render.
+ *
+ * Plugins that add feature settings can check this before using a newer type, and fall back to
+ * an older one (for example `select` instead of `combobox`). A plugin that renders its own type
+ * with the `ep.Features.Control` JavaScript filter adds it here with `ep_settings_field_types`.
+ *
+ * @since 5.4.0
+ * @return string[]
+ */
+function get_settings_field_types(): array {
+	$types = [ 'checkbox', 'combobox', 'hidden', 'markup', 'multiple', 'number', 'radio', 'select', 'text', 'textarea', 'toggle', 'url' ];
+
+	/**
+	 * Filter the field types the feature settings screen can render.
+	 *
+	 * @since 5.4.0
+	 * @hook ep_settings_field_types
+	 * @param {string[]} $types Field types.
+	 * @return {string[]} Filtered field types.
+	 */
+	return apply_filters( 'ep_settings_field_types', $types );
+}

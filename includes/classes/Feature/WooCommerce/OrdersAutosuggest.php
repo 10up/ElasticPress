@@ -594,7 +594,7 @@ class OrdersAutosuggest {
 	protected function get_setting_help_message(): string {
 		$available = $this->is_available();
 
-		$epio_autosuggest_kb_link = 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-io-order-autosuggest/';
+		$epio_autosuggest_kb_link = 'https://www.elasticpress.io/resources/articles/configuring-elasticpress-io-order-autosuggest/';
 
 		if ( $available ) {
 			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */

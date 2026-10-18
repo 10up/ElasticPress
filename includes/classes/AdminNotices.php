@@ -787,8 +787,8 @@ class AdminNotices {
 				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 				__( 'Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> before trying to sync.', 'elasticpress' ),
 				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
-				'https://www.elasticpress.io/documentation/article/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
-				'https://www.elasticpress.io/documentation/article/how-to-exclude-metadata-from-indexing/'
+				'https://www.elasticpress.io/resources/articles/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
+				'https://www.elasticpress.io/resources/articles/how-to-exclude-metadata-from-indexing/'
 			);
 
 			return [
@@ -803,8 +803,8 @@ class AdminNotices {
 				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 				__( 'Your website content seems to have more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> if you receive any errors while syncing.', 'elasticpress' ),
 				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
-				'https://www.elasticpress.io/documentation/article/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
-				'https://www.elasticpress.io/documentation/article/how-to-exclude-metadata-from-indexing/'
+				'https://www.elasticpress.io/resources/articles/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
+				'https://www.elasticpress.io/resources/articles/how-to-exclude-metadata-from-indexing/'
 			);
 
 			return [

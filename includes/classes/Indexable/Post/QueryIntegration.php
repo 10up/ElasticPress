@@ -318,11 +318,10 @@ class QueryIntegration {
 			}
 
 			/**
-			 * Disable the post cache for cross-site results. The `posts` cache group is
-			 * per-blog and keyed by ID only, so caching another site's post can poison
-			 * later get_post() calls for the same ID on the current site.
+			 * Disable the post cache when using a persistent object cache or querying
+			 * across sites, where identical post IDs can cause cache collisions.
 			 */
-			if ( 'all' === $scope || ! empty( $site__in ) || ! empty( $site__not_in ) ) {
+			if ( wp_using_ext_object_cache() || 'all' === $scope || ! empty( $site__in ) || ! empty( $site__not_in ) ) {
 				$query->set( 'cache_results', false );
 			}
 

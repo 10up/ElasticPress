@@ -112,7 +112,7 @@ class InstantResults extends Feature {
 		$this->summary = '<p>' . __( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed.', 'elasticpress' ) . '</p>' .
 		'<p>' . __( 'Requires an <a href="https://www.elasticpress.io/" target="_blank">ElasticPress.io plan</a> or a custom proxy to function.', 'elasticpress' ) . '</p>';
 
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results', 'elasticpress' );
+		$this->docs_url = __( 'https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#instant-results', 'elasticpress' );
 	}
 
 	/**
@@ -156,7 +156,7 @@ class InstantResults extends Feature {
 						'ElasticPress is network activated. Additional steps are required to ensure Instant Results works for all sites on the network. See our article on <a href="%s" target="_blank">running ElasticPress in network mode</a> for more details.',
 						'elasticpress'
 					),
-					'https://www.elasticpress.io/documentation/article/running-elasticpress-in-a-wordpress-multisite-network-mode/'
+					'https://www.elasticpress.io/resources/articles/running-elasticpress-in-a-wordpress-multisite-network-mode/'
 				)
 			);
 		}
