@@ -85,6 +85,7 @@ jobs:
     - name: Link this run on the pull request
       env:
         GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
         PR_NUMBER: ${{ steps.pr.outputs.number }}
         SHA: ${{ steps.pr.outputs.sha }}
       run: |
