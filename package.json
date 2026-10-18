@@ -73,7 +73,8 @@
     },
     "@wordpress/icons": {
       "@babel/runtime": "^7.26.10"
-    }
+    },
+    "fast-uri": "3.1.8"
   },
   "10up-toolkit": {
     "entry": {
