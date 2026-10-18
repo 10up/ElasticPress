@@ -8,7 +8,8 @@ name: Publish elasticpress-playwright-utils
 # in this repository. The package must have a trusted publisher configured on
 # npmjs.com (package Settings > Trusted Publisher > GitHub Actions) pointing
 # to organization `10up`, repository `ElasticPress` and workflow filename
-# `publish-playwright-utils.yml`.
+# `publish-playwright-utils.yml`, with the `npm stage publish` permission.
+# The workflow only stages the new version; approving it makes it live.
 
 on:
   push:
@@ -69,6 +70,8 @@ jobs:
         working-directory: tests/e2e
 
       # Trusted publishing needs npm >= 11.5.1, which ships with Node 26.
+      # The version is only staged here. A maintainer has to approve it
+      # (npmjs.com or `npm stage approve <stage-id>`) before it goes live.
       - if: steps.version.outputs.publish == 'true'
-        run: npm publish --access public
+        run: npm stage publish --access public
         working-directory: tests/e2e
