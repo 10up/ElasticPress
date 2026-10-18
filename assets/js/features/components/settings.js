@@ -2,13 +2,13 @@
  * WordPress dependencies.
  */
 import { WPElement } from '@wordpress/element';
-import { Card, CardHeader, CardBody } from '@wordpress/components';
 
 /**
  * Internal dependencies.
  */
 import { useFeatureSettings } from '../provider';
 import Control from './control';
+import FieldGroup from './field-group';
 
 /**
  * Feature settings component.
@@ -149,16 +149,9 @@ export default ({ feature, settingsSchema }) => {
 			return;
 		}
 		rendered.push(
-			<div className="ep-field-group" key={`${currentGroup}-${groupCounter}`}>
-				<Card>
-					{group && (
-						<CardHeader>
-							<strong>{group.label}</strong>
-						</CardHeader>
-					)}
-					<CardBody>{groupEntries.map(renderControl)}</CardBody>
-				</Card>
-			</div>,
+			<FieldGroup group={group} key={`${currentGroup}-${groupCounter}`}>
+				{groupEntries.map(renderControl)}
+			</FieldGroup>,
 		);
 		groupEntries = [];
 		groupCounter++;
