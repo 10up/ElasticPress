@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.4.0] - 2026-XX-XX
+
 ## [5.3.5] - 2026-09-10
 
 **This is a security release** addressing two issues in specific configurations:
@@ -2423,6 +2425,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.4.0]: https://github.com/10up/ElasticPress/compare/5.3.5...5.4.0
 [5.3.5]: https://github.com/10up/ElasticPress/compare/5.3.4...5.3.5
 [5.3.4]: https://github.com/10up/ElasticPress/compare/5.3.3...5.3.4
 [5.3.3]: https://github.com/10up/ElasticPress/compare/5.3.2.2...5.3.3
