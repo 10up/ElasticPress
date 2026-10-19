@@ -1,7 +1,7 @@
 name: Build and Tag
 
 env:
-  NODE_VERSION: "24"
+  NODE_VERSION: "26.11.0"
 
 on:
   push:

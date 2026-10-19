@@ -3,6 +3,7 @@
  */
 import {
 	CheckboxControl,
+	ComboboxControl,
 	FormTokenField,
 	Notice,
 	RadioControl,
@@ -13,6 +14,7 @@ import {
 } from '@wordpress/components';
 import { safeHTML } from '@wordpress/dom';
 import { RawHTML, WPElement } from '@wordpress/element';
+import { applyFilters } from '@wordpress/hooks';
 import { _n, __, _x, sprintf } from '@wordpress/i18n';
 
 /**
@@ -35,6 +37,7 @@ import { useFeatureSettings } from '../provider';
  * @param {boolean|string} props.syncedValue Setting value at last sync.
  * @param {string} props.type Control type.
  * @param {boolean|string} props.value Setting value.
+ * @param {object} props.values The feature's current setting values, saved or not (since 5.4.0).
  * @returns {WPElement} Reports component.
  */
 const Control = ({
@@ -49,6 +52,7 @@ const Control = ({
 	syncedValue,
 	type,
 	value,
+	values,
 }) => {
 	const { getFeature, isBusy, settings, willSettingRequireSync } = useFeatureSettings();
 
@@ -190,6 +194,35 @@ const Control = ({
 			) : null}
 			<div className="ep-dashboard-control">
 				{(() => {
+					/**
+					 * Filter the component that renders a settings field, so a plugin can
+					 * add its own field type. Return null to use the ElasticPress control.
+					 *
+					 * @filter ep.Features.Control
+					 * @since 5.4.0
+					 *
+					 * @param {Function|null} component Component. Default null.
+					 * @param {string} type Field type.
+					 * @param {string} name Setting name.
+					 * @returns {Function|null} Component, called with disabled, help (HTML), label, name, onChange, options, value, and values (the feature's current setting values, saved or not).
+					 */
+					const CustomControl = applyFilters('ep.Features.Control', null, type, name);
+
+					if (CustomControl) {
+						return (
+							<CustomControl
+								disabled={isDisabled}
+								help={helpHtml}
+								label={label}
+								name={name}
+								onChange={onChange}
+								options={options}
+								value={value}
+								values={values}
+							/>
+						);
+					}
+
 					switch (type) {
 						case 'checkbox': {
 							return (
@@ -200,6 +233,21 @@ const Control = ({
 									onChange={onChangeCheckbox}
 									disabled={isDisabled}
 									__nextHasNoMarginBottom
+								/>
+							);
+						}
+						case 'combobox': {
+							return (
+								<ComboboxControl
+									allowReset
+									help={helpHtml}
+									label={label}
+									onChange={(next) => onChange(next ?? '')}
+									options={options}
+									disabled={isDisabled}
+									value={value}
+									__nextHasNoMarginBottom
+									__next40pxDefaultSize
 								/>
 							);
 						}

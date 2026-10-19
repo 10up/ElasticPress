@@ -20,7 +20,7 @@
 /.nvmrc export-ignore
 /.npmrc export-ignore
 /.husky export-ignore
-/.lintstagedrc.json export-ignore
+/.lintstagedrc.js export-ignore
 /.stylelintrc export-ignore
 /.typos.toml export-ignore
 /.wp-env.json export-ignore

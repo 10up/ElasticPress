@@ -536,22 +536,56 @@ class Term extends Indexable {
 	/**
 	 * Prepare object IDs to send to ES
 	 *
+	 * Object IDs are fetched in chunks, paginating by object ID, so terms with many objects
+	 * do not load every relationship row (and cache the full list) in memory at once.
+	 *
 	 * @param  int    $term_id Term ID.
 	 * @param  string $taxonomy Term taxonomy.
 	 * @since  3.1
 	 * @return array
 	 */
 	public function prepare_object_ids( $term_id, $taxonomy ) {
-		$ids        = [];
-		$object_ids = get_objects_in_term( [ $term_id ], [ $taxonomy ] );
+		global $wpdb;
 
-		if ( ! empty( $object_ids ) && ! is_wp_error( $object_ids ) ) {
-			$ids['value'] = array_map( 'absint', array_values( $object_ids ) );
-		} else {
-			$ids['value'] = 0;
-		}
+		/**
+		 * Filter the number of object IDs fetched per query when preparing a term's object IDs
+		 *
+		 * @hook ep_term_object_ids_chunk_size
+		 * @param  {int}    $chunk_size Number of object IDs fetched per query
+		 * @param  {int}    $term_id    Term ID
+		 * @param  {string} $taxonomy   Term taxonomy
+		 * @since  5.4.0
+		 * @return {int} New chunk size
+		 */
+		$chunk_size = max( 1, (int) apply_filters( 'ep_term_object_ids_chunk_size', 10000, $term_id, $taxonomy ) );
 
-		return $ids;
+		$object_ids = [];
+		$last_id    = 0;
+
+		do {
+			// Same query as get_objects_in_term(), paginated by object ID.
+			$chunk = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->prepare(
+					"SELECT tr.object_id FROM {$wpdb->term_relationships} AS tr
+					INNER JOIN {$wpdb->term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+					WHERE tt.term_id = %d AND tt.taxonomy = %s AND tr.object_id > %d
+					ORDER BY tr.object_id ASC LIMIT %d",
+					$term_id,
+					$taxonomy,
+					$last_id,
+					$chunk_size
+				)
+			);
+
+			foreach ( $chunk as $object_id ) {
+				$object_ids[] = (int) $object_id;
+			}
+
+			$chunk_count = count( $chunk );
+			$last_id     = (int) end( $chunk );
+		} while ( $chunk_count === $chunk_size );
+
+		return [ 'value' => ! empty( $object_ids ) ? $object_ids : 0 ];
 	}
 
 	/**

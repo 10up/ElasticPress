@@ -661,4 +661,24 @@ class TestUtils extends BaseTestCase {
 
 		$this->assertSame( [], Utils\get_post_types_for_tax_query( $query ) );
 	}
+
+	/**
+	 * Tests the feature settings field types, and their filter.
+	 *
+	 * @since 5.4.0
+	 * @group utils
+	 */
+	public function test_get_settings_field_types() {
+		$this->assertContains( 'combobox', Utils\get_settings_field_types() );
+		$this->assertContains( 'select', Utils\get_settings_field_types() );
+
+		$remove_combobox = function ( $types ) {
+			return array_diff( $types, [ 'combobox' ] );
+		};
+		add_filter( 'ep_settings_field_types', $remove_combobox );
+
+		$this->assertNotContains( 'combobox', Utils\get_settings_field_types() );
+
+		remove_filter( 'ep_settings_field_types', $remove_combobox );
+	}
 }

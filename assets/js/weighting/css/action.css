@@ -1,5 +1,9 @@
 .ep-weighting-action {
 
+	& svg {
+		stroke: currentcolor;
+	}
+
 	&[disabled] {
 		visibility: hidden;
 	}

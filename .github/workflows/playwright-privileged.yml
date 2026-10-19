@@ -31,7 +31,7 @@ env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
   COMPOSER_CACHE_DIR: "${{ github.workspace }}/.composer-cache"
-  NODE_VERSION: "24"
+  NODE_VERSION: "26.11.0"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
   npm_config_cache: "${{ github.workspace }}/node_modules_cache"
   # npm ci would otherwise fetch Chromium, Firefox and WebKit. Only the
@@ -54,6 +54,10 @@ jobs:
   resolve-pr:
     name: Resolve pull request
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
     outputs:
       number: ${{ steps.pr.outputs.number }}
       ref: ${{ steps.pr.outputs.ref }}
@@ -85,10 +89,25 @@ jobs:
     - name: Link this run on the pull request
       env:
         GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
         PR_NUMBER: ${{ steps.pr.outputs.number }}
         SHA: ${{ steps.pr.outputs.sha }}
       run: |
         gh pr comment "$PR_NUMBER" --body "Privileged e2e (EP.io and @paidPlugins) started for \`${SHA}\`: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+    # This run is dispatched from the base branch, so GitHub does not attach it
+    # to the pull request. A commit status puts its result in the PR checks.
+    - name: Mark the commit as pending
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        SHA: ${{ steps.pr.outputs.sha }}
+      run: |
+        gh api "repos/${GITHUB_REPOSITORY}/statuses/${SHA}" \
+          -f state=pending \
+          -f context="E2e Tests (privileged)" \
+          -f description="Privileged e2e is running" \
+          -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   e2e_local:
     name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
@@ -265,3 +284,35 @@ jobs:
         path: |
           playwright-report/
           test-results/
+
+  report:
+    name: Report the result on the pull request
+    needs: [resolve-pr, e2e_local]
+    # A cancelled run (for example one replaced by a newer dispatch for the
+    # same pull request) reports nothing, so it cannot overwrite the status
+    # of the run that replaced it.
+    if: ${{ !cancelled() && needs.resolve-pr.result == 'success' }}
+    runs-on: ubuntu-latest
+    # This job never checks out or runs pull request code.
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+    - name: Set the commit status
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        SHA: ${{ needs.resolve-pr.outputs.sha }}
+        RESULT: ${{ needs.e2e_local.result }}
+      run: |
+        case "$RESULT" in
+          success) STATE=success; DESCRIPTION="Privileged e2e passed" ;;
+          failure) STATE=failure; DESCRIPTION="Privileged e2e failed" ;;
+          *)       STATE=error;   DESCRIPTION="Privileged e2e did not complete (${RESULT})" ;;
+        esac
+
+        gh api "repos/${GITHUB_REPOSITORY}/statuses/${SHA}" \
+          -f state="$STATE" \
+          -f context="E2e Tests (privileged)" \
+          -f description="$DESCRIPTION" \
+          -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

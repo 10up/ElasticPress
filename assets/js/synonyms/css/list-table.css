@@ -33,6 +33,10 @@
 		display: block;
 	}
 
+	& .components-button svg {
+		stroke: currentcolor;
+	}
+
 	& .components-base-control__field,
 	& .components-checkbox-control__input-container,
 	& .components-checkbox-control__input {

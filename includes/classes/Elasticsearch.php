@@ -721,14 +721,22 @@ class Elasticsearch {
 	 * @param  string $index Index name.
 	 * @param  string $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
 	 * @param  array  $document_ids Array of document ids to get.
-	 * @since  3.6.0
+	 * @param  array  $source_includes Optional. Fields to return from each document's source, e.g.
+	 *                                 `[ 'post_title', 'chunks.vector' ]`. Empty returns the whole source.
+	 *                                 Naming a field also returns values that the index keeps out of
+	 *                                 `_source`, like dense vectors in Elasticsearch 9.
+	 * @since  3.6.0, 5.4.0 added $source_includes
 	 * @return boolean|array
 	 */
-	public function get_documents( $index, $type, $document_ids ) {
+	public function get_documents( $index, $type, $document_ids, $source_includes = [] ) {
 		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/_mget', $document_ids, $type );
 		} else {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_mget', $document_ids, $type );
+		}
+
+		if ( ! empty( $source_includes ) ) {
+			$path = add_query_arg( '_source_includes', implode( ',', array_map( 'rawurlencode', (array) $source_includes ) ), $path );
 		}
 
 		$request_args = [

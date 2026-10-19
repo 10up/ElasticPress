@@ -266,6 +266,19 @@ abstract class Indexable {
 	 * @return object|boolean
 	 */
 	public function index( $object_id, $blocking = false ) {
+		/**
+		 * Fires before documents are prepared to be indexed, in single and bulk indexing.
+		 *
+		 * Lets code that adds data to documents load what it needs for all objects at once,
+		 * instead of one request per object in `prepare_document()`.
+		 *
+		 * @hook ep_pre_prepare_documents
+		 * @since 5.4.0
+		 * @param {array}  $object_ids IDs of the objects about to be prepared
+		 * @param {string} $slug       Indexable slug
+		 */
+		do_action( 'ep_pre_prepare_documents', [ $object_id ], $this->slug );
+
 		try {
 			$document = $this->prepare_document( $object_id );
 		} catch ( \Throwable $th ) {
@@ -347,6 +360,9 @@ abstract class Indexable {
 	 * @return WP_Error|array
 	 */
 	public function bulk_index( $object_ids ) {
+		/** This action is documented in includes/classes/Indexable.php */
+		do_action( 'ep_pre_prepare_documents', $object_ids, $this->slug );
+
 		$body = '';
 
 		$non_es_errors = [];
@@ -416,6 +432,9 @@ abstract class Indexable {
 	 * @return array[WP_Error|array] The return of each request made.
 	 */
 	public function bulk_index_dynamically( $object_ids ) {
+		/** This action is documented in includes/classes/Indexable.php */
+		do_action( 'ep_pre_prepare_documents', $object_ids, $this->slug );
+
 		$documents = [];
 
 		$non_es_errors = [];

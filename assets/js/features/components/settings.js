@@ -2,13 +2,13 @@
  * WordPress dependencies.
  */
 import { WPElement } from '@wordpress/element';
-import { Card, CardHeader, CardBody } from '@wordpress/components';
 
 /**
  * Internal dependencies.
  */
 import { useFeatureSettings } from '../provider';
 import Control from './control';
+import FieldGroup from './field-group';
 
 /**
  * Feature settings component.
@@ -44,6 +44,8 @@ export default ({ feature, settingsSchema }) => {
 	 *
 	 * @param {object} requires_fields An object representing the required field values for rendering.
 	 * Can contain 'conditions' object with field requirements and 'relationship' key ('AND' or 'OR').
+	 * A requirement is the value the field must have, or (since 5.4.0) an array of values the field
+	 * may have.
 	 * @returns {boolean} Returns `true` if the control should be rendered, otherwise `false`.
 	 */
 	const shouldRenderControl = (requires_fields) => {
@@ -67,7 +69,10 @@ export default ({ feature, settingsSchema }) => {
 		const checkCondition = ([fieldKey, requiredValue]) => {
 			const defaultValue = defaultSettings[fieldKey] ?? false;
 			const actualValue = settings[feature]?.[fieldKey] || defaultValue;
-			return actualValue === requiredValue;
+
+			return Array.isArray(requiredValue)
+				? requiredValue.includes(actualValue)
+				: actualValue === requiredValue;
 		};
 
 		// Extract relationship type, default to 'AND'
@@ -125,6 +130,7 @@ export default ({ feature, settingsSchema }) => {
 				requiresSync={requires_sync}
 				type={type}
 				value={value}
+				values={{ ...defaultSettings, ...settings[feature] }}
 				fields={fields}
 			/>
 		);
@@ -144,16 +150,9 @@ export default ({ feature, settingsSchema }) => {
 			return;
 		}
 		rendered.push(
-			<div className="ep-field-group" key={`${currentGroup}-${groupCounter}`}>
-				<Card>
-					{group && (
-						<CardHeader>
-							<strong>{group.label}</strong>
-						</CardHeader>
-					)}
-					<CardBody>{groupEntries.map(renderControl)}</CardBody>
-				</Card>
-			</div>,
+			<FieldGroup group={group} key={`${currentGroup}-${groupCounter}`}>
+				{groupEntries.map(renderControl)}
+			</FieldGroup>,
 		);
 		groupEntries = [];
 		groupCounter++;

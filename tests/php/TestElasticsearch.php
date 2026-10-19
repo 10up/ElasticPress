@@ -98,6 +98,92 @@ class TestElasticsearch extends BaseTestCase {
 	}
 
 	/**
+	 * Test get documents returning only some source fields
+	 *
+	 * @since 5.4.0
+	 * @group elasticsearch
+	 */
+	public function test_get_documents_source_includes() {
+		$post_ids = [
+			$this->ep_factory->post->create( [ 'post_title' => 'First title' ] ),
+			$this->ep_factory->post->create( [ 'post_title' => 'Second title' ] ),
+		];
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$index_name = ElasticPress\Indexables::factory()->get( 'post' )->get_index_name();
+
+		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', $post_ids, [ 'post_title', 'post_id' ] );
+
+		$this->assertCount( 2, $documents );
+		$this->assertSame(
+			[
+				'post_id'    => $post_ids[0],
+				'post_title' => 'First title',
+			],
+			$this->sort_keys( $documents[ $post_ids[0] ] )
+		);
+		$this->assertSame(
+			[
+				'post_id'    => $post_ids[1],
+				'post_title' => 'Second title',
+			],
+			$this->sort_keys( $documents[ $post_ids[1] ] )
+		);
+
+		// No fields means the whole source, as before.
+		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', $post_ids, [] );
+
+		$this->assertArrayHasKey( 'post_content', $documents[ $post_ids[0] ] );
+		$this->assertArrayHasKey( 'post_date', $documents[ $post_ids[0] ] );
+	}
+
+	/**
+	 * Test that get documents sends the source fields in the request path, after the path filter
+	 *
+	 * @since 5.4.0
+	 * @group elasticsearch
+	 */
+	public function test_get_documents_source_includes_request_path() {
+		$filtered_paths = [];
+		$urls           = [];
+
+		add_filter(
+			'ep_index_post_request_path',
+			function ( $path ) use ( &$filtered_paths ) {
+				$filtered_paths[] = $path;
+				return $path;
+			}
+		);
+		add_filter(
+			'ep_pre_request_url',
+			function ( $url ) use ( &$urls ) {
+				$urls[] = $url;
+				return $url;
+			}
+		);
+
+		$index_name = ElasticPress\Indexables::factory()->get( 'post' )->get_index_name();
+		ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', [ 1 ], [ 'post_title', 'chunks.vector' ] );
+
+		$this->assertCount( 1, $filtered_paths );
+		$this->assertStringEndsWith( '/_mget', $filtered_paths[0] );
+		$this->assertCount( 1, $urls );
+		$this->assertStringEndsWith( '/_mget?_source_includes=post_title,chunks.vector', $urls[0] );
+	}
+
+	/**
+	 * Sort an array by key, for order-independent comparisons.
+	 *
+	 * @param array $data Array to sort.
+	 * @return array
+	 */
+	protected function sort_keys( array $data ): array {
+		ksort( $data );
+		return $data;
+	}
+
+	/**
 	 * Test update_index_settings
 	 *
 	 * @since 4.4.0
