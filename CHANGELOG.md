@@ -16,6 +16,26 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [5.4.0] - 2026-XX-XX
 
+### Added
+* `$source_includes` parameter to `Elasticsearch::get_documents()`, to fetch only some fields of each document. Props [@felipeelia](https://github.com/felipeelia) via [#4376](https://github.com/10up/ElasticPress/pull/4376).
+* `ep_pre_prepare_documents` action, fired once before a batch of documents is prepared to be indexed. Props [@felipeelia](https://github.com/felipeelia) via [#4378](https://github.com/10up/ElasticPress/pull/4378).
+* Feature settings `requires_fields` conditions accept a list of values. Props [@felipeelia](https://github.com/felipeelia) via [#4379](https://github.com/10up/ElasticPress/pull/4379).
+* Feature settings field groups can be collapsible (`collapsible`, `initialOpen`) and show a status badge (`badge`). Props [@felipeelia](https://github.com/felipeelia) via [#4380](https://github.com/10up/ElasticPress/pull/4380).
+* `combobox` field type for feature settings. Props [@felipeelia](https://github.com/felipeelia) via [#4381](https://github.com/10up/ElasticPress/pull/4381).
+* `ep.Features.Control` JS filter to render custom feature settings fields, and `ep_settings_field_types` filter with `ElasticPress\Utils\get_settings_field_types()` to check the available field types. Props [@felipeelia](https://github.com/felipeelia) via [#4381](https://github.com/10up/ElasticPress/pull/4381).
+
+### Fixed
+* Memory exhaustion when preparing term documents for terms with a large number of objects, by fetching object IDs in chunks (filterable with the new `ep_term_object_ids_chunk_size` filter). Props [@rebeccahum](https://github.com/rebeccahum) via [#4373](https://github.com/10up/ElasticPress/pull/4373).
+
+### Security
+* Updated Node.js to v26.11.0 and the npm packages to their latest versions. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4374](https://github.com/10up/ElasticPress/pull/4374).
+* Bumped `fast-uri` from 3.1.7 to 3.1.8 (CVE-2026-86472). Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4375](https://github.com/10up/ElasticPress/pull/4375).
+
+### Developer
+* Pre-commit hook and `composer lint` check the test suite against PHP 8.2+, matching CI. Props [@felipeelia](https://github.com/felipeelia) via [#4377](https://github.com/10up/ElasticPress/pull/4377).
+* Fixed the privileged e2e workflow, which now shows its result as a commit status on the pull request. Props [@felipeelia](https://github.com/felipeelia) via [#4383](https://github.com/10up/ElasticPress/pull/4383), [#4385](https://github.com/10up/ElasticPress/pull/4385), and [#4386](https://github.com/10up/ElasticPress/pull/4386).
+* Stage `elasticpress-playwright-utils` releases from CI, to be approved before they are published to npm. Props [@felipeelia](https://github.com/felipeelia) via [#4383](https://github.com/10up/ElasticPress/pull/4383) and [#4384](https://github.com/10up/ElasticPress/pull/4384).
+
 ## [5.3.5] - 2026-09-10
 
 **This is a security release** addressing two issues in specific configurations:
