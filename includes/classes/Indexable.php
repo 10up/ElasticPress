@@ -260,20 +260,12 @@ abstract class Indexable {
 	/**
 	 * Log an error thrown while preparing a document and build its sync error.
 	 *
-	 * The sync skips the object and continues. Because the error is caught, PHP
-	 * no longer reports it, so this writes the full error with its stack trace to
-	 * the PHP error log and keeps the file, line, and stack trace in the sync error.
+	 * PHP no longer reports caught errors, so this logs the full error and keeps its file, line, and stack trace.
 	 *
 	 * @since 5.4.0
 	 * @param \Throwable $th        Error thrown while preparing the document.
 	 * @param int        $object_id ID of the object being prepared.
-	 * @return array {
-	 *     Sync error data.
-	 *
-	 *     @type string $type        Always `prepare_document_error`.
-	 *     @type string $reason      Error message with the file and line where it was thrown.
-	 *     @type string $stack_trace Stack trace, with paths relative to the WordPress root.
-	 * }
+	 * @return array Sync error with the type, the reason (message with file and line), and the stack trace.
 	 */
 	protected function handle_prepare_document_error( \Throwable $th, $object_id ): array {
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log

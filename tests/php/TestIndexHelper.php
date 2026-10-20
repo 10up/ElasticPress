@@ -16,13 +16,11 @@ class TestIndexHelper extends BaseTestCase {
 	/**
 	 * Test that error data keeps a stack trace when messages share an error key.
 	 *
-	 * The error interpreter maps both messages below to the same `no such index [???]` key.
-	 * The first has no stack trace, so the second one's trace must still be kept.
-	 *
 	 * @since 5.4.0
 	 * @group indexHelper
 	 */
 	public function testBuildMessageErrorsDataKeepsStackTraceForSharedKey() {
+		// Both messages map to the "no such index [???]" key.
 		$messages = [
 			'1 (Post): [index_not_found_exception] no such index [first]',
 			'2 (Post): [prepare_document_error] no such index [second] in wp-content/plugins/example.php:10',
