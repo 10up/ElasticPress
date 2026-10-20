@@ -1206,6 +1206,9 @@ class TestCommands extends BaseTestCase {
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( $post_id_1 . ' (Post): [prepare_document_error] Something went wrong.', $output );
+		$this->assertStringContainsString( 'TestCommands.php:', $output );
+		$this->assertStringContainsString( 'Stack trace for: ' . $post_id_1 . ' (Post): [prepare_document_error]', $output );
+		$this->assertStringContainsString( '#0 ', $output );
 
 		if ( $this->is_network_activate() ) {
 			$this->assertStringContainsString( 'Number of posts index errors on site 1: 1', $output );
