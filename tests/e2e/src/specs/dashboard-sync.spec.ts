@@ -35,6 +35,9 @@ test.describe('Dashboard Sync', { tag: '@group2' }, () => {
 	});
 
 	test.afterEach(async ({ loggedInPage }) => {
+		// Runs even when a test fails or times out before turning these plugins off.
+		await deactivatePlugin(loggedInPage, 'sync-error sync-error-specific-post', 'wpCli');
+
 		if (test.info().status === 'failed') {
 			await deactivatePlugin(loggedInPage, 'elasticpress', 'wpCli', 'network');
 			await activatePlugin(loggedInPage, 'elasticpress', 'wpCli', 'singleSite');
@@ -327,8 +330,6 @@ test.describe('Dashboard Sync', { tag: '@group2' }, () => {
 		await loggedInPage.keyboard.press('Enter');
 		await expect(stackTrace).toHaveJSProperty('open', false);
 		await expect(trace).toBeHidden();
-
-		await deactivatePlugin(loggedInPage, 'sync-error-specific-post', 'wpCli');
 	});
 
 	test('Can sync via Dashboard successfully even when a shortcode outputs content', async ({
