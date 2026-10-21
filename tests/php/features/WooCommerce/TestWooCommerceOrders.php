@@ -2724,4 +2724,166 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertEmpty( $post_indexable->get( $refund_id_2 ) );
 		$this->assertEmpty( $post_indexable->get( $shop_order_id ) );
 	}
+
+	/**
+	 * Test HPOS GMT date shorthand parameters match WooCommerce.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_gmt_date_shorthand_parameters() {
+		$this->enable_hpos();
+
+		update_option( 'timezone_string', 'America/New_York' );
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// 2026-01-01 22:00:00 in New York is 2026-01-02 03:00:00 GMT.
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_date_created( '2026-01-01 22:00:00' );
+		$shop_order_1->set_date_paid( '2026-01-01 22:00:00' );
+		$shop_order_1->set_date_completed( '2026-01-01 22:00:00' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		// 2026-01-02 22:00:00 in New York is 2026-01-03 03:00:00 GMT.
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_date_created( '2026-01-02 22:00:00' );
+		$shop_order_2->set_date_paid( '2026-01-02 22:00:00' );
+		$shop_order_2->set_date_completed( '2026-01-02 22:00:00' );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders( [ 'date_created_gmt' => '2026-01-02' ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$queries = [
+			[ 'date_created_gmt' => '2026-01-02' ],
+			[ 'date_created_gmt' => '<2026-01-03' ],
+			[ 'date_created_gmt' => '2026-01-01...2026-01-02' ],
+			[ 'date_created' => '2026-01-01' ],
+			[ 'date_modified_gmt' => '>2026-01-01' ],
+			[ 'date_paid_gmt' => '2026-01-02' ],
+			[ 'date_paid_gmt' => '<=2026-01-02' ],
+			[ 'date_paid' => '2026-01-01' ],
+			[ 'date_completed_gmt' => '2026-01-02' ],
+		];
+
+		foreach ( $queries as $query ) {
+			$args     = $query + [ 'return' => 'ids' ];
+			$expected = isset( $query['date_modified_gmt'] ) ? [ $shop_order_id_2, $shop_order_id_1 ] : [ $shop_order_id_1 ];
+
+			$this->assertSame( $expected, array_map( 'absint', wc_get_orders( $args ) ), 'ES: ' . wp_json_encode( $query ) );
+			$this->assertSame( $expected, array_map( 'absint', wc_get_orders( $args + [ 'ep_integrate' => false ] ) ), 'HPOS: ' . wp_json_encode( $query ) );
+		}
+	}
+
+	/**
+	 * Test HPOS date_query exclusive `after` values match WooCommerce.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_date_query_exclusive_after() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_date_created( '2026-01-01 12:00:00' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_date_created( '2026-01-02 12:00:00' );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'date_query' => [
+					[
+						'column' => 'date_created_gmt',
+						'after'  => [
+							'year'  => 2026,
+							'month' => 1,
+							'day'   => 1,
+						],
+					],
+				],
+			]
+		);
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$queries = [
+			// Exclusive `after` starts at the end of the day.
+			[
+				[
+					'column' => 'date_created_gmt',
+					'after'  => '2026-01-01',
+				],
+			],
+			// WooCommerce uses the GMT created date when no column is set.
+			[
+				[
+					'after' => '2026-01-01',
+				],
+			],
+			// Exclusive `after` for a month starts at the end of the month.
+			[
+				[
+					'column' => 'date_created_gmt',
+					'after'  => [
+						'year'  => 2025,
+						'month' => 12,
+					],
+				],
+			],
+		];
+
+		foreach ( $queries as $date_query ) {
+			$args = [
+				'date_query' => $date_query,
+				'return'     => 'ids',
+			];
+
+			$expected = isset( $date_query[0]['after']['month'] ) ? [ $shop_order_id_2, $shop_order_id_1 ] : [ $shop_order_id_2 ];
+
+			$this->assertSame( $expected, array_map( 'absint', wc_get_orders( $args ) ), 'ES: ' . wp_json_encode( $date_query ) );
+			$this->assertSame( $expected, array_map( 'absint', wc_get_orders( $args + [ 'ep_integrate' => false ] ) ), 'HPOS: ' . wp_json_encode( $date_query ) );
+		}
+
+		// Inclusive `after` still includes the whole day.
+		$orders = wc_get_orders(
+			[
+				'date_query' => [
+					[
+						'column'    => 'date_created_gmt',
+						'after'     => '2026-01-01',
+						'inclusive' => true,
+					],
+				],
+				'return'     => 'ids',
+			]
+		);
+		$this->assertSame( [ $shop_order_id_2, $shop_order_id_1 ], array_map( 'absint', $orders ) );
+	}
 }

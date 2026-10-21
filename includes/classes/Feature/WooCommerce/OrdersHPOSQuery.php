@@ -381,9 +381,12 @@ class OrdersHPOSQuery {
 
 		// Handle date shorthand parameters.
 		$date_params = [
-			'date_created'  => 'post_date',
-			'date_modified' => 'post_modified',
-			'date_updated'  => 'post_modified',
+			'date_created'      => 'post_date',
+			'date_modified'     => 'post_modified',
+			'date_updated'      => 'post_modified',
+			'date_created_gmt'  => 'post_date_gmt',
+			'date_modified_gmt' => 'post_modified_gmt',
+			'date_updated_gmt'  => 'post_modified_gmt',
 		];
 
 		foreach ( $date_params as $hpos_key => $wp_column ) {
@@ -433,6 +436,17 @@ class OrdersHPOSQuery {
 			}
 		}
 
+		/*
+		 * Convert exclusive date-only values to the end of the GMT period, matching WP_Date_Query behavior.
+		 */
+		if (
+			isset( $date_query['after'] )
+			&& empty( $date_query['inclusive'] )
+			&& str_ends_with( $date_query['column'] ?? '', '_gmt' )
+		) {
+			$date_query['after'] = ( new \WP_Date_Query( [] ) )->build_mysql_datetime( $date_query['after'], true );
+		}
+
 		return $date_query;
 	}
 
@@ -443,8 +457,10 @@ class OrdersHPOSQuery {
 	 */
 	protected function build_date_meta_query(): array {
 		$date_fields = [
-			'date_paid'      => '_date_paid',
-			'date_completed' => '_date_completed',
+			'date_paid'          => '_date_paid',
+			'date_completed'     => '_date_completed',
+			'date_paid_gmt'      => '_date_paid',
+			'date_completed_gmt' => '_date_completed',
 		];
 		$meta_query  = [];
 
@@ -454,7 +470,7 @@ class OrdersHPOSQuery {
 				continue;
 			}
 
-			$clause = $this->parse_date_meta_shorthand( $value, $meta_key );
+			$clause = $this->parse_date_meta_shorthand( $value, $meta_key, str_ends_with( $query_arg, '_gmt' ) );
 			if ( ! empty( $clause ) ) {
 				$meta_query[] = $clause;
 			}
@@ -508,7 +524,8 @@ class OrdersHPOSQuery {
 
 				if ( $is_first_order ) {
 					if ( ! $meta ) {
-						$translated[] = $this->normalize_date_query( $clause );
+						$clause['column'] = 'date_created_gmt';
+						$translated[]     = $this->normalize_date_query( $clause );
 					}
 				} else {
 					$nested = $this->extract_advanced_date_query( $meta, $clause );
@@ -555,10 +572,11 @@ class OrdersHPOSQuery {
 		$column    = $clause['column'] ?? '';
 		$meta_key  = str_contains( $column, 'paid' ) ? '_date_paid' : '_date_completed';
 		$inclusive = ! empty( $clause['inclusive'] );
+		$is_gmt    = str_ends_with( $column, '_gmt' );
 		$queries   = [];
 
 		if ( isset( $clause['after'] ) ) {
-			$after = $this->date_query_value_to_timestamp( $clause['after'], ! $inclusive );
+			$after = $this->date_query_value_to_timestamp( $clause['after'], ! $inclusive, $is_gmt );
 			if ( false !== $after ) {
 				$queries[] = [
 					'key'     => $meta_key,
@@ -570,7 +588,7 @@ class OrdersHPOSQuery {
 		}
 
 		if ( isset( $clause['before'] ) ) {
-			$before = $this->date_query_value_to_timestamp( $clause['before'], $inclusive );
+			$before = $this->date_query_value_to_timestamp( $clause['before'], $inclusive, $is_gmt );
 			if ( false !== $before ) {
 				$queries[] = [
 					'key'     => $meta_key,
@@ -583,7 +601,7 @@ class OrdersHPOSQuery {
 
 		if ( empty( $queries ) && isset( $clause['year'], $clause['month'], $clause['day'] ) ) {
 			$date = sprintf( '%04d-%02d-%02d', $clause['year'], $clause['month'], $clause['day'] );
-			return $this->parse_date_meta_shorthand( $date, $meta_key );
+			return $this->parse_date_meta_shorthand( $date, $meta_key, $is_gmt );
 		}
 
 		if ( 1 === count( $queries ) ) {
@@ -602,9 +620,11 @@ class OrdersHPOSQuery {
 	 *
 	 * @param string|array $value      Date query value.
 	 * @param bool         $end_of_day Whether to use the end of the day.
+	 * @param bool         $is_gmt     Whether the date value is in GMT instead of the site timezone.
+	 *
 	 * @return int|false UTC timestamp or false.
 	 */
-	protected function date_query_value_to_timestamp( $value, bool $end_of_day ) {
+	protected function date_query_value_to_timestamp( $value, bool $end_of_day, bool $is_gmt = false ) {
 		if ( is_array( $value ) ) {
 			$has_time = isset( $value['hour'] ) || isset( $value['minute'] ) || isset( $value['second'] );
 			$value    = sprintf(
@@ -617,7 +637,7 @@ class OrdersHPOSQuery {
 				$value['second'] ?? 0
 			);
 
-			$timestamp = $this->date_to_timestamp( $value, false );
+			$timestamp = $this->date_to_timestamp( $value, false, $is_gmt );
 			if ( false !== $timestamp && $end_of_day && ! $has_time ) {
 				$timestamp += DAY_IN_SECONDS - 1;
 			}
@@ -625,7 +645,7 @@ class OrdersHPOSQuery {
 			return $timestamp;
 		}
 
-		return $this->date_to_timestamp( (string) $value, $end_of_day );
+		return $this->date_to_timestamp( (string) $value, $end_of_day, $is_gmt );
 	}
 
 	/**
@@ -633,9 +653,11 @@ class OrdersHPOSQuery {
 	 *
 	 * @param mixed  $value    Date shorthand value.
 	 * @param string $meta_key Indexed date meta key.
+	 * @param bool   $is_gmt   Whether date strings are in GMT instead of the site timezone.
+	 *
 	 * @return array Meta query clause.
 	 */
-	protected function parse_date_meta_shorthand( $value, string $meta_key ): array {
+	protected function parse_date_meta_shorthand( $value, string $meta_key, bool $is_gmt = false ): array {
 		if ( ( ! is_string( $value ) && ! is_numeric( $value ) ) || '' === $value ) {
 			return [];
 		}
@@ -646,8 +668,8 @@ class OrdersHPOSQuery {
 
 		if ( str_contains( $value, '...' ) ) {
 			$dates = explode( '...', $value, 2 );
-			$start = $this->date_to_timestamp( trim( $dates[0] ), false );
-			$end   = $this->date_to_timestamp( trim( $dates[1] ), true );
+			$start = $this->date_to_timestamp( trim( $dates[0] ), false, $is_gmt );
+			$end   = $this->date_to_timestamp( trim( $dates[1] ), true, $is_gmt );
 
 			if ( false === $start || false === $end ) {
 				return [];
@@ -670,8 +692,8 @@ class OrdersHPOSQuery {
 		$date_only = (bool) preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date );
 
 		if ( '=' === $operator && $date_only ) {
-			$start = $this->date_to_timestamp( $date, false );
-			$end   = $this->date_to_timestamp( $date, true );
+			$start = $this->date_to_timestamp( $date, false, $is_gmt );
+			$end   = $this->date_to_timestamp( $date, true, $is_gmt );
 
 			if ( false === $start || false === $end ) {
 				return [];
@@ -686,7 +708,7 @@ class OrdersHPOSQuery {
 		}
 
 		$end_of_day = $date_only && in_array( $operator, [ '>', '<=' ], true );
-		$timestamp  = $this->date_to_timestamp( $date, $end_of_day );
+		$timestamp  = $this->date_to_timestamp( $date, $end_of_day, $is_gmt );
 		if ( false === $timestamp ) {
 			return [];
 		}
@@ -704,14 +726,15 @@ class OrdersHPOSQuery {
 	 *
 	 * @param string $value      Date value.
 	 * @param bool   $end_of_day Whether to use the end of a date-only value.
+	 * @param bool   $is_gmt     Whether the date value is in GMT instead of the site timezone.
 	 * @return int|false UTC timestamp or false for an invalid date.
 	 */
-	protected function date_to_timestamp( string $value, bool $end_of_day ) {
+	protected function date_to_timestamp( string $value, bool $end_of_day, bool $is_gmt = false ) {
 		if ( is_numeric( $value ) ) {
 			return absint( $value );
 		}
 
-		$timestamp = strtotime( get_gmt_from_date( $value ) );
+		$timestamp = strtotime( $is_gmt ? $value . ' UTC' : get_gmt_from_date( $value ) );
 		if ( false === $timestamp ) {
 			return false;
 		}
@@ -727,7 +750,7 @@ class OrdersHPOSQuery {
 	 * Parses WooCommerce date shorthand into a WP date query clause.
 	 *
 	 * @param mixed  $value  The date value.
-	 * @param string $column The date column.
+	 * @param string $column The date column. Timestamps always use its GMT version.
 	 *
 	 * @return array Parsed date query clause.
 	 */
@@ -736,7 +759,8 @@ class OrdersHPOSQuery {
 			return [];
 		}
 
-		$value = (string) $value;
+		$value      = (string) $value;
+		$gmt_column = str_ends_with( $column, '_gmt' ) ? $column : "{$column}_gmt";
 
 		if ( str_contains( $value, '...' ) ) {
 			$dates = array_map( 'trim', explode( '...', $value, 2 ) );
@@ -744,7 +768,7 @@ class OrdersHPOSQuery {
 				'after'     => $this->normalize_date_shorthand_value( $dates[0] ),
 				'before'    => $this->normalize_date_shorthand_value( $dates[1] ),
 				'inclusive' => true,
-				'column'    => is_numeric( $dates[0] ) || is_numeric( $dates[1] ) ? "{$column}_gmt" : $column,
+				'column'    => is_numeric( $dates[0] ) || is_numeric( $dates[1] ) ? $gmt_column : $column,
 			];
 		}
 
@@ -755,7 +779,7 @@ class OrdersHPOSQuery {
 		$operator     = ! empty( $matches[1] ) ? $matches[1] : '=';
 		$is_timestamp = is_numeric( trim( $matches[2] ) );
 		$date         = $this->normalize_date_shorthand_value( trim( $matches[2] ) );
-		$column       = $is_timestamp ? "{$column}_gmt" : $column;
+		$column       = $is_timestamp ? $gmt_column : $column;
 
 		switch ( $operator ) {
 			case '>':
