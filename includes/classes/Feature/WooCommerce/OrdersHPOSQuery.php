@@ -130,49 +130,38 @@ class OrdersHPOSQuery {
 			$args['date_query'] = $date_query;
 		}
 
-		$date_meta_query = $this->build_date_meta_query();
-		if ( ! empty( $date_meta_query ) ) {
-			$args['meta_query'] = $date_meta_query;
-		}
+		// Handle paid and completed dates.
+		$meta_query = $this->build_date_meta_query();
 
 		// Handle customer filtering.
 		$customer_meta_query = $this->generate_customer_query();
 		if ( ! empty( $customer_meta_query ) ) {
-			$args['meta_query'] = isset( $args['meta_query'] )
-				? array_merge( $args['meta_query'], [ $customer_meta_query ] )
-				: [ $customer_meta_query ];
+			$meta_query[] = $customer_meta_query;
 		}
 
 		// Handle created_via filtering.
 		$created_via_clause = $this->build_created_via_query();
 		if ( ! empty( $created_via_clause ) ) {
-			$args['meta_query'] = isset( $args['meta_query'] )
-			? array_merge( $args['meta_query'], [ $created_via_clause ] )
-			: [ $created_via_clause ];
+			$meta_query[] = $created_via_clause;
 		}
 
 		// Handle HPOS meta_query.
 		$hpos_meta_query = $this->query_args['meta_query'] ?? null;
 		if ( ! empty( $hpos_meta_query ) && is_array( $hpos_meta_query ) ) {
-			$args['meta_query'] = isset( $args['meta_query'] )
-				? array_merge( $args['meta_query'], [ $hpos_meta_query ] )
-				: [ $hpos_meta_query ];
+			$meta_query[] = $hpos_meta_query;
 		}
 
 		// Handle top-level order field filters (e.g. billing_first_name, order_key).
-		$field_meta_clauses = $this->build_top_level_field_meta_clauses();
-		if ( ! empty( $field_meta_clauses ) ) {
-			$args['meta_query'] = isset( $args['meta_query'] )
-				? array_merge( $args['meta_query'], $field_meta_clauses )
-				: $field_meta_clauses;
-		}
+		$meta_query = array_merge( $meta_query, $this->build_top_level_field_meta_clauses() );
 
 		// Handle field_query.
 		$field_query = $this->build_field_query_meta_query();
 		if ( ! empty( $field_query ) ) {
-			$args['meta_query'] = isset( $args['meta_query'] )
-				? array_merge( $args['meta_query'], [ $field_query ] )
-				: [ $field_query ];
+			$meta_query[] = $field_query;
+		}
+
+		if ( ! empty( $meta_query ) ) {
+			$args['meta_query'] = $meta_query;
 		}
 
 		/**

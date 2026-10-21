@@ -139,7 +139,7 @@ class OrdersHPOS {
 	 */
 	public function set_order_data( $post_args, $post_id ) {
 		if (
-			\Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::PLACEHOLDER_ORDER_POST_TYPE !== $post_args['post_type']
+			DataSynchronizer::PLACEHOLDER_ORDER_POST_TYPE !== $post_args['post_type']
 			&& ! in_array( $post_args['post_type'], $this->orders->get_supported_post_types(), true ) ) {
 			return $post_args;
 		}
@@ -151,14 +151,20 @@ class OrdersHPOS {
 			return $post_args;
 		}
 
-		$post_args['post_status']       = $this->get_order_status( $order );
-		$post_args['post_type']         = $order->get_type();
-		$post_args['post_parent']       = $order->get_changes()['parent_id'] ?? $order->get_data()['parent_id'] ?? 0;
-		$post_args['post_date']         = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getOffsetTimestamp() );
-		$post_args['post_date_gmt']     = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getTimestamp() );
-		$post_args['post_modified']     = gmdate( 'Y-m-d H:i:s', $order->get_date_modified( 'edit' )->getOffsetTimestamp() );
-		$post_args['post_modified_gmt'] = gmdate( 'Y-m-d H:i:s', $order->get_date_modified( 'edit' )->getTimestamp() );
-		$post_args['post_excerpt']      = method_exists( $order, 'get_customer_note' ) ? $order->get_customer_note() : '';
+		$date_created  = $order->get_date_created( 'edit' );
+		$date_modified = $order->get_date_modified( 'edit' ) ?? $date_created;
+
+		$post_args['post_status']  = $this->get_order_status( $order );
+		$post_args['post_type']    = $order->get_type();
+		$post_args['post_parent']  = $order->get_parent_id( 'edit' );
+		$post_args['post_excerpt'] = method_exists( $order, 'get_customer_note' ) ? $order->get_customer_note( 'edit' ) : '';
+
+		if ( $date_created ) {
+			$post_args['post_date']         = gmdate( 'Y-m-d H:i:s', $date_created->getOffsetTimestamp() );
+			$post_args['post_date_gmt']     = gmdate( 'Y-m-d H:i:s', $date_created->getTimestamp() );
+			$post_args['post_modified']     = gmdate( 'Y-m-d H:i:s', $date_modified->getOffsetTimestamp() );
+			$post_args['post_modified_gmt'] = gmdate( 'Y-m-d H:i:s', $date_modified->getTimestamp() );
+		}
 
 		$post_order = new \WP_Post( (object) $post_args );
 
@@ -187,8 +193,6 @@ class OrdersHPOS {
 		if ( 'shop_order_refund' === $order->get_type() ) {
 			return $this->prepare_refund_meta_data( $order );
 		}
-
-		$data_store = new \WC_Order_Data_Store_CPT();
 
 		$meta_data         = [];
 		$meta_key_to_props = [
@@ -222,63 +226,53 @@ class OrdersHPOS {
 				case 'recorded_sales':
 				case 'recorded_coupon_usage_counts':
 				case 'order_stock_reduced':
-					if ( is_null( $value ) || '' === $value ) {
-						break;
-					}
-					$value = is_bool( $value ) ? wc_bool_to_string( $value ) : $value;
-					break;
 				case 'new_order_email_sent':
 					if ( is_null( $value ) || '' === $value ) {
 						break;
 					}
-					$value = is_bool( $value ) ? wc_bool_to_string( $value ) : $value;
-					$value = 'yes' === $value ? 'true' : 'false'; // For backward compatibility, we store as true/false in DB.
-					break;
-			}
 
-			// We want to persist internal data store keys as 'yes' or 'no' if they are boolean to maintain compatibility.
-			if ( is_bool( $value ) && in_array( $prop, $data_store->get_internal_data_store_key_getters(), true ) ) {
-				$value = wc_bool_to_string( $value );
+					// Persist internal data store keys as 'yes' or 'no' to maintain compatibility.
+					$value = is_bool( $value ) ? wc_bool_to_string( $value ) : $value;
+
+					// For backward compatibility, new_order_email_sent is stored as true/false.
+					if ( 'new_order_email_sent' === $prop ) {
+						$value = 'yes' === $value ? 'true' : 'false';
+					}
+					break;
 			}
 
 			$meta_data[ $meta_key ] = [ $value ];
 		}
 
 		$address_props = [
-			'billing'  => [
-				'_billing_first_name' => 'billing_first_name',
-				'_billing_last_name'  => 'billing_last_name',
-				'_billing_company'    => 'billing_company',
-				'_billing_address_1'  => 'billing_address_1',
-				'_billing_address_2'  => 'billing_address_2',
-				'_billing_city'       => 'billing_city',
-				'_billing_state'      => 'billing_state',
-				'_billing_postcode'   => 'billing_postcode',
-				'_billing_country'    => 'billing_country',
-				'_billing_email'      => 'billing_email',
-				'_billing_phone'      => 'billing_phone',
-			],
-			'shipping' => [
-				'_shipping_first_name' => 'shipping_first_name',
-				'_shipping_last_name'  => 'shipping_last_name',
-				'_shipping_company'    => 'shipping_company',
-				'_shipping_address_1'  => 'shipping_address_1',
-				'_shipping_address_2'  => 'shipping_address_2',
-				'_shipping_city'       => 'shipping_city',
-				'_shipping_state'      => 'shipping_state',
-				'_shipping_postcode'   => 'shipping_postcode',
-				'_shipping_country'    => 'shipping_country',
-				'_shipping_phone'      => 'shipping_phone',
-			],
+			'_billing_first_name'  => 'billing_first_name',
+			'_billing_last_name'   => 'billing_last_name',
+			'_billing_company'     => 'billing_company',
+			'_billing_address_1'   => 'billing_address_1',
+			'_billing_address_2'   => 'billing_address_2',
+			'_billing_city'        => 'billing_city',
+			'_billing_state'       => 'billing_state',
+			'_billing_postcode'    => 'billing_postcode',
+			'_billing_country'     => 'billing_country',
+			'_billing_email'       => 'billing_email',
+			'_billing_phone'       => 'billing_phone',
+			'_shipping_first_name' => 'shipping_first_name',
+			'_shipping_last_name'  => 'shipping_last_name',
+			'_shipping_company'    => 'shipping_company',
+			'_shipping_address_1'  => 'shipping_address_1',
+			'_shipping_address_2'  => 'shipping_address_2',
+			'_shipping_city'       => 'shipping_city',
+			'_shipping_state'      => 'shipping_state',
+			'_shipping_postcode'   => 'shipping_postcode',
+			'_shipping_country'    => 'shipping_country',
+			'_shipping_phone'      => 'shipping_phone',
 		];
 
-		foreach ( $address_props as $props ) {
-			foreach ( $props as $meta_key => $prop ) {
-				$value = $order->{"get_$prop"}( 'edit' );
-				$value = is_string( $value ) ? wp_slash( $value ) : $value;
+		foreach ( $address_props as $meta_key => $prop ) {
+			$value = $order->{"get_$prop"}( 'edit' );
+			$value = is_string( $value ) ? wp_slash( $value ) : $value;
 
-				$meta_data[ $meta_key ] = [ $value ];
-			}
+			$meta_data[ $meta_key ] = [ $value ];
 		}
 
 		$meta_data['_billing_address_index']  = [ $order->get_meta( '_billing_address_index', true ) ];
@@ -353,8 +347,8 @@ class OrdersHPOS {
 	 * @return array|null Order data array or null to continue with default query.
 	 */
 	public function maybe_intercept_wc_orders_query( $order_data, OrdersTableQuery $query ) {
-		if ( ! $this->should_integrate_with_query( $query->get_query_args(), $query ) ) {
-			return null;
+		if ( ! $this->should_integrate_with_query( $query ) ) {
+			return $order_data;
 		}
 
 		$orders_query = new OrdersHPOSQuery( $query );
@@ -372,10 +366,11 @@ class OrdersHPOS {
 	/**
 	 * Determines whether or not ES should be integrating with the provided query.
 	 *
-	 * @param array                                                               $args  HPOS order query arguments.
-	 * @param \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery $query OrdersTableQuery instance.
+	 * @param OrdersTableQuery $query OrdersTableQuery instance.
 	 */
-	protected function should_integrate_with_query( $args, $query ): bool {
+	protected function should_integrate_with_query( OrdersTableQuery $query ): bool {
+		$args = $query->get_query_args();
+
 		// bail early if the query integration is disabled.
 		if ( $this->orders->is_hpos_query_integration_disabled() ) {
 			return false;
