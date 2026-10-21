@@ -277,6 +277,60 @@ test.describe('Dashboard Sync', { tag: '@group2' }, () => {
 		await deactivatePlugin(loggedInPage, 'sync-error-specific-post', 'wpCli');
 	});
 
+	test('Should display a collapsible stack trace for errors thrown while preparing a document', async ({
+		loggedInPage,
+	}) => {
+		await activatePlugin(loggedInPage, 'sync-error-specific-post', 'wpCli');
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-sync');
+
+		const responsePromise = loggedInPage.waitForResponse(
+			(response) => {
+				return (
+					response.url().includes('/wp-json/elasticpress/v1/sync') &&
+					response.json().then((data) => data.data.message === 'Sync complete')
+				);
+			},
+			{ timeout: getSyncTimeout() },
+		);
+		await loggedInPage.getByRole('button', { name: 'Start sync' }).click();
+		await responsePromise;
+
+		const prepareErrorRow = loggedInPage.locator('.ep-sync-errors tr').filter({
+			hasText: '[prepare_document_error] Something went wrong.',
+		});
+		await expect(prepareErrorRow).toContainText('sync-error-specific-post.php:');
+
+		const stackTrace = prepareErrorRow.locator('.ep-sync-errors__stack-trace');
+		const summary = stackTrace.getByText('Stack trace', { exact: true });
+		const trace = stackTrace.locator('pre');
+
+		// Collapsed by default.
+		await expect(summary).toBeVisible();
+		await expect(stackTrace).toHaveJSProperty('open', false);
+		await expect(trace).toBeHidden();
+
+		// Expands to show the trace, wrapped inside its panel.
+		await summary.click();
+		await expect(stackTrace).toHaveJSProperty('open', true);
+		await expect(trace).toBeVisible();
+		await expect(trace).toContainText('#0 ');
+		await expect(trace).toContainText('throw_exception');
+		expect(await trace.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+		expect(
+			await loggedInPage.evaluate(
+				() => document.documentElement.scrollWidth <= window.innerWidth,
+			),
+		).toBe(true);
+
+		// Collapses again from the keyboard.
+		await summary.focus();
+		await loggedInPage.keyboard.press('Enter');
+		await expect(stackTrace).toHaveJSProperty('open', false);
+		await expect(trace).toBeHidden();
+
+		await deactivatePlugin(loggedInPage, 'sync-error-specific-post', 'wpCli');
+	});
+
 	test('Can sync via Dashboard successfully even when a shortcode outputs content', async ({
 		loggedInPage,
 	}) => {

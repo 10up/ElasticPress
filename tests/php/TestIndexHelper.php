@@ -19,7 +19,7 @@ class TestIndexHelper extends BaseTestCase {
 	 * @since 5.4.0
 	 * @group indexHelper
 	 */
-	public function testBuildMessageErrorsDataKeepsStackTraceForSharedKey() {
+	public function test_build_message_errors_data_keeps_stack_trace_for_shared_key() {
 		// Both messages map to the "no such index [???]" key.
 		$messages = [
 			'1 (Post): [index_not_found_exception] no such index [first]',
