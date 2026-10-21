@@ -8,6 +8,7 @@
 
 namespace ElasticPress\Feature\WooCommerce;
 
+use ElasticPress\IndexHelper;
 use ElasticPress\Indexables;
 use Automattic\WooCommerce\Enums\OrderStatus;
 use Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer;
@@ -61,9 +62,12 @@ class OrdersHPOS {
 		add_action( 'woocommerce_trash_order', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_untrash_order', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_delete_order', [ $this, 'delete_order' ] );
+		add_action( 'woocommerce_refund_deleted', [ $this, 'delete_order' ] );
+		add_action( 'woocommerce_before_delete_order', [ $this, 'delete_order_refunds' ] );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ], 10, 2 );
 		add_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ], 10, 2 );
 		add_filter( 'woocommerce_order_query', [ $this, 'add_elasticsearch_success_to_orders' ], 10, 2 );
+		add_filter( 'ep_woocommerce_skip_hpos_query_integration', [ $this, 'skip_query_integration' ], 10, 2 );
 	}
 
 	/**
@@ -76,9 +80,12 @@ class OrdersHPOS {
 		remove_action( 'woocommerce_trash_order', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_untrash_order', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_delete_order', [ $this, 'delete_order' ] );
+		remove_action( 'woocommerce_refund_deleted', [ $this, 'delete_order' ] );
+		remove_action( 'woocommerce_before_delete_order', [ $this, 'delete_order_refunds' ] );
 		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ] );
 		remove_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ] );
 		remove_filter( 'woocommerce_order_query', [ $this, 'add_elasticsearch_success_to_orders' ] );
+		remove_filter( 'ep_woocommerce_skip_hpos_query_integration', [ $this, 'skip_query_integration' ] );
 	}
 
 	/**
@@ -100,6 +107,27 @@ class OrdersHPOS {
 
 		$post_indexable->delete( $order_id, false );
 		$post_indexable->sync_manager->remove_from_queue( $order_id );
+	}
+
+	/**
+	 * Delete an order's refunds from the post index.
+	 *
+	 * @param int $order_id Order ID.
+	 */
+	public function delete_order_refunds( $order_id ): void {
+		$refund_ids = wc_get_orders(
+			[
+				'type'         => 'shop_order_refund',
+				'parent'       => $order_id,
+				'limit'        => -1,
+				'return'       => 'ids',
+				'ep_integrate' => false,
+			]
+		);
+
+		foreach ( $refund_ids as $refund_id ) {
+			$this->delete_order( $refund_id );
+		}
 	}
 
 	/**
@@ -364,14 +392,59 @@ class OrdersHPOS {
 		}
 
 		/**
-		 * Filter to skip OrdersTableQuery integration
+		 * Bail during a full sync, as the index may be empty or incomplete.
 		 *
-		 * @hook ep_skip_query_integration
+		 * This filter is documented in includes/classes/Indexable/Post/QueryIntegration.php
+		 */
+		$allow_query_integration_during_indexing = apply_filters( 'ep_enable_query_integration_during_indexing', false, 'post' );
+		if ( ! $allow_query_integration_during_indexing && IndexHelper::factory()->is_full_reindexing( 'post', get_current_blog_id() ) ) {
+			return false;
+		}
+
+		/**
+		 * Filter to skip WooCommerce HPOS OrdersTableQuery integration
+		 *
+		 * @hook ep_woocommerce_skip_hpos_query_integration
+		 * @since 5.4.0
 		 * @param  {bool} $skip True to skip
 		 * @param  {\Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery} $query OrdersTableQuery to evaluate
 		 * @return  {bool} New skip value
 		 */
-		return ! apply_filters( 'ep_skip_query_integration', false, $query );
+		return ! apply_filters( 'ep_woocommerce_skip_hpos_query_integration', false, $query );
+	}
+
+	/**
+	 * If the HPOS query has unsupported orderby, skip ES query integration and use the HPOS query instead.
+	 *
+	 * @param bool             $skip  Whether to skip ES query integration
+	 * @param OrdersTableQuery $query OrdersTableQuery object
+	 *
+	 * @since 5.4.0
+	 * @return bool
+	 */
+	public function skip_query_integration( $skip, $query ) {
+		if ( ! $query instanceof OrdersTableQuery ) {
+			return $skip;
+		}
+
+		$unsupported_orderby = [
+			'post__in',
+			'post_name__in',
+			'post_parent__in',
+		];
+
+		$orderby = is_string( $query->get( 'orderby' ) ) ? explode( ' ', $query->get( 'orderby' ) ) : ( $query->get( 'orderby' ) ?? [ 'date' ] );
+
+		$parse_orderby = [];
+		foreach ( $orderby as $key => $value ) {
+			$parse_orderby[] = is_string( $key ) ? $key : $value;
+		}
+
+		if ( array_intersect( $parse_orderby, $unsupported_orderby ) ) {
+			return true;
+		}
+
+		return $skip;
 	}
 
 	/**

@@ -2451,4 +2451,277 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertEquals( $order_1_id, $orders[0]->get_id() );
 		$this->assertEquals( $order_3_id, $orders[1]->get_id() );
 	}
+
+	/**
+	 * Test HPOS queries with unsupported orderby do not use Elasticsearch.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_query_with_unsupported_orderby_does_not_use_ep() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order = new \WC_Order();
+		$shop_order->save();
+		$shop_order_id = $shop_order->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$unsupported_orderby = [
+			'post__in',
+			'post__in date',
+			[
+				'post__in' => 'DESC',
+				'date'     => 'ASC',
+			],
+			[ 'post__in', 'date' ],
+			'post_name__in',
+			'post_parent__in',
+		];
+
+		foreach ( $unsupported_orderby as $orderby ) {
+			$this->orders->clear_elasticsearch_success_order_ids();
+
+			$orders = wc_get_orders(
+				[
+					'id'      => [ $shop_order_id ],
+					'orderby' => $orderby,
+				]
+			);
+
+			$this->assertCount( 1, $orders );
+			$this->assertEquals( $shop_order_id, $orders[0]->get_id() );
+			$this->assertFalse( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		}
+
+		// Supported orderby still uses Elasticsearch.
+		$this->orders->clear_elasticsearch_success_order_ids();
+
+		$orders = wc_get_orders(
+			[
+				'id'      => [ $shop_order_id ],
+				'orderby' => 'parent',
+			]
+		);
+
+		$this->assertCount( 1, $orders );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+	}
+
+	/**
+	 * Test HPOS queries fall back to HPOS when Elasticsearch is skipped.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_query_falls_back_when_elasticsearch_is_skipped() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order = new \WC_Order();
+		$shop_order->save();
+		$shop_order_id = $shop_order->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter( 'ep_skip_query_integration', '__return_true' );
+
+		$orders = wc_get_orders( [ 'id' => $shop_order_id ] );
+
+		remove_filter( 'ep_skip_query_integration', '__return_true' );
+
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id, $orders[0]->get_id() );
+		$this->assertFalse( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+	}
+
+	/**
+	 * Test HPOS query integration is skipped during a full sync.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_query_integration_skips_during_full_sync() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order = new \WC_Order();
+		$shop_order->save();
+		$shop_order_id = $shop_order->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter( 'ep_is_full_reindexing_post', '__return_true' );
+
+		$orders = wc_get_orders( [] );
+
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id, $orders[0]->get_id() );
+		$this->assertFalse( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+
+		$this->orders->clear_elasticsearch_success_order_ids();
+
+		add_filter( 'ep_enable_query_integration_during_indexing', '__return_true' );
+
+		$orders = wc_get_orders( [] );
+
+		remove_filter( 'ep_enable_query_integration_during_indexing', '__return_true' );
+		remove_filter( 'ep_is_full_reindexing_post', '__return_true' );
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+	}
+
+	/**
+	 * Test the HPOS skip query integration filter.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_skip_query_integration_filter() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order = new \WC_Order();
+		$shop_order->save();
+		$shop_order_id = $shop_order->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$filtered_query = null;
+		$skip           = function ( $skip, $query ) use ( &$filtered_query ) {
+			$filtered_query = $query;
+			return true;
+		};
+		add_filter( 'ep_woocommerce_skip_hpos_query_integration', $skip, 10, 2 );
+
+		$orders = wc_get_orders( [] );
+
+		remove_filter( 'ep_woocommerce_skip_hpos_query_integration', $skip );
+
+		$this->assertInstanceOf( \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery::class, $filtered_query );
+		$this->assertCount( 1, $orders );
+		$this->assertFalse( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+	}
+
+	/**
+	 * Test HPOS date shorthand matches WooCommerce for `>` dates and timestamps.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_date_shorthand_matches_woocommerce() {
+		$this->enable_hpos();
+
+		update_option( 'timezone_string', 'America/New_York' );
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_date_created( '2026-01-01 22:00:00' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_date_created( '2026-01-02 12:00:00' );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$timestamp_2 = $shop_order_2->get_date_created()->getTimestamp();
+
+		$queries = [
+			'>2026-01-01'      => [ $shop_order_id_2 ],
+			'>=2026-01-01'     => [ $shop_order_id_2, $shop_order_id_1 ],
+			'<2026-01-02'      => [ $shop_order_id_1 ],
+			'<=2026-01-02'     => [ $shop_order_id_2, $shop_order_id_1 ],
+			'2026-01-01'       => [ $shop_order_id_1 ],
+			"<{$timestamp_2}"  => [ $shop_order_id_1 ],
+			">={$timestamp_2}" => [ $shop_order_id_2 ],
+		];
+
+		foreach ( $queries as $date_created => $expected ) {
+			$args = [
+				'date_created' => $date_created,
+				'return'       => 'ids',
+			];
+
+			$this->assertSame( $expected, array_map( 'absint', wc_get_orders( $args ) ), "ES: {$date_created}" );
+			$this->assertSame( $expected, array_map( 'absint', wc_get_orders( $args + [ 'ep_integrate' => false ] ) ), "HPOS: {$date_created}" );
+		}
+	}
+
+	/**
+	 * Test deleted HPOS refunds are removed from the index.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_deleted_refunds_are_removed_from_index() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_indexable = ElasticPress\Indexables::factory()->get( 'post' );
+
+		$shop_order = new \WC_Order();
+		$shop_order->save();
+		$shop_order_id = $shop_order->get_id();
+
+		$refund_1 = new \WC_Order_Refund();
+		$refund_1->set_parent_id( $shop_order_id );
+		$refund_1->save();
+		$refund_id_1 = $refund_1->get_id();
+
+		$refund_2 = new \WC_Order_Refund();
+		$refund_2->set_parent_id( $shop_order_id );
+		$refund_2->save();
+		$refund_id_2 = $refund_2->get_id();
+
+		$post_indexable->index( $shop_order_id, true );
+		$post_indexable->index( $refund_id_1, true );
+		$post_indexable->index( $refund_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Delete a only one refund.
+		$refund_1->delete( true );
+		do_action( 'woocommerce_refund_deleted', $refund_id_1, $shop_order_id );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertEmpty( $post_indexable->get( $refund_id_1 ) );
+		$this->assertNotEmpty( $post_indexable->get( $refund_id_2 ) );
+
+		// Deleting an order deletes its refunds and the order itself.
+		wc_get_order( $shop_order_id )->delete( true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertEmpty( $post_indexable->get( $refund_id_2 ) );
+		$this->assertEmpty( $post_indexable->get( $shop_order_id ) );
+	}
 }

@@ -60,7 +60,7 @@ class OrdersHPOSQuery {
 	 */
 	public function query() {
 		$wp_query = new \WP_Query( $this->wp_query_args );
-		if ( isset( $wp_query->elasticsearch_success ) && false === $wp_query->elasticsearch_success ) {
+		if ( empty( $wp_query->elasticsearch_success ) ) {
 			return null;
 		}
 
@@ -392,10 +392,9 @@ class OrdersHPOSQuery {
 				continue;
 			}
 
-			$parsed = $this->parse_date_shorthand( $value );
+			$parsed = $this->parse_date_shorthand( $value, $wp_column );
 			if ( ! empty( $parsed ) ) {
-				$parsed['column'] = $wp_column;
-				$date_query[]     = $parsed;
+				$date_query[] = $parsed;
 			}
 		}
 
@@ -727,20 +726,25 @@ class OrdersHPOSQuery {
 	/**
 	 * Parses WooCommerce date shorthand into a WP date query clause.
 	 *
-	 * @param mixed $value The date value.
+	 * @param mixed  $value  The date value.
+	 * @param string $column The date column.
+	 *
 	 * @return array Parsed date query clause.
 	 */
-	protected function parse_date_shorthand( $value ): array {
-		if ( ! is_string( $value ) || empty( $value ) ) {
+	protected function parse_date_shorthand( $value, string $column ): array {
+		if ( ( ! is_string( $value ) && ! is_numeric( $value ) ) || '' === $value ) {
 			return [];
 		}
 
+		$value = (string) $value;
+
 		if ( str_contains( $value, '...' ) ) {
-			$dates = explode( '...', $value, 2 );
+			$dates = array_map( 'trim', explode( '...', $value, 2 ) );
 			return [
-				'after'     => $this->normalize_date_shorthand_value( trim( $dates[0] ) ),
-				'before'    => $this->normalize_date_shorthand_value( trim( $dates[1] ) ),
+				'after'     => $this->normalize_date_shorthand_value( $dates[0] ),
+				'before'    => $this->normalize_date_shorthand_value( $dates[1] ),
 				'inclusive' => true,
+				'column'    => is_numeric( $dates[0] ) || is_numeric( $dates[1] ) ? "{$column}_gmt" : $column,
 			];
 		}
 
@@ -748,39 +752,59 @@ class OrdersHPOSQuery {
 			return [];
 		}
 
-		$operator = ! empty( $matches[1] ) ? $matches[1] : '=';
-		$date     = $this->normalize_date_shorthand_value( trim( $matches[2] ) );
+		$operator     = ! empty( $matches[1] ) ? $matches[1] : '=';
+		$is_timestamp = is_numeric( trim( $matches[2] ) );
+		$date         = $this->normalize_date_shorthand_value( trim( $matches[2] ) );
+		$column       = $is_timestamp ? "{$column}_gmt" : $column;
 
 		switch ( $operator ) {
 			case '>':
+				// A date-only value means "after the end of that day".
+				return [
+					'after'     => $is_timestamp ? $date : "{$date} 23:59:59",
+					'inclusive' => false,
+					'column'    => $column,
+				];
 			case '>=':
 				return [
 					'after'     => $date,
-					'inclusive' => '>=' === $operator,
+					'inclusive' => true,
+					'column'    => $column,
 				];
 			case '<':
 			case '<=':
 				return [
 					'before'    => $date,
 					'inclusive' => '<=' === $operator,
+					'column'    => $column,
 				];
 			default:
 				return [
 					'after'     => $date,
 					'before'    => $date,
 					'inclusive' => true,
+					'column'    => $column,
 				];
 		}
 	}
 
 	/**
-	 * Normalizes numeric date shorthand to a UTC datetime.
+	 * Normalizes date shorthand values.
+	 *
+	 * Timestamps become a UTC datetime. Date strings are reduced to YYYY-MM-DD,
+	 * as WooCommerce ignores the time part of date strings.
 	 *
 	 * @param string $value Date shorthand value.
 	 * @return string Normalized date value.
 	 */
 	protected function normalize_date_shorthand_value( string $value ): string {
-		return is_numeric( $value ) ? gmdate( 'Y-m-d H:i:s', (int) $value ) : $value;
+		if ( is_numeric( $value ) ) {
+			return gmdate( 'Y-m-d H:i:s', (int) $value );
+		}
+
+		$timestamp = strtotime( $value );
+
+		return false === $timestamp ? $value : gmdate( 'Y-m-d', $timestamp );
 	}
 
 	/**
