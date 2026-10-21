@@ -2886,4 +2886,106 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		);
 		$this->assertSame( [ $shop_order_id_2, $shop_order_id_1 ], array_map( 'absint', $orders ) );
 	}
+
+	/**
+	 * Test HPOS `all` status query returns orders of any status.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_status_all_query() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_status( 'processing' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_status( 'completed' );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+
+		// Trashed orders are only returned by the `all` status.
+		$shop_order_3 = new \WC_Order();
+		$shop_order_3->save();
+		$shop_order_id_3 = $shop_order_3->get_id();
+		$shop_order_3->delete();
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_3, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'status'  => 'all',
+			'orderby' => 'id',
+			'order'   => 'ASC',
+		];
+
+		$orders = wc_get_orders( $args );
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertSame( [ $shop_order_id_1, $shop_order_id_2, $shop_order_id_3 ], array_map( fn( $order ) => $order->get_id(), $orders ) );
+
+		$this->assertSame(
+			[ $shop_order_id_1, $shop_order_id_2, $shop_order_id_3 ],
+			array_map(
+				'absint',
+				wc_get_orders(
+					$args + [
+						'return'       => 'ids',
+						'ep_integrate' => false,
+					]
+				)
+			)
+		);
+	}
+
+	/**
+	 * Test HPOS guest customer query.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_guest_customer_query() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$guest_order = new \WC_Order();
+		$guest_order->set_customer_id( 0 );
+		$guest_order->save();
+		$guest_order_id = $guest_order->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $guest_order_id, true );
+
+		$customer_order = new \WC_Order();
+		$customer_order->set_customer_id( 1 );
+		$customer_order->save();
+		$customer_order_id = $customer_order->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $customer_order_id, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		foreach ( [ 0, '0', [ 0 ] ] as $customer ) {
+			$this->orders->clear_elasticsearch_success_order_ids();
+
+			$orders = wc_get_orders( [ 'customer' => $customer ] );
+
+			$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ), wp_json_encode( $customer ) );
+			$this->assertCount( 1, $orders, wp_json_encode( $customer ) );
+			$this->assertEquals( $guest_order_id, $orders[0]->get_id(), wp_json_encode( $customer ) );
+		}
+
+		// Without a customer filter, both orders are returned.
+		$this->assertCount( 2, wc_get_orders( [] ) );
+	}
 }

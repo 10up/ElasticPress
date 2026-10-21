@@ -383,7 +383,7 @@ class OrdersHPOS {
 
 		// Bail if WooCommerce HPOS data sync is in progress.
 		$data_synchronizer = wc_get_container()->get( DataSynchronizer::class );
-		if ( $data_synchronizer->data_sync_is_enabled() && $data_synchronizer->has_orders_pending_sync() ) {
+		if ( $data_synchronizer->data_sync_is_enabled() && $data_synchronizer->has_orders_pending_sync( true ) ) {
 			return false;
 		}
 

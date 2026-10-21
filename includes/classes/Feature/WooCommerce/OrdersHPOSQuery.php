@@ -202,7 +202,14 @@ class OrdersHPOSQuery {
 	 * @return string|array Post status(es).
 	 */
 	protected function get_post_status() {
-		return $this->hpos_query->get( 'status' );
+		$status = $this->hpos_query->get( 'status' );
+
+		// WooCommerce turns the `all` status into an empty list, meaning no status filter.
+		if ( empty( $status ) ) {
+			return array_values( get_post_stati() );
+		}
+
+		return $status;
 	}
 
 	/**
@@ -839,7 +846,8 @@ class OrdersHPOSQuery {
 	protected function generate_customer_query(): array {
 		$customer = $this->hpos_query->get( 'customer' );
 
-		if ( empty( $customer ) ) {
+		// 0 is a valid value, used for guest orders.
+		if ( null === $customer || '' === $customer || [] === $customer ) {
 			return [];
 		}
 
