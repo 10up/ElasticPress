@@ -36,10 +36,12 @@ jobs:
     - name: Remove safe-to-test label
       env:
         GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
       run: gh pr edit "${{ github.event.pull_request.number }}" --remove-label "safe-to-test" || true
     - name: Cancel in-progress privileged e2e
       env:
         GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
         ids="$(
@@ -62,6 +64,7 @@ jobs:
     - name: Dispatch E2e Tests (privileged)
       env:
         GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
       run: |
         gh workflow run playwright-privileged.yml \
           --ref "${{ github.event.pull_request.base.ref }}" \
