@@ -116,26 +116,6 @@ class OrdersHPOSQuery {
 			$args['search_fields'] = $this->get_search_fields();
 		}
 
-		$id = $this->hpos_query->get( 'id' );
-		if ( ! empty( $id ) ) {
-			$args['post__in'] = array_map( 'absint', (array) $id );
-		}
-
-		$exclude = $this->hpos_query->get( 'exclude' );
-		if ( ! empty( $exclude ) ) {
-			$args['post__not_in'] = array_map( 'absint', (array) $exclude );
-		}
-
-		$parent = $this->hpos_query->get( 'parent_order_id' );
-		if ( ! empty( $parent ) ) {
-			$args['post_parent__in'] = array_map( 'absint', (array) $parent );
-		}
-
-		$parent_exclude = $this->hpos_query->get( 'parent_exclude' );
-		if ( ! empty( $parent_exclude ) ) {
-			$args['post_parent__not_in'] = array_map( 'absint', (array) $parent_exclude );
-		}
-
 		$offset = $this->hpos_query->get( 'offset' );
 		if ( ! empty( $offset ) ) {
 			$args['offset'] = absint( $offset );
@@ -389,7 +369,7 @@ class OrdersHPOSQuery {
 	 */
 	protected function get_order_fields_field_query(): array {
 		$fields = [
-			'orders'           => [ 'currency', 'tax_amount', 'customer_id', 'billing_email', 'payment_method', 'payment_method_title', 'transaction_id', 'ip_address', 'user_agent' ],
+			'orders'           => [ 'id', 'currency', 'tax_amount', 'customer_id', 'billing_email', 'parent_order_id', 'payment_method', 'payment_method_title', 'transaction_id', 'ip_address', 'user_agent' ],
 			'operational_data' => [ 'created_via', 'woocommerce_version', 'prices_include_tax', 'order_key', 'discount_total_amount', 'discount_tax_amount', 'shipping_total_amount', 'shipping_tax_amount' ],
 		];
 
@@ -399,6 +379,17 @@ class OrdersHPOSQuery {
 				if ( $this->hpos_query->arg_isset( $column ) ) {
 					$clauses[] = $this->get_field_clause( "{$mapping_id}.{$column}", '=', $this->hpos_query->get( $column ) );
 				}
+			}
+		}
+
+		$exclusions = [
+			'exclude'        => 'orders.id',
+			'parent_exclude' => 'orders.parent_order_id',
+		];
+
+		foreach ( $exclusions as $arg => $field ) {
+			if ( $this->hpos_query->arg_isset( $arg ) ) {
+				$clauses[] = $this->get_field_clause( $field, '!=', $this->hpos_query->get( $arg ) );
 			}
 		}
 
@@ -515,6 +506,11 @@ class OrdersHPOSQuery {
 		$type    = $this->hpos_query->get_field_mapping_info( $field )['column_type'];
 		$db_util = wc_get_container()->get( DatabaseUtil::class );
 		$format  = fn( $value ) => $db_util->format_object_value_for_db( $value, $type );
+
+		// `=` and `!=` are shorthands for IN and NOT IN with array values.
+		if ( is_array( $value ) && in_array( $compare, [ '=', '!=' ], true ) ) {
+			$compare = '=' === $compare ? 'IN' : 'NOT IN';
+		}
 
 		return [
 			'field'   => $field,

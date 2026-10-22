@@ -60,6 +60,9 @@ class Orders {
 		// Only setup HPOS if Protected Content is active and HPOS is enabled and compatible.
 		if ( $protected_content->is_active() && $this->is_hpos_enabled() && $this->is_hpos_compatible() ) {
 			$this->orders_hpos->setup();
+		} else {
+			// The hooks may have been added for another site, e.g. before `switch_to_blog()`.
+			$this->orders_hpos->tear_down();
 		}
 	}
 
@@ -78,10 +81,8 @@ class Orders {
 		remove_action( 'pre_get_posts', [ $this, 'translate_args' ], 11 );
 		remove_filter( 'ep_woocommerce_settings_schema', [ $this, 'add_settings_schema' ], 20 );
 
-		$protected_content = \ElasticPress\Features::factory()->get_registered_feature( 'protected_content' );
-		if ( $protected_content->is_active() && $this->is_hpos_enabled() && $this->is_hpos_compatible() ) {
-			$this->orders_hpos->tear_down();
-		}
+		// Always remove the HPOS hooks, as they may have been added for another site.
+		$this->orders_hpos->tear_down();
 	}
 
 	/**
@@ -410,7 +411,7 @@ class Orders {
 			'html'    => sprintf(
 				/* translators: %s: Minimum WooCommerce version required for HPOS integration. */
 				esc_html__( "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list while WooCommerce's High-performance order storage is enabled. HPOS integration requires WooCommerce %s or greater.", 'elasticpress' ),
-				esc_html( apply_filters( 'ep_woocommerce_hpos_min_version', '9.8.0' ) )
+				esc_html( $this->get_hpos_min_version() )
 			),
 			'type'    => 'warning',
 			'dismiss' => true,
@@ -550,6 +551,16 @@ class Orders {
 	 * @return bool
 	 */
 	public function is_hpos_compatible(): bool {
+		return version_compare( \WC_VERSION, $this->get_hpos_min_version(), '>=' );
+	}
+
+	/**
+	 * Get the minimum WooCommerce version required for HPOS integration.
+	 *
+	 * @since 5.4.0
+	 * @return string
+	 */
+	public function get_hpos_min_version(): string {
 		/**
 		 * Filter the minimum WooCommerce version required for HPOS integration.
 		 *
@@ -558,7 +569,7 @@ class Orders {
 		 * @param {string} $min_version Minimum WooCommerce version
 		 * @return {string} Minimum WooCommerce version
 		 */
-		return version_compare( \WC_VERSION, apply_filters( 'ep_woocommerce_hpos_min_version', '9.8.0' ), '>=' );
+		return apply_filters( 'ep_woocommerce_hpos_min_version', '9.9.0' );
 	}
 
 	/**

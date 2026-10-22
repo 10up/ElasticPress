@@ -192,10 +192,41 @@ class OrdersHPOS {
 		}
 
 		// Handle refund orders differently.
-		if ( 'shop_order_refund' === $order->get_type() ) {
-			return $this->prepare_refund_meta_data( $order );
+		$meta_data = 'shop_order_refund' === $order->get_type()
+			? $this->prepare_refund_meta_data( $order )
+			: $this->prepare_order_meta_data( $order );
+
+		/**
+		 * This filter is documented in includes/classes/Indexable/Post/Post.php
+		 */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $order_post );
+
+		// Order properties take precedence over custom metadata with the same key.
+		$property_keys = $meta_data;
+
+		foreach ( $order->get_meta_data() as $meta ) {
+			if ( isset( $property_keys[ $meta->key ] ) ) {
+				continue;
+			}
+
+			if ( is_protected_meta( $meta->key ) && true !== $allowed_protected_keys && ! in_array( $meta->key, $allowed_protected_keys, true ) ) {
+				continue;
+			}
+
+			// A key can have multiple values.
+			$meta_data[ $meta->key ][] = $meta->value;
 		}
 
+		return $meta_data;
+	}
+
+	/**
+	 * Prepare meta data from the properties of an order.
+	 *
+	 * @param \WC_Order $order Order object
+	 * @return array
+	 */
+	protected function prepare_order_meta_data( $order ) {
 		$meta_data         = [];
 		$meta_key_to_props = [
 			'_order_key'                    => 'order_key',
@@ -286,23 +317,6 @@ class OrdersHPOS {
 		$meta_data['_order_version']      = [ $order->get_version( 'edit' ) ];
 		$meta_data['_prices_include_tax'] = [ wc_bool_to_string( $order->get_prices_include_tax( 'edit' ) ) ];
 		$meta_data['_customer_note']      = [ method_exists( $order, 'get_customer_note' ) ? $order->get_customer_note( 'edit' ) : '' ];
-
-		/**
-		 * This filter is documented in includes/classes/Indexable/Post/Post.php
-		 */
-		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $order_post );
-
-		foreach ( $order->get_meta_data() as $meta ) {
-			if ( isset( $meta_data[ $meta->key ] ) ) {
-				continue;
-			}
-
-			if ( is_protected_meta( $meta->key ) && true !== $allowed_protected_keys && ! in_array( $meta->key, $allowed_protected_keys, true ) ) {
-				continue;
-			}
-
-			$meta_data[ $meta->key ] = [ $meta->value ];
-		}
 
 		return $meta_data;
 	}

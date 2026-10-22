@@ -609,8 +609,7 @@ class OrdersAutosuggest {
 			return sprintf(
 				/* translators: %s: Minimum WooCommerce version required for HPOS integration. */
 				esc_html__( 'Currently, autosuggest for orders with HPOS requires WooCommerce %s or greater.', 'elasticpress' ),
-				/** This filter is documented in includes/classes/Feature/WooCommerce/Orders.php */
-				esc_html( apply_filters( 'ep_woocommerce_hpos_min_version', '9.8.0' ) )
+				esc_html( $this->woocommerce->orders->get_hpos_min_version() )
 			);
 		}
 

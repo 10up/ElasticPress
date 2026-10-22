@@ -224,11 +224,15 @@ class OrdersHPOSDateQuery {
 	 * @throws \InvalidArgumentException When the units cannot be translated.
 	 */
 	protected function get_date_units_range( array $clause ): ?array {
-		$units = [];
+		$compare = $this->wp_date_query->get_compare( $clause );
+		$units   = [];
 		foreach ( self::DATE_UNITS as $unit => $keys ) {
 			foreach ( $keys as $key ) {
-				// WP_Date_Query ignores non-numeric year, month and day values.
-				if ( isset( $clause[ $key ] ) && ( is_numeric( $clause[ $key ] ) || in_array( $unit, [ 'hour', 'minute', 'second' ], true ) ) ) {
+				// WP_Date_Query ignores non-numeric year, month and day values, and arrays unless comparing with IN, BETWEEN, etc.
+				if (
+					isset( $clause[ $key ] )
+					&& ( is_numeric( $clause[ $key ] ) || ( is_array( $clause[ $key ] ) && '=' !== $compare ) || in_array( $unit, [ 'hour', 'minute', 'second' ], true ) )
+				) {
 					$units[ $unit ] = $clause[ $key ];
 					break;
 				}
@@ -240,7 +244,7 @@ class OrdersHPOSDateQuery {
 		}
 
 		if (
-			'=' !== $this->wp_date_query->get_compare( $clause )
+			'=' !== $compare
 			|| array_keys( $units ) !== array_slice( array_keys( self::DATE_UNITS ), 0, count( $units ) )
 			|| array_filter( $units, 'is_numeric' ) !== $units
 		) {

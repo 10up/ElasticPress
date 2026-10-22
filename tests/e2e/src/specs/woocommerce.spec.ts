@@ -595,8 +595,8 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 	test.describe('Orders (HPOS)', () => {
 		test.beforeAll(async () => {
 			test.skip(
-				!(await isWcVersionAtLeast('9.8.0')),
-				'HPOS integration requires WooCommerce 9.8.0 or greater',
+				!(await isWcVersionAtLeast('9.9.0')),
+				'HPOS integration requires WooCommerce 9.9.0 or greater',
 			);
 
 			await wpCli('plugin activate woocommerce');
@@ -1056,8 +1056,8 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 	test.describe('Orders Autosuggest (HPOS)', () => {
 		test.beforeAll(async () => {
 			test.skip(
-				!(await isWcVersionAtLeast('9.8.0')),
-				'HPOS integration requires WooCommerce 9.8.0 or greater',
+				!(await isWcVersionAtLeast('9.9.0')),
+				'HPOS integration requires WooCommerce 9.9.0 or greater',
 			);
 
 			await wpCli('plugin activate woocommerce');

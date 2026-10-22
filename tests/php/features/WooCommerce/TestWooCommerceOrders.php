@@ -5482,4 +5482,241 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertNotNull( $es_result );
 		$this->assertEqualsCanonicalizing( $order_ids, array_map( 'absint', $query->orders ) );
 	}
+
+	/**
+	 * Test HPOS order ID and parent arguments with 0 values.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_zero_id_and_parent_queries() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$order = new \WC_Order();
+		$order->set_total( 10 );
+		$order->save();
+
+		$refund = wc_create_refund(
+			[
+				'order_id' => $order->get_id(),
+				'amount'   => 0,
+			]
+		);
+
+		$other_order = new \WC_Order();
+		$other_order->save();
+
+		foreach ( [ $order->get_id(), $refund->get_id(), $other_order->get_id() ] as $order_id ) {
+			ElasticPress\Indexables::factory()->get( 'post' )->index( $order_id, true );
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$es_result     = null;
+		$get_es_result = function ( $result ) use ( &$es_result ) {
+			$es_result = $result;
+			return $result;
+		};
+		add_filter( 'woocommerce_hpos_pre_query', $get_es_result, 20 );
+
+		$queries = [
+			[
+				'args'     => [ 'id' => [ 0 ] ],
+				'expected' => [],
+			],
+			[
+				'args'     => [ 'exclude' => [ 0, $order->get_id() ] ],
+				'expected' => [ $refund->get_id(), $other_order->get_id() ],
+			],
+			// Orders without a parent.
+			[
+				'args'     => [ 'parent' => 0 ],
+				'expected' => [ $order->get_id(), $other_order->get_id() ],
+			],
+			// Orders with a parent.
+			[
+				'args'     => [ 'parent_exclude' => 0 ],
+				'expected' => [ $refund->get_id() ],
+			],
+		];
+
+		foreach ( $queries as $query ) {
+			$args = $query['args'] + [
+				'type'    => [ 'shop_order', 'shop_order_refund' ],
+				'return'  => 'ids',
+				'orderby' => 'id',
+				'order'   => 'ASC',
+			];
+
+			$es_result = null;
+
+			$this->assertSame( $query['expected'], array_map( 'absint', wc_get_orders( $args ) ), wp_json_encode( $query['args'] ) );
+			$this->assertNotNull( $es_result, wp_json_encode( $query['args'] ) );
+			$this->assertSame( $query['expected'], array_map( 'absint', wc_get_orders( $args + [ 'ep_integrate' => false ] ) ), wp_json_encode( $query['args'] ) );
+		}
+
+		remove_filter( 'woocommerce_hpos_pre_query', $get_es_result, 20 );
+	}
+
+	/**
+	 * Test HPOS refund custom metadata is indexed, like order custom metadata.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_refund_custom_meta_is_indexed() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$order = new \WC_Order();
+		$order->set_total( 10 );
+		$order->save();
+
+		$refund = wc_create_refund(
+			[
+				'order_id' => $order->get_id(),
+				'amount'   => 0,
+			]
+		);
+		$refund->update_meta_data( 'refund_tag', 'damaged' );
+		$refund->update_meta_data( '_refund_secret', 'hidden' );
+		$refund->save();
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $order->get_id(), true );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $refund->get_id(), true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $refund->get_id() );
+		$this->assertSame( 'damaged', $document['meta']['refund_tag'][0]['value'] );
+		$this->assertArrayHasKey( '_refund_amount', $document['meta'] );
+
+		// Protected metadata is only indexed if allowed.
+		$this->assertArrayNotHasKey( '_refund_secret', $document['meta'] );
+
+		$orders = wc_get_orders(
+			[
+				'type'       => 'shop_order_refund',
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					[
+						'key'   => 'refund_tag',
+						'value' => 'damaged',
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertSame( [ $refund->get_id() ], array_map( fn( $order ) => $order->get_id(), $orders ) );
+	}
+
+	/**
+	 * Test HPOS indexes every value of custom metadata with multiple values.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_custom_meta_with_multiple_values_is_indexed() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$order = new \WC_Order();
+		$order->add_meta_data( 'color', 'red' );
+		$order->add_meta_data( 'color', 'blue' );
+		$order->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $order->get_id(), true );
+
+		$other_order = new \WC_Order();
+		$other_order->add_meta_data( 'color', 'green' );
+		$other_order->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $other_order->get_id(), true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		foreach ( [ 'red', 'blue' ] as $color ) {
+			$orders = wc_get_orders(
+				[
+					'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+						[
+							'key'   => 'color',
+							'value' => $color,
+						],
+					],
+				]
+			);
+
+			$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ), $color );
+			$this->assertSame( [ $order->get_id() ], array_map( fn( $order ) => $order->get_id(), $orders ), $color );
+		}
+	}
+
+	/**
+	 * Test HPOS date_query units with array values.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_date_query_array_values() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$order_ids = [];
+		foreach ( [ 2024, 2026 ] as $year ) {
+			$order = new \WC_Order();
+			$order->set_date_created( strtotime( "{$year}-05-01 10:00:00 UTC" ) );
+			$order->save();
+			ElasticPress\Indexables::factory()->get( 'post' )->index( $order->get_id(), true );
+			$order_ids[] = $order->get_id();
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Comparing with IN is left to WooCommerce.
+		$orders = wc_get_orders(
+			[
+				'date_query' => [
+					[
+						'year'    => [ 2024, 2025 ],
+						'compare' => 'IN',
+					],
+				],
+			]
+		);
+
+		$this->assertFalse( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertSame( [ $order_ids[0] ], array_map( fn( $order ) => $order->get_id(), $orders ) );
+
+		// Like WP_Date_Query, arrays are ignored when comparing with `=`.
+		$orders = wc_get_orders(
+			[
+				'date_query' => [
+					[
+						'year' => [ 2024, 2025 ],
+					],
+				],
+				'orderby'    => 'id',
+				'order'      => 'ASC',
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertSame( $order_ids, array_map( fn( $order ) => $order->get_id(), $orders ) );
+	}
 }
