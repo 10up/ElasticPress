@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\WooCommerce;
 
 use Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery;
+use Automattic\WooCommerce\Internal\Utilities\DatabaseUtil;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -59,8 +60,20 @@ class OrdersHPOSQuery {
 	 * @return array|null Array with [orders, found_orders, max_num_pages] or null if ES query failed.
 	 */
 	public function query() {
+		if ( empty( $this->wp_query_args ) ) {
+			return null;
+		}
+
 		$wp_query = new \WP_Query( $this->wp_query_args );
 		if ( empty( $wp_query->elasticsearch_success ) ) {
+			return null;
+		}
+
+		$limit       = $this->wp_query_args['posts_per_page'];
+		$found_posts = (int) $wp_query->found_posts;
+
+		// Elasticsearch returns up to `ep_max_results_window` results, so WooCommerce runs unlimited queries with more.
+		if ( -1 === $limit && $found_posts > count( $wp_query->posts ) + ( $this->wp_query_args['offset'] ?? 0 ) ) {
 			return null;
 		}
 
@@ -68,10 +81,14 @@ class OrdersHPOSQuery {
 		$class_names = \WC_Order_Factory::get_class_names_for_order_ids( $wp_query->posts );
 		$order_ids   = array_values( array_intersect( $wp_query->posts, array_keys( array_filter( $class_names ) ) ) );
 
+		// Don't count the orders that are missing from the database.
+		$found_posts  -= count( $wp_query->posts ) - count( $order_ids );
+		$max_num_pages = $limit > 0 ? (int) ceil( $found_posts / $limit ) : (int) $wp_query->max_num_pages;
+
 		return [
 			$order_ids,
-			(int) $wp_query->found_posts,
-			(int) $wp_query->max_num_pages,
+			$found_posts,
+			$max_num_pages,
 		];
 	}
 
@@ -124,44 +141,34 @@ class OrdersHPOSQuery {
 			$args['offset'] = absint( $offset );
 		}
 
-		// Handle date query.
-		$date_query = $this->build_date_query();
-		if ( ! empty( $date_query ) ) {
-			$args['date_query'] = $date_query;
-		}
-
-		// Handle paid and completed dates.
-		$meta_query = $this->build_date_meta_query();
-
-		// Handle customer filtering.
-		$customer_meta_query = $this->generate_customer_query();
-		if ( ! empty( $customer_meta_query ) ) {
-			$meta_query[] = $customer_meta_query;
-		}
-
-		// Handle created_via filtering.
-		$created_via_clause = $this->build_created_via_query();
-		if ( ! empty( $created_via_clause ) ) {
-			$meta_query[] = $created_via_clause;
-		}
-
 		// Handle HPOS meta_query.
-		$hpos_meta_query = $this->query_args['meta_query'] ?? null;
+		$hpos_meta_query = $this->hpos_query->get( 'meta_query' );
 		if ( ! empty( $hpos_meta_query ) && is_array( $hpos_meta_query ) ) {
-			$meta_query[] = $hpos_meta_query;
+			$args['meta_query'] = [ $hpos_meta_query ];
 		}
 
-		// Handle top-level order field filters (e.g. billing_first_name, order_key).
-		$meta_query = array_merge( $meta_query, $this->build_top_level_field_meta_clauses() );
+		// Order field arguments, like `billing_email` or `customer`, are matched like field_query clauses.
+		$field_query = $this->get_order_fields_field_query();
 
-		// Handle field_query.
-		$field_query = $this->build_field_query_meta_query();
-		if ( ! empty( $field_query ) ) {
-			$meta_query[] = $field_query;
+		$hpos_field_query = $this->hpos_query->get( 'field_query' );
+		if ( ! empty( $hpos_field_query ) && is_array( $hpos_field_query ) ) {
+			$field_query[] = $hpos_field_query;
 		}
 
-		if ( ! empty( $meta_query ) ) {
-			$args['meta_query'] = $meta_query;
+		// Handle date_query and field_query. They are added to the Elasticsearch filters by OrdersHPOS::add_hpos_filters().
+		$hpos_filters = [
+			'date_query'  => ( new OrdersHPOSDateQuery( $this->hpos_query ) )->get_es_filter(),
+			'field_query' => ( new OrdersHPOSFieldQuery( $this->hpos_query, $field_query ) )->get_es_filter(),
+		];
+
+		if ( in_array( null, $hpos_filters, true ) ) {
+			// The query cannot be translated, so WooCommerce runs it.
+			return [];
+		}
+
+		$hpos_filters = array_filter( $hpos_filters );
+		if ( ! empty( $hpos_filters ) ) {
+			$args['ep_hpos_filters'] = $hpos_filters;
 		}
 
 		/**
@@ -207,7 +214,10 @@ class OrdersHPOSQuery {
 	 * @return int Limit number.
 	 */
 	protected function get_limit(): int {
-		return $this->hpos_query->get( 'limit' );
+		$limit = $this->hpos_query->get( 'limit' );
+
+		// Like WooCommerce, return all orders if the limit is missing or invalid.
+		return is_numeric( $limit ) && (int) $limit >= -1 ? (int) $limit : -1;
 	}
 
 	/**
@@ -216,7 +226,7 @@ class OrdersHPOSQuery {
 	 * @return int Page number.
 	 */
 	protected function get_page(): int {
-		return $this->hpos_query->get( 'page' );
+		return max( 1, absint( $this->hpos_query->get( 'page' ) ) );
 	}
 
 	/**
@@ -258,7 +268,9 @@ class OrdersHPOSQuery {
 	 * @return string Order direction (ASC or DESC).
 	 */
 	protected function get_order(): string {
-		return $this->hpos_query->get( 'order' );
+		$order = strtoupper( (string) $this->hpos_query->get( 'order' ) );
+
+		return in_array( $order, [ 'ASC', 'DESC' ], true ) ? $order : 'DESC';
 	}
 
 	/**
@@ -368,838 +380,146 @@ class OrdersHPOSQuery {
 	}
 
 	/**
-	 * Builds date query from HPOS query arguments.
+	 * Converts the order field arguments, like `billing_email` or `customer`, to field_query clauses.
 	 *
-	 * @return array Date query array.
+	 * Mirrors how OrdersTableQuery turns them into SQL, so they are compared the way MySQL does, e.g. strings are
+	 * case-insensitive.
+	 *
+	 * @return array Field query clauses.
 	 */
-	protected function build_date_query() {
-		$date_query = $this->extract_advanced_date_query( false );
-
-		// Handle date shorthand parameters.
-		$date_params = [
-			'date_created'      => 'post_date',
-			'date_modified'     => 'post_modified',
-			'date_updated'      => 'post_modified',
-			'date_created_gmt'  => 'post_date_gmt',
-			'date_modified_gmt' => 'post_modified_gmt',
-			'date_updated_gmt'  => 'post_modified_gmt',
+	protected function get_order_fields_field_query(): array {
+		$fields = [
+			'orders'           => [ 'currency', 'tax_amount', 'customer_id', 'billing_email', 'payment_method', 'payment_method_title', 'transaction_id', 'ip_address', 'user_agent' ],
+			'operational_data' => [ 'created_via', 'woocommerce_version', 'prices_include_tax', 'order_key', 'discount_total_amount', 'discount_tax_amount', 'shipping_total_amount', 'shipping_tax_amount' ],
 		];
 
-		foreach ( $date_params as $hpos_key => $wp_column ) {
-			$value = $this->hpos_query->get( $hpos_key );
-			if ( empty( $value ) ) {
-				continue;
-			}
-
-			$parsed = $this->parse_date_shorthand( $value, $wp_column );
-			if ( ! empty( $parsed ) ) {
-				$date_query[] = $parsed;
-			}
-		}
-
-		// Set relation if multiple date queries.
-		if ( count( $date_query ) > 1 && ! isset( $date_query['relation'] ) ) {
-			$date_query['relation'] = 'AND';
-		}
-
-		return $date_query;
-	}
-
-	/**
-	 * Normalizes HPOS date query columns to indexed post date fields.
-	 *
-	 * @param array $date_query HPOS date query.
-	 * @return array Normalized date query.
-	 */
-	protected function normalize_date_query( array $date_query ): array {
-		$column_map = [
-			'date_created'      => 'post_date',
-			'date_created_gmt'  => 'post_date_gmt',
-			'date_updated'      => 'post_modified',
-			'date_updated_gmt'  => 'post_modified_gmt',
-			'date_modified'     => 'post_modified',
-			'date_modified_gmt' => 'post_modified_gmt',
-		];
-
-		foreach ( $date_query as $key => $value ) {
-			if ( is_array( $value ) ) {
-				$date_query[ $key ] = $this->normalize_date_query( $value );
-				continue;
-			}
-
-			if ( 'column' === $key && isset( $column_map[ $value ] ) ) {
-				$date_query[ $key ] = $column_map[ $value ];
-			}
-		}
-
-		/*
-		 * Convert exclusive date-only values to the end of the GMT period, matching WP_Date_Query behavior.
-		 */
-		if (
-			isset( $date_query['after'] )
-			&& empty( $date_query['inclusive'] )
-			&& str_ends_with( $date_query['column'] ?? '', '_gmt' )
-		) {
-			$date_query['after'] = ( new \WP_Date_Query( [] ) )->build_mysql_datetime( $date_query['after'], true );
-		}
-
-		return $date_query;
-	}
-
-	/**
-	 * Builds meta query clauses for HPOS paid and completed dates.
-	 *
-	 * @return array Meta query clauses.
-	 */
-	protected function build_date_meta_query(): array {
-		$date_fields = [
-			'date_paid'          => '_date_paid',
-			'date_completed'     => '_date_completed',
-			'date_paid_gmt'      => '_date_paid',
-			'date_completed_gmt' => '_date_completed',
-		];
-		$meta_query  = [];
-
-		foreach ( $date_fields as $query_arg => $meta_key ) {
-			$value = $this->query_args[ $query_arg ] ?? null;
-			if ( empty( $value ) ) {
-				continue;
-			}
-
-			$clause = $this->parse_date_meta_shorthand( $value, $meta_key, str_ends_with( $query_arg, '_gmt' ) );
-			if ( ! empty( $clause ) ) {
-				$meta_query[] = $clause;
-			}
-		}
-
-		$advanced_date_query = $this->extract_advanced_date_query( true );
-		if ( ! empty( $advanced_date_query ) ) {
-			$meta_query[] = $advanced_date_query;
-		}
-
-		if ( count( $meta_query ) > 1 ) {
-			$meta_query['relation'] = 'AND';
-		}
-
-		return $meta_query;
-	}
-
-	/**
-	 * Extracts either post date or paid/completed clauses from an advanced date query.
-	 *
-	 * @param bool       $meta       Whether to return paid/completed meta clauses.
-	 * @param array|null $date_query Date query to translate.
-	 * @return array Translated date query.
-	 */
-	protected function extract_advanced_date_query( bool $meta, ?array $date_query = null ): array {
-		if ( null === $date_query ) {
-			$date_query = $this->query_args['date_query'] ?? [];
-		}
-
-		if ( empty( $date_query ) || ! is_array( $date_query ) ) {
-			return [];
-		}
-
-		$translated = [];
-		if ( isset( $date_query['relation'] ) ) {
-			$translated['relation'] = $date_query['relation'];
-		}
-
-		foreach ( $date_query as $key => $clause ) {
-			if ( 'relation' === $key || ! is_array( $clause ) ) {
-				continue;
-			}
-
-			if ( ! isset( $clause['column'] ) ) {
-				$is_first_order = ! empty(
-					array_intersect(
-						[ 'after', 'before', 'year', 'month', 'monthnum', 'week', 'day', 'dayofweek', 'hour', 'minute', 'second' ],
-						array_keys( $clause )
-					)
-				);
-
-				if ( $is_first_order ) {
-					if ( ! $meta ) {
-						$clause['column'] = 'date_created_gmt';
-						$translated[]     = $this->normalize_date_query( $clause );
-					}
-				} else {
-					$nested = $this->extract_advanced_date_query( $meta, $clause );
-					if ( ! empty( $nested ) ) {
-						$translated[] = $nested;
-					}
+		$clauses = [];
+		foreach ( $fields as $mapping_id => $columns ) {
+			foreach ( $columns as $column ) {
+				if ( $this->hpos_query->arg_isset( $column ) ) {
+					$clauses[] = $this->get_field_clause( "{$mapping_id}.{$column}", '=', $this->hpos_query->get( $column ) );
 				}
-				continue;
-			}
-
-			$is_meta_date = in_array(
-				$clause['column'],
-				[ 'date_paid', 'date_paid_gmt', '_date_paid', 'date_completed', 'date_completed_gmt', '_date_completed' ],
-				true
-			);
-
-			if ( $meta !== $is_meta_date ) {
-				continue;
-			}
-
-			$translated_clause = $meta
-				? $this->date_query_clause_to_meta_query( $clause )
-				: $this->normalize_date_query( $clause );
-
-			if ( ! empty( $translated_clause ) ) {
-				$translated[] = $translated_clause;
 			}
 		}
 
-		if ( isset( $translated['relation'] ) && 1 === count( $translated ) ) {
-			return [];
-		}
-
-		return $translated;
-	}
-
-	/**
-	 * Converts a paid/completed date_query clause to timestamp meta clauses.
-	 *
-	 * @param array $clause Date query clause.
-	 * @return array Meta query clause.
-	 */
-	protected function date_query_clause_to_meta_query( array $clause ): array {
-		$column    = $clause['column'] ?? '';
-		$meta_key  = str_contains( $column, 'paid' ) ? '_date_paid' : '_date_completed';
-		$inclusive = ! empty( $clause['inclusive'] );
-		$is_gmt    = str_ends_with( $column, '_gmt' );
-		$queries   = [];
-
-		if ( isset( $clause['after'] ) ) {
-			$after = $this->date_query_value_to_timestamp( $clause['after'], ! $inclusive, $is_gmt );
-			if ( false !== $after ) {
-				$queries[] = [
-					'key'     => $meta_key,
-					'value'   => $after,
-					'compare' => $inclusive ? '>=' : '>',
-					'type'    => 'NUMERIC',
-				];
-			}
-		}
-
-		if ( isset( $clause['before'] ) ) {
-			$before = $this->date_query_value_to_timestamp( $clause['before'], $inclusive, $is_gmt );
-			if ( false !== $before ) {
-				$queries[] = [
-					'key'     => $meta_key,
-					'value'   => $before,
-					'compare' => $inclusive ? '<=' : '<',
-					'type'    => 'NUMERIC',
-				];
-			}
-		}
-
-		if ( empty( $queries ) && isset( $clause['year'], $clause['month'], $clause['day'] ) ) {
-			$date = sprintf( '%04d-%02d-%02d', $clause['year'], $clause['month'], $clause['day'] );
-			return $this->parse_date_meta_shorthand( $date, $meta_key, $is_gmt );
-		}
-
-		if ( 1 === count( $queries ) ) {
-			return $queries[0];
-		}
-
-		if ( count( $queries ) > 1 ) {
-			return array_merge( [ 'relation' => 'AND' ], $queries );
-		}
-
-		return [];
-	}
-
-	/**
-	 * Converts an advanced date query value to a timestamp.
-	 *
-	 * @param string|array $value      Date query value.
-	 * @param bool         $end_of_day Whether to use the end of the day.
-	 * @param bool         $is_gmt     Whether the date value is in GMT instead of the site timezone.
-	 *
-	 * @return int|false UTC timestamp or false.
-	 */
-	protected function date_query_value_to_timestamp( $value, bool $end_of_day, bool $is_gmt = false ) {
-		if ( is_array( $value ) ) {
-			$has_time = isset( $value['hour'] ) || isset( $value['minute'] ) || isset( $value['second'] );
-			$value    = sprintf(
-				'%04d-%02d-%02d %02d:%02d:%02d',
-				$value['year'] ?? 0,
-				$value['month'] ?? 1,
-				$value['day'] ?? 1,
-				$value['hour'] ?? 0,
-				$value['minute'] ?? 0,
-				$value['second'] ?? 0
-			);
-
-			$timestamp = $this->date_to_timestamp( $value, false, $is_gmt );
-			if ( false !== $timestamp && $end_of_day && ! $has_time ) {
-				$timestamp += DAY_IN_SECONDS - 1;
-			}
-
-			return $timestamp;
-		}
-
-		return $this->date_to_timestamp( (string) $value, $end_of_day, $is_gmt );
-	}
-
-	/**
-	 * Parses WooCommerce date shorthand into a numeric timestamp meta query.
-	 *
-	 * @param mixed  $value    Date shorthand value.
-	 * @param string $meta_key Indexed date meta key.
-	 * @param bool   $is_gmt   Whether date strings are in GMT instead of the site timezone.
-	 *
-	 * @return array Meta query clause.
-	 */
-	protected function parse_date_meta_shorthand( $value, string $meta_key, bool $is_gmt = false ): array {
-		if ( ( ! is_string( $value ) && ! is_numeric( $value ) ) || '' === $value ) {
-			return [];
-		}
-
-		// WooCommerce accepts Unix timestamps (ints) as well as date strings/shorthand
-		// for date_paid/date_completed; normalize to a string for the parsing below.
-		$value = (string) $value;
-
-		if ( str_contains( $value, '...' ) ) {
-			$dates = explode( '...', $value, 2 );
-			$start = $this->date_to_timestamp( trim( $dates[0] ), false, $is_gmt );
-			$end   = $this->date_to_timestamp( trim( $dates[1] ), true, $is_gmt );
-
-			if ( false === $start || false === $end ) {
-				return [];
-			}
-
-			return [
-				'key'     => $meta_key,
-				'value'   => [ $start, $end ],
-				'compare' => 'BETWEEN',
-				'type'    => 'NUMERIC',
-			];
-		}
-
-		if ( ! preg_match( '/^(>=|<=|>|<|=)?\s*(.+)$/', trim( $value ), $matches ) ) {
-			return [];
-		}
-
-		$operator  = ! empty( $matches[1] ) ? $matches[1] : '=';
-		$date      = trim( $matches[2] );
-		$date_only = (bool) preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date );
-
-		if ( '=' === $operator && $date_only ) {
-			$start = $this->date_to_timestamp( $date, false, $is_gmt );
-			$end   = $this->date_to_timestamp( $date, true, $is_gmt );
-
-			if ( false === $start || false === $end ) {
-				return [];
-			}
-
-			return [
-				'key'     => $meta_key,
-				'value'   => [ $start, $end ],
-				'compare' => 'BETWEEN',
-				'type'    => 'NUMERIC',
-			];
-		}
-
-		$end_of_day = $date_only && in_array( $operator, [ '>', '<=' ], true );
-		$timestamp  = $this->date_to_timestamp( $date, $end_of_day, $is_gmt );
-		if ( false === $timestamp ) {
-			return [];
-		}
-
-		return [
-			'key'     => $meta_key,
-			'value'   => $timestamp,
-			'compare' => $operator,
-			'type'    => 'NUMERIC',
-		];
-	}
-
-	/**
-	 * Converts a WooCommerce date value to a UTC timestamp.
-	 *
-	 * @param string $value      Date value.
-	 * @param bool   $end_of_day Whether to use the end of a date-only value.
-	 * @param bool   $is_gmt     Whether the date value is in GMT instead of the site timezone.
-	 * @return int|false UTC timestamp or false for an invalid date.
-	 */
-	protected function date_to_timestamp( string $value, bool $end_of_day, bool $is_gmt = false ) {
-		if ( is_numeric( $value ) ) {
-			return absint( $value );
-		}
-
-		$timestamp = strtotime( $is_gmt ? $value . ' UTC' : get_gmt_from_date( $value ) );
-		if ( false === $timestamp ) {
-			return false;
-		}
-
-		if ( $end_of_day && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $value ) ) {
-			$timestamp += DAY_IN_SECONDS - 1;
-		}
-
-		return $timestamp;
-	}
-
-	/**
-	 * Parses WooCommerce date shorthand into a WP date query clause.
-	 *
-	 * @param mixed  $value  The date value.
-	 * @param string $column The date column. Timestamps always use its GMT version.
-	 *
-	 * @return array Parsed date query clause.
-	 */
-	protected function parse_date_shorthand( $value, string $column ): array {
-		if ( ( ! is_string( $value ) && ! is_numeric( $value ) ) || '' === $value ) {
-			return [];
-		}
-
-		$value      = (string) $value;
-		$gmt_column = str_ends_with( $column, '_gmt' ) ? $column : "{$column}_gmt";
-
-		if ( str_contains( $value, '...' ) ) {
-			$dates = array_map( 'trim', explode( '...', $value, 2 ) );
-			return [
-				'after'     => $this->normalize_date_shorthand_value( $dates[0] ),
-				'before'    => $this->normalize_date_shorthand_value( $dates[1] ),
-				'inclusive' => true,
-				'column'    => is_numeric( $dates[0] ) || is_numeric( $dates[1] ) ? $gmt_column : $column,
-			];
-		}
-
-		if ( ! preg_match( '/^(>=|<=|>|<|=)?\s*(.+)$/', trim( $value ), $matches ) ) {
-			return [];
-		}
-
-		$operator     = ! empty( $matches[1] ) ? $matches[1] : '=';
-		$is_timestamp = is_numeric( trim( $matches[2] ) );
-		$date         = $this->normalize_date_shorthand_value( trim( $matches[2] ) );
-		$column       = $is_timestamp ? $gmt_column : $column;
-
-		switch ( $operator ) {
-			case '>':
-				// A date-only value means "after the end of that day".
-				return [
-					'after'     => $is_timestamp ? $date : "{$date} 23:59:59",
-					'inclusive' => false,
-					'column'    => $column,
-				];
-			case '>=':
-				return [
-					'after'     => $date,
-					'inclusive' => true,
-					'column'    => $column,
-				];
-			case '<':
-			case '<=':
-				return [
-					'before'    => $date,
-					'inclusive' => '<=' === $operator,
-					'column'    => $column,
-				];
-			default:
-				return [
-					'after'     => $date,
-					'before'    => $date,
-					'inclusive' => true,
-					'column'    => $column,
-				];
-		}
-	}
-
-	/**
-	 * Normalizes date shorthand values.
-	 *
-	 * Timestamps become a UTC datetime. Date strings are reduced to YYYY-MM-DD,
-	 * as WooCommerce ignores the time part of date strings.
-	 *
-	 * @param string $value Date shorthand value.
-	 * @return string Normalized date value.
-	 */
-	protected function normalize_date_shorthand_value( string $value ): string {
-		if ( is_numeric( $value ) ) {
-			return gmdate( 'Y-m-d H:i:s', (int) $value );
-		}
-
-		$timestamp = strtotime( $value );
-
-		return false === $timestamp ? $value : gmdate( 'Y-m-d', $timestamp );
-	}
-
-	/**
-	 * Translates WooCommerce HPOS customer query to ElasticPress meta_query.
-	 *
-	 * @return array Meta query array for WP_Query, empty if no customer filter.
-	 */
-	protected function generate_customer_query(): array {
-		$customer = $this->hpos_query->get( 'customer' );
-
-		// 0 is a valid value, used for guest orders.
-		if ( null === $customer || '' === $customer || [] === $customer ) {
-			return [];
-		}
-
-		$meta_query = [];
-
-		$customer_clause = $this->build_customer_meta_clause( $customer );
-		if ( ! empty( $customer_clause ) ) {
-			$meta_query = $customer_clause;
-		}
-
-		return $meta_query;
-	}
-
-	/**
-	 * Builds meta query clause for 'customer' parameter.
-	 *
-	 * Mirrors WooCommerce's generate_customer_query() logic:
-	 * - Numeric values are treated as customer user IDs
-	 * - String values are validated as emails
-	 * - Arrays can contain mixed IDs and emails (OR relation)
-	 * - Nested arrays use AND relation
-	 *
-	 * @param mixed  $values   Customer value(s) - ID(s), email(s), or mixed.
-	 * @param string $relation Relation for combining clauses ('OR' or 'AND').
-	 * @return array Meta query clause.
-	 */
-	protected function build_customer_meta_clause( $values, string $relation = 'OR' ): array {
-		$values = (array) $values;
-
-		$ids    = [];
-		$emails = [];
-		$nested = [];
-
-		foreach ( $values as $value ) {
-			if ( is_array( $value ) ) {
-				// Nested array - recursive call with AND relation (mirrors WooCommerce).
-				$nested_clause = $this->build_customer_meta_clause( $value, 'AND' );
-				if ( ! empty( $nested_clause ) ) {
-					$nested[] = $nested_clause;
+		foreach ( [ 'billing', 'shipping' ] as $address_type ) {
+			foreach ( [ 'first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone' ] as $column ) {
+				if ( $this->hpos_query->arg_isset( "{$address_type}_{$column}" ) ) {
+					$clauses[] = $this->get_field_clause( "{$address_type}_address.{$column}", '=', $this->hpos_query->get( "{$address_type}_{$column}" ) );
 				}
+			}
+		}
+
+		// An empty customer_note matches orders without a note.
+		if ( null !== $this->hpos_query->get( 'customer_note' ) ) {
+			$clauses[] = $this->get_field_clause( 'orders.customer_note', '=', $this->hpos_query->get( 'customer_note' ) );
+		}
+
+		if ( $this->hpos_query->arg_isset( 'customer' ) ) {
+			$clauses[] = $this->get_customer_field_query( $this->hpos_query->get( 'customer' ) );
+		}
+
+		if ( $this->hpos_query->arg_isset( 'total_amount' ) ) {
+			$clauses[] = $this->get_total_field_query( $this->hpos_query->get( 'total_amount' ) );
+		}
+
+		return array_values( array_filter( $clauses ) );
+	}
+
+	/**
+	 * Converts the `customer` argument to a field_query, like OrdersTableQuery::generate_customer_query().
+	 *
+	 * Numbers are customer IDs and strings are emails. Nested arrays use the AND relation.
+	 *
+	 * @param mixed  $values   Customer IDs and emails.
+	 * @param string $relation Relation between the values.
+	 * @return array Field query.
+	 */
+	protected function get_customer_field_query( $values, string $relation = 'OR' ): array {
+		$ids     = [];
+		$emails  = [];
+		$clauses = [];
+
+		foreach ( (array) $values as $value ) {
+			if ( is_array( $value ) ) {
+				$clauses[] = $this->get_customer_field_query( $value, 'AND' );
 			} elseif ( is_numeric( $value ) ) {
 				$ids[] = absint( $value );
 			} elseif ( is_string( $value ) && is_email( $value ) ) {
 				$emails[] = sanitize_email( $value );
+			} else {
+				// WooCommerce matches no orders for invalid values.
+				$clauses[] = $this->get_field_clause( 'orders.id', '=', 0 );
 			}
 		}
 
-		$clauses = [];
 		if ( ! empty( $ids ) ) {
-			$clauses[] = [
-				'key'     => '_customer_user',
-				'value'   => $ids,
-				'compare' => 'IN',
-				'type'    => 'NUMERIC',
-			];
+			$clauses[] = $this->get_field_clause( 'orders.customer_id', '=', $ids );
 		}
 
 		if ( ! empty( $emails ) ) {
-			$clauses[] = [
-				'key'     => '_billing_email',
-				'value'   => $emails,
-				'compare' => 'IN',
-			];
+			$clauses[] = $this->get_field_clause( 'orders.billing_email', '=', $emails );
 		}
 
-		// Add nested clauses.
-		foreach ( $nested as $nested_clause ) {
-			$clauses[] = $nested_clause;
-		}
+		$clauses = array_filter( $clauses );
 
-		// Return based on number of clauses.
-		if ( empty( $clauses ) ) {
-			return [];
-		}
-
-		if ( count( $clauses ) === 1 ) {
-			return $clauses[0];
-		}
-
-		// Multiple clauses - add relation.
-		return array_merge( [ 'relation' => $relation ], $clauses );
+		return empty( $clauses ) ? [] : array_merge( [ 'relation' => $relation ], $clauses );
 	}
 
 	/**
-	 * Builds meta query for 'created_via' parameter.
+	 * Converts the `total` argument to a field_query clause, like OrdersTableQuery::generate_total_query().
 	 *
-	 * Translates HPOS created_via to _created_via meta query.
-	 *
-	 * @return array Meta query clause.
+	 * @param mixed $total Total, or an array with the `value` and `operator`.
+	 * @return array Field query clause, empty if WooCommerce ignores the argument.
 	 */
-	protected function build_created_via_query(): array {
-		$created_via = $this->hpos_query->get( 'created_via' );
-		if ( empty( $created_via ) ) {
+	protected function get_total_field_query( $total ): array {
+		if ( is_numeric( $total ) ) {
+			$total = [ 'value' => $total ];
+		}
+
+		$total = (array) $total;
+		if ( ! isset( $total['value'] ) ) {
 			return [];
 		}
 
-		// Handle array of values.
-		if ( is_array( $created_via ) ) {
-			return [
-				'key'     => '_created_via',
-				'value'   => array_map( 'sanitize_text_field', $created_via ),
-				'compare' => 'IN',
-			];
+		$operator = $total['operator'] ?? '=';
+		$value    = $total['value'];
+		$format   = fn( $value ) => wc_format_decimal( $value, wc_get_price_decimals() );
+
+		if ( in_array( $operator, [ 'BETWEEN', 'NOT BETWEEN' ], true ) ) {
+			if ( ! is_array( $value ) || count( $value ) !== 2 ) {
+				return [];
+			}
+
+			return $this->get_field_clause( 'orders.total_amount', $operator, [ $format( $value[0] ), $format( $value[1] ) ] );
 		}
 
-		// Handle single value.
+		if ( ! in_array( $operator, [ '=', '!=', '>', '>=', '<', '<=' ], true ) || ! is_numeric( $value ) ) {
+			return [];
+		}
+
+		return $this->get_field_clause( 'orders.total_amount', $operator, $format( $value ) );
+	}
+
+	/**
+	 * Builds a field_query clause, formatting the value for its column like OrdersTableQuery::where() does.
+	 *
+	 * For example, `yes` becomes true for boolean columns.
+	 *
+	 * @param string $field   Field, as `{mapping}.{column}`.
+	 * @param string $compare Comparison operator.
+	 * @param mixed  $value   Value, or values for `IN` and `BETWEEN`.
+	 * @return array Field query clause.
+	 */
+	protected function get_field_clause( string $field, string $compare, $value ): array {
+		$type    = $this->hpos_query->get_field_mapping_info( $field )['column_type'];
+		$db_util = wc_get_container()->get( DatabaseUtil::class );
+		$format  = fn( $value ) => $db_util->format_object_value_for_db( $value, $type );
+
 		return [
-			'key'     => '_created_via',
-			'value'   => sanitize_text_field( $created_via ),
-			'compare' => '=',
-		];
-	}
-
-	/**
-	 * Builds meta_query clauses from top-level order field query vars.
-	 *
-	 * @return array List of meta query clauses.
-	 */
-	protected function build_top_level_field_meta_clauses(): array {
-		$clauses     = [];
-		$seen_keys   = [];
-		$allow_empty = [ 'customer_note' ];
-
-		foreach ( $this->get_order_field_to_meta_key_map() as $field => $meta_key ) {
-			if ( ! array_key_exists( $field, $this->query_args ) ) {
-				continue;
-			}
-
-			// Avoid duplicate clauses when multiple aliases map to the same meta key.
-			if ( isset( $seen_keys[ $meta_key ] ) ) {
-				continue;
-			}
-
-			$value = $this->query_args[ $field ];
-			if ( null === $value || [] === $value ) {
-				continue;
-			}
-
-			if ( '' === $value && ! in_array( $field, $allow_empty, true ) ) {
-				continue;
-			}
-
-			$clause = $this->build_field_meta_clause( $meta_key, $value );
-			if ( empty( $clause ) ) {
-				continue;
-			}
-
-			$seen_keys[ $meta_key ] = true;
-			$clauses[]              = $clause;
-		}
-
-		return $clauses;
-	}
-
-	/**
-	 * Builds a meta_query clause for a top-level order field value.
-	 *
-	 * @param string $meta_key Indexed meta key.
-	 * @param mixed  $value    Query value.
-	 * @return array Meta query clause.
-	 */
-	protected function build_field_meta_clause( string $meta_key, $value ): array {
-		$numeric_keys = [
-			'_order_total',
-			'_order_shipping',
-			'_cart_discount',
-			'_cart_discount_tax',
-			'_order_shipping_tax',
-			'_order_tax',
-		];
-
-		// Support WooCommerce total operator syntax: [ 'value' => 10, 'operator' => '>' ].
-		if (
-			is_array( $value )
-			&& array_key_exists( 'value', $value )
-			&& ( isset( $value['operator'] ) || isset( $value['compare'] ) )
-		) {
-			$operator = $value['operator'] ?? $value['compare'];
-			$clause   = [
-				'key'     => $meta_key,
-				'value'   => $value['value'],
-				'compare' => $operator,
-			];
-
-			if ( in_array( $meta_key, $numeric_keys, true ) ) {
-				$clause['type'] = 'DECIMAL';
-			}
-
-			return $clause;
-		}
-
-		$clause = [
-			'key'     => $meta_key,
-			'value'   => $value,
-			'compare' => is_array( $value ) ? 'IN' : '=',
-		];
-
-		if ( in_array( $meta_key, $numeric_keys, true ) ) {
-			$clause['type'] = 'DECIMAL';
-		}
-
-		return $clause;
-	}
-
-	/**
-	 * Translates HPOS field_query to a meta_query tree.
-	 *
-	 * @return array Meta query array.
-	 */
-	protected function build_field_query_meta_query(): array {
-		$field_query = $this->query_args['field_query'] ?? null;
-		if ( empty( $field_query ) || ! is_array( $field_query ) ) {
-			return [];
-		}
-
-		return $this->translate_field_query( $field_query );
-	}
-
-	/**
-	 * Recursively translates a field_query tree to meta_query.
-	 *
-	 * @param array $field_query Field query.
-	 * @return array Meta query.
-	 */
-	protected function translate_field_query( array $field_query ): array {
-		$translated = [];
-
-		foreach ( $field_query as $key => $clause ) {
-			if ( 'relation' === $key ) {
-				$translated['relation'] = $clause;
-				continue;
-			}
-
-			if ( ! is_array( $clause ) ) {
-				continue;
-			}
-
-			if ( ! isset( $clause['field'] ) ) {
-				$nested = $this->translate_field_query( $clause );
-				if ( ! empty( $nested ) ) {
-					$translated[] = $nested;
-				}
-				continue;
-			}
-
-			$meta_clause = $this->field_clause_to_meta_clause( $clause );
-			if ( ! empty( $meta_clause ) ) {
-				$translated[] = $meta_clause;
-			}
-		}
-
-		return $translated;
-	}
-
-	/**
-	 * Converts a single field_query clause to a meta_query clause.
-	 *
-	 * @param array $clause Field query clause.
-	 * @return array Meta query clause.
-	 */
-	protected function field_clause_to_meta_clause( array $clause ): array {
-		$field = $clause['field'] ?? '';
-		if ( '' === $field ) {
-			return [];
-		}
-
-		$meta_key = $this->map_order_field_to_meta_key( $field );
-		if ( ! $meta_key ) {
-			return [];
-		}
-
-		$meta_clause = [
-			'key' => $meta_key,
-		];
-
-		if ( array_key_exists( 'value', $clause ) ) {
-			$meta_clause['value'] = $clause['value'];
-		}
-
-		if ( ! empty( $clause['compare'] ) ) {
-			$meta_clause['compare'] = $clause['compare'];
-		}
-
-		if ( ! empty( $clause['type'] ) ) {
-			$meta_clause['type'] = $clause['type'];
-		}
-
-		return $meta_clause;
-	}
-
-	/**
-	 * Maps an order field name to its post meta key.
-	 *
-	 * @param string $field Order field name.
-	 * @return string|null Meta key or null if unmapped.
-	 */
-	protected function map_order_field_to_meta_key( string $field ): ?string {
-		$map = $this->get_order_field_to_meta_key_map();
-
-		return $map[ $field ] ?? '_' . $field;
-	}
-
-	/**
-	 * Returns the order field to meta key map.
-	 */
-	protected function get_order_field_to_meta_key_map(): array {
-		return [
-			'order_key'             => '_order_key',
-			'billing_first_name'    => '_billing_first_name',
-			'billing_last_name'     => '_billing_last_name',
-			'billing_company'       => '_billing_company',
-			'billing_address_1'     => '_billing_address_1',
-			'billing_address_2'     => '_billing_address_2',
-			'billing_city'          => '_billing_city',
-			'billing_state'         => '_billing_state',
-			'billing_postcode'      => '_billing_postcode',
-			'billing_country'       => '_billing_country',
-			'billing_email'         => '_billing_email',
-			'billing_phone'         => '_billing_phone',
-			'shipping_first_name'   => '_shipping_first_name',
-			'shipping_last_name'    => '_shipping_last_name',
-			'shipping_company'      => '_shipping_company',
-			'shipping_address_1'    => '_shipping_address_1',
-			'shipping_address_2'    => '_shipping_address_2',
-			'shipping_city'         => '_shipping_city',
-			'shipping_state'        => '_shipping_state',
-			'shipping_postcode'     => '_shipping_postcode',
-			'shipping_country'      => '_shipping_country',
-			'shipping_phone'        => '_shipping_phone',
-			'payment_method'        => '_payment_method',
-			'payment_method_title'  => '_payment_method_title',
-			'transaction_id'        => '_transaction_id',
-			'total'                 => '_order_total',
-			'order_total'           => '_order_total',
-			'total_amount'          => '_order_total',
-			'shipping_total'        => '_order_shipping',
-			'order_shipping'        => '_order_shipping',
-			'shipping_total_amount' => '_order_shipping',
-			'discount_total'        => '_cart_discount',
-			'cart_discount'         => '_cart_discount',
-			'discount_total_amount' => '_cart_discount',
-			'discount_tax'          => '_cart_discount_tax',
-			'cart_discount_tax'     => '_cart_discount_tax',
-			'discount_tax_amount'   => '_cart_discount_tax',
-			'shipping_tax'          => '_order_shipping_tax',
-			'order_shipping_tax'    => '_order_shipping_tax',
-			'shipping_tax_amount'   => '_order_shipping_tax',
-			'cart_tax'              => '_order_tax',
-			'order_tax'             => '_order_tax',
-			'tax_amount'            => '_order_tax',
-			'currency'              => '_order_currency',
-			'order_currency'        => '_order_currency',
-			'version'               => '_order_version',
-			'woocommerce_version'   => '_order_version',
-			'order_version'         => '_order_version',
-			'prices_include_tax'    => '_prices_include_tax',
-			'customer_ip_address'   => '_customer_ip_address',
-			'ip_address'            => '_customer_ip_address',
-			'customer_user_agent'   => '_customer_user_agent',
-			'user_agent'            => '_customer_user_agent',
-			'customer_note'         => '_customer_note',
-			'customer_id'           => '_customer_user',
-			'customer_user'         => '_customer_user',
+			'field'   => $field,
+			'value'   => is_array( $value ) ? array_map( $format, $value ) : $format( $value ),
+			'compare' => $compare,
 		];
 	}
 }

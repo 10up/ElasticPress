@@ -68,6 +68,7 @@ class OrdersHPOS {
 		add_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ], 10, 2 );
 		add_filter( 'woocommerce_order_query', [ $this, 'add_elasticsearch_success_to_orders' ], 10, 2 );
 		add_filter( 'ep_woocommerce_skip_hpos_query_integration', [ $this, 'skip_query_integration' ], 10, 2 );
+		add_filter( 'ep_post_filters', [ $this, 'add_hpos_filters' ], 10, 2 );
 	}
 
 	/**
@@ -86,6 +87,7 @@ class OrdersHPOS {
 		remove_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ] );
 		remove_filter( 'woocommerce_order_query', [ $this, 'add_elasticsearch_success_to_orders' ] );
 		remove_filter( 'ep_woocommerce_skip_hpos_query_integration', [ $this, 'skip_query_integration' ] );
+		remove_filter( 'ep_post_filters', [ $this, 'add_hpos_filters' ] );
 	}
 
 	/**
@@ -216,7 +218,6 @@ class OrdersHPOS {
 
 		foreach ( $meta_key_to_props as $meta_key => $prop ) {
 			$value = $order->{"get_$prop"}( 'edit' );
-			$value = is_string( $value ) ? wp_slash( $value ) : $value;
 			switch ( $prop ) {
 				case 'date_paid':
 				case 'date_completed':
@@ -269,10 +270,7 @@ class OrdersHPOS {
 		];
 
 		foreach ( $address_props as $meta_key => $prop ) {
-			$value = $order->{"get_$prop"}( 'edit' );
-			$value = is_string( $value ) ? wp_slash( $value ) : $value;
-
-			$meta_data[ $meta_key ] = [ $value ];
+			$meta_data[ $meta_key ] = [ $order->{"get_$prop"}( 'edit' ) ];
 		}
 
 		$meta_data['_billing_address_index']  = [ $order->get_meta( '_billing_address_index', true ) ];
@@ -326,7 +324,6 @@ class OrdersHPOS {
 
 		foreach ( $meta_key_to_props as $meta_key => $prop ) {
 			$value = $refund->{"get_$prop"}( 'edit' );
-			$value = is_string( $value ) ? wp_slash( $value ) : $value;
 
 			// Handle boolean values for refunded_payment.
 			if ( 'refunded_payment' === $prop && is_bool( $value ) ) {
@@ -335,6 +332,16 @@ class OrdersHPOS {
 
 			$meta_data[ $meta_key ] = [ $value ];
 		}
+
+		$meta_data['_order_total']        = [ $refund->get_total( 'edit' ) ];
+		$meta_data['_order_shipping']     = [ $refund->get_shipping_total( 'edit' ) ];
+		$meta_data['_cart_discount']      = [ $refund->get_discount_total( 'edit' ) ];
+		$meta_data['_cart_discount_tax']  = [ $refund->get_discount_tax( 'edit' ) ];
+		$meta_data['_order_shipping_tax'] = [ $refund->get_shipping_tax( 'edit' ) ];
+		$meta_data['_order_tax']          = [ $refund->get_cart_tax( 'edit' ) ];
+		$meta_data['_order_currency']     = [ $refund->get_currency( 'edit' ) ];
+		$meta_data['_order_version']      = [ $refund->get_version( 'edit' ) ];
+		$meta_data['_prices_include_tax'] = [ wc_bool_to_string( $refund->get_prices_include_tax( 'edit' ) ) ];
 
 		return $meta_data;
 	}
@@ -440,6 +447,22 @@ class OrdersHPOS {
 		}
 
 		return $skip;
+	}
+
+	/**
+	 * Add the translated HPOS date_query and field_query to the Elasticsearch filters.
+	 *
+	 * @since 5.4.0
+	 * @param array $filters Current filters.
+	 * @param array $args    WP_Query args.
+	 * @return array
+	 */
+	public function add_hpos_filters( $filters, $args ) {
+		foreach ( $args['ep_hpos_filters'] ?? [] as $name => $filter ) {
+			$filters[ "ep_hpos_{$name}" ] = $filter;
+		}
+
+		return $filters;
 	}
 
 	/**
