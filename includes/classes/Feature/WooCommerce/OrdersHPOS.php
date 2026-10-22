@@ -62,7 +62,7 @@ class OrdersHPOS {
 		add_action( 'woocommerce_trash_order', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_untrash_order', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_delete_order', [ $this, 'delete_order' ] );
-		add_action( 'woocommerce_refund_deleted', [ $this, 'delete_order' ] );
+		add_action( 'woocommerce_delete_order_refund', [ $this, 'delete_order' ] );
 		add_action( 'woocommerce_before_delete_order', [ $this, 'delete_order_refunds' ] );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ], 10, 2 );
 		add_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ], 10, 2 );
@@ -81,7 +81,7 @@ class OrdersHPOS {
 		remove_action( 'woocommerce_trash_order', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_untrash_order', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_delete_order', [ $this, 'delete_order' ] );
-		remove_action( 'woocommerce_refund_deleted', [ $this, 'delete_order' ] );
+		remove_action( 'woocommerce_delete_order_refund', [ $this, 'delete_order' ] );
 		remove_action( 'woocommerce_before_delete_order', [ $this, 'delete_order_refunds' ] );
 		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ] );
 		remove_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ] );

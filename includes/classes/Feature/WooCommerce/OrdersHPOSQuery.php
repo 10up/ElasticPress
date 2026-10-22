@@ -116,9 +116,10 @@ class OrdersHPOSQuery {
 			$args['search_fields'] = $this->get_search_fields();
 		}
 
-		$offset = $this->hpos_query->get( 'offset' );
-		if ( ! empty( $offset ) ) {
-			$args['offset'] = absint( $offset );
+		// Like WooCommerce, an offset (even 0) takes precedence over the page, but only when a valid limit is set.
+		if ( $this->hpos_query->arg_isset( 'offset' ) && is_numeric( $this->hpos_query->get( 'limit' ) ) && (int) $this->hpos_query->get( 'limit' ) >= -1 ) {
+			$args['offset'] = absint( $this->hpos_query->get( 'offset' ) );
+			$args['paged']  = 1;
 		}
 
 		// Handle HPOS meta_query.

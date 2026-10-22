@@ -1604,6 +1604,52 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $order_ids[1], $orders[0]->get_id() );
+
+		// Like WooCommerce, the offset takes precedence over the page, even if it is 0.
+		foreach ( [ 1, 0 ] as $offset ) {
+			$args = [
+				'limit'   => 1,
+				'page'    => 3,
+				'offset'  => $offset,
+				'orderby' => 'date',
+				'order'   => 'ASC',
+			];
+
+			$this->orders->clear_elasticsearch_success_order_ids();
+			$orders = wc_get_orders( $args );
+
+			$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+			$this->assertEquals( [ $order_ids[ $offset ] ], array_map( fn( $order ) => $order->get_id(), $orders ) );
+			$this->assertEquals(
+				wc_get_orders(
+					$args + [
+						'return'       => 'ids',
+						'ep_integrate' => false,
+					]
+				),
+				array_map( fn( $order ) => $order->get_id(), $orders )
+			);
+		}
+
+		// Without a limit, WooCommerce ignores the offset.
+		$es_result     = null;
+		$get_es_result = function ( $result ) use ( &$es_result ) {
+			$es_result = $result;
+			return $result;
+		};
+		add_filter( 'woocommerce_hpos_pre_query', $get_es_result, 20 );
+
+		$query = new \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery(
+			[
+				'type'   => 'shop_order',
+				'offset' => 1,
+			]
+		);
+
+		remove_filter( 'woocommerce_hpos_pre_query', $get_es_result, 20 );
+
+		$this->assertNotNull( $es_result );
+		$this->assertEqualsCanonicalizing( $order_ids, array_map( 'absint', $query->orders ) );
 	}
 
 	/**
@@ -2721,9 +2767,8 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		// Delete a only one refund.
+		// Delete only one refund.
 		$refund_1->delete( true );
-		do_action( 'woocommerce_refund_deleted', $refund_id_1, $shop_order_id );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$this->assertEmpty( $post_indexable->get( $refund_id_1 ) );
