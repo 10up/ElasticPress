@@ -1001,3 +1001,153 @@ function get_settings_field_types(): array {
 	 */
 	return apply_filters( 'ep_settings_field_types', $types );
 }
+
+/**
+ * Get the IDs of the objects attached to one or more terms of a taxonomy.
+ *
+ * Runs the same query as get_objects_in_term(), paginated by object ID, so terms with many
+ * objects do not load every relationship row (and cache the full list) in memory at once.
+ *
+ * @since 5.4.0
+ * @param int[]  $term_ids Term IDs.
+ * @param string $taxonomy Taxonomy name.
+ * @param int    $limit    Maximum number of object IDs to return, or 0 for all of them. When several
+ *                         terms are queried, the IDs returned up to the limit are not necessarily the lowest.
+ * @return int[] Object IDs in ascending order, without duplicates.
+ */
+function get_term_object_ids( array $term_ids, string $taxonomy, int $limit = 0 ): array {
+	global $wpdb;
+
+	$term_ids = array_values( array_unique( array_map( 'absint', $term_ids ) ) );
+	if ( empty( $term_ids ) ) {
+		return [];
+	}
+
+	/**
+	 * Filter the number of object IDs fetched per query when getting a term's object IDs
+	 *
+	 * @hook ep_term_object_ids_chunk_size
+	 * @param  {int}    $chunk_size Number of object IDs fetched per query
+	 * @param  {int}    $term_id    Term ID (the first one, when getting the objects of several terms)
+	 * @param  {string} $taxonomy   Term taxonomy
+	 * @since  5.4.0
+	 * @return {int} New chunk size
+	 */
+	$chunk_size = max( 1, (int) apply_filters( 'ep_term_object_ids_chunk_size', 10000, $term_ids[0], $taxonomy ) );
+
+	$batches = [ $term_ids ];
+
+	/*
+	 * A query across several terms can't follow the index order, so each page sorts all of the
+	 * batch's remaining rows. Group the terms into batches of about one page, using their counts.
+	 * The counts only affect the grouping: a batch with more objects than expected (counts only
+	 * include published objects, and can be stale) is still fetched in full, with more pages.
+	 * Batches are also capped at 100 terms, which bounds that worst case.
+	 */
+	if ( count( $term_ids ) > 1 ) {
+		$placeholders = implode( ', ', array_fill( 0, count( $term_ids ), '%d' ) );
+		$counts       = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare(
+				"SELECT term_id, count FROM {$wpdb->term_taxonomy} WHERE term_id IN ( {$placeholders} ) AND taxonomy = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				array_merge( $term_ids, [ $taxonomy ] )
+			),
+			OBJECT_K
+		);
+
+		$batches      = [];
+		$batch        = [];
+		$object_count = 0;
+
+		foreach ( $term_ids as $term_id ) {
+			// Not a term of this taxonomy, so it has no objects.
+			if ( ! isset( $counts[ $term_id ] ) ) {
+				continue;
+			}
+
+			$term_count = (int) $counts[ $term_id ]->count;
+
+			if ( ! empty( $batch ) && ( $object_count + $term_count > $chunk_size || count( $batch ) >= 100 ) ) {
+				$batches[]    = $batch;
+				$batch        = [];
+				$object_count = 0;
+			}
+
+			$batch[]       = $term_id;
+			$object_count += $term_count;
+		}
+
+		if ( ! empty( $batch ) ) {
+			$batches[] = $batch;
+		}
+	}
+
+	// Batches are sorted separately and can share objects. Sort and drop the repeats in place,
+	// without a second copy of the list.
+	$deduplicate       = count( $batches ) > 1;
+	$remove_duplicates = static function ( array &$ids ) {
+		sort( $ids );
+
+		$count = count( $ids );
+		$write = 0;
+		for ( $read = 0; $read < $count; $read++ ) {
+			if ( 0 === $write || $ids[ $read ] !== $ids[ $write - 1 ] ) {
+				$ids[ $write ] = $ids[ $read ];
+				++$write;
+			}
+		}
+
+		for ( $i = $write; $i < $count; $i++ ) {
+			array_pop( $ids );
+		}
+	};
+
+	$object_ids = [];
+
+	foreach ( $batches as $batch ) {
+		// An object attached to several terms of the batch would be returned once per term.
+		$distinct     = count( $batch ) > 1 ? 'DISTINCT ' : '';
+		$placeholders = implode( ', ', array_fill( 0, count( $batch ), '%d' ) );
+		$last_id      = 0;
+
+		do {
+			$page_size = $limit ? min( $chunk_size, $limit - count( $object_ids ) ) : $chunk_size;
+
+			// $distinct and $placeholders are fixed strings; every value goes through prepare().
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+			$chunk = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->prepare(
+					"SELECT {$distinct}tr.object_id FROM {$wpdb->term_relationships} AS tr
+					INNER JOIN {$wpdb->term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+					WHERE tt.term_id IN ( {$placeholders} ) AND tt.taxonomy = %s AND tr.object_id > %d
+					ORDER BY tr.object_id ASC LIMIT %d",
+					array_merge( $batch, [ $taxonomy, $last_id, $page_size ] )
+				)
+			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+
+			foreach ( $chunk as $object_id ) {
+				$object_ids[] = (int) $object_id;
+			}
+
+			$chunk_count = count( $chunk );
+			$last_id     = (int) end( $chunk );
+
+			if ( $limit && count( $object_ids ) >= $limit ) {
+				// Repeats from earlier batches don't count towards the limit.
+				if ( $deduplicate ) {
+					$remove_duplicates( $object_ids );
+				}
+
+				if ( count( $object_ids ) >= $limit ) {
+					break 2;
+				}
+			}
+		} while ( $chunk_count === $page_size );
+	}
+
+	if ( $deduplicate ) {
+		$remove_duplicates( $object_ids );
+	}
+
+	return $object_ids;
+}
