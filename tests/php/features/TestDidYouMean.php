@@ -197,13 +197,12 @@ class TestDidYouMean extends BaseTestCase {
 		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->generate_mapping();
 
 		$expected_result = [
-			'shingle' =>
-			[
-				'type'     => 'text',
-				'analyzer' => 'trigram',
-			],
+			'type'     => 'text',
+			'analyzer' => 'trigram',
 		];
-		$this->assertSame( $expected_result, $mapping['mappings']['properties']['post_content']['fields'] );
+		$this->assertSame( [ 'ep_did_you_mean' ], $mapping['mappings']['properties']['post_content']['copy_to'] );
+		$this->assertSame( [ 'ep_did_you_mean' ], $mapping['mappings']['properties']['post_title']['copy_to'] );
+		$this->assertSame( $expected_result, $mapping['mappings']['properties']['ep_did_you_mean'] );
 	}
 
 	/**
@@ -220,13 +219,58 @@ class TestDidYouMean extends BaseTestCase {
 		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->generate_mapping();
 
 		$expected_result = [
-			'shingle' =>
-			[
-				'type'     => 'text',
-				'analyzer' => 'trigram',
-			],
+			'type'     => 'text',
+			'analyzer' => 'trigram',
 		];
-		$this->assertSame( $expected_result, $mapping['mappings']['post']['properties']['post_content']['fields'] );
+		$this->assertSame( [ 'ep_did_you_mean' ], $mapping['mappings']['post']['properties']['post_content']['copy_to'] );
+		$this->assertSame( [ 'ep_did_you_mean' ], $mapping['mappings']['post']['properties']['post_title']['copy_to'] );
+		$this->assertSame( $expected_result, $mapping['mappings']['post']['properties']['ep_did_you_mean'] );
+	}
+
+	/**
+	 * Tests that ES returns a suggestion based on post title when content does not contain the term.
+	 */
+	public function testEsSearchSuggestionFromTitle() {
+		$this->ep_factory->post->create(
+			[
+				'post_title'   => 'Sleek Cotton Shirt',
+				'post_content' => '',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'shir',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 'shirt', $query->suggested_terms['options'][0]['text'] );
+	}
+
+	/**
+	 * Tests that ES returns a suggestion when content is present but title is the source.
+	 */
+	public function testEsSearchSuggestionFromTitleWithContent() {
+		$this->ep_factory->post->create(
+			[
+				'post_title'   => 'Sleek Cotton Shirt',
+				'post_content' => 'Some generic content',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'shir',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 'shirt', $query->suggested_terms['options'][0]['text'] );
 	}
 
 	/**
