@@ -11,6 +11,7 @@ namespace ElasticPress\Indexable\Term;
 use WP_Term_Query;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Indexable;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -545,45 +546,7 @@ class Term extends Indexable {
 	 * @return array
 	 */
 	public function prepare_object_ids( $term_id, $taxonomy ) {
-		global $wpdb;
-
-		/**
-		 * Filter the number of object IDs fetched per query when preparing a term's object IDs
-		 *
-		 * @hook ep_term_object_ids_chunk_size
-		 * @param  {int}    $chunk_size Number of object IDs fetched per query
-		 * @param  {int}    $term_id    Term ID
-		 * @param  {string} $taxonomy   Term taxonomy
-		 * @since  5.4.0
-		 * @return {int} New chunk size
-		 */
-		$chunk_size = max( 1, (int) apply_filters( 'ep_term_object_ids_chunk_size', 10000, $term_id, $taxonomy ) );
-
-		$object_ids = [];
-		$last_id    = 0;
-
-		do {
-			// Same query as get_objects_in_term(), paginated by object ID.
-			$chunk = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-				$wpdb->prepare(
-					"SELECT tr.object_id FROM {$wpdb->term_relationships} AS tr
-					INNER JOIN {$wpdb->term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-					WHERE tt.term_id = %d AND tt.taxonomy = %s AND tr.object_id > %d
-					ORDER BY tr.object_id ASC LIMIT %d",
-					$term_id,
-					$taxonomy,
-					$last_id,
-					$chunk_size
-				)
-			);
-
-			foreach ( $chunk as $object_id ) {
-				$object_ids[] = (int) $object_id;
-			}
-
-			$chunk_count = count( $chunk );
-			$last_id     = (int) end( $chunk );
-		} while ( $chunk_count === $chunk_size );
+		$object_ids = Utils\get_term_object_ids( [ $term_id ], (string) $taxonomy );
 
 		return [ 'value' => ! empty( $object_ids ) ? $object_ids : 0 ];
 	}

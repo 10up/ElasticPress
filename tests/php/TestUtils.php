@@ -681,4 +681,67 @@ class TestUtils extends BaseTestCase {
 
 		remove_filter( 'ep_settings_field_types', $remove_combobox );
 	}
+
+	/**
+	 * Tests get_term_object_ids() returns each object once, in ascending order, across several terms
+	 *
+	 * @since 5.4.0
+	 * @group utils
+	 */
+	public function test_get_term_object_ids_for_several_terms() {
+		$term_1 = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
+		$term_2 = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
+
+		$in_both   = $this->factory->post->create();
+		$in_term_2 = $this->factory->post->create();
+		$in_term_1 = $this->factory->post->create();
+		wp_set_object_terms( $in_both, [ $term_1, $term_2 ], 'post_tag' );
+		wp_set_object_terms( $in_term_2, [ $term_2 ], 'post_tag' );
+		wp_set_object_terms( $in_term_1, [ $term_1 ], 'post_tag' );
+
+		$expected = [ $in_both, $in_term_2, $in_term_1 ];
+
+		// Both terms in one query
+		$this->assertSame( $expected, Utils\get_term_object_ids( [ $term_1, $term_2 ], 'post_tag' ) );
+
+		// One object ID per query, so each term is queried separately and their results are merged
+		add_filter(
+			'ep_term_object_ids_chunk_size',
+			function () {
+				return 1;
+			}
+		);
+
+		$this->assertSame( $expected, Utils\get_term_object_ids( [ $term_1, $term_2 ], 'post_tag' ) );
+		$this->assertSame( [], Utils\get_term_object_ids( [ $term_1 ], 'category' ) );
+		$this->assertSame( [], Utils\get_term_object_ids( [], 'post_tag' ) );
+	}
+
+	/**
+	 * Tests get_term_object_ids() stops at the limit, counting objects shared by several terms once
+	 *
+	 * @since 5.4.0
+	 * @group utils
+	 */
+	public function test_get_term_object_ids_limit() {
+		$term_1 = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
+		$term_2 = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
+
+		$post_ids = $this->factory->post->create_many( 4 );
+		wp_set_object_terms( $post_ids[0], [ $term_1, $term_2 ], 'post_tag' );
+		wp_set_object_terms( $post_ids[1], [ $term_1, $term_2 ], 'post_tag' );
+		wp_set_object_terms( $post_ids[2], [ $term_2 ], 'post_tag' );
+		wp_set_object_terms( $post_ids[3], [ $term_2 ], 'post_tag' );
+
+		// One object ID per query, so each term is its own batch and the second one repeats the first one's objects
+		add_filter(
+			'ep_term_object_ids_chunk_size',
+			function () {
+				return 1;
+			}
+		);
+
+		$this->assertSame( array_slice( $post_ids, 0, 3 ), Utils\get_term_object_ids( [ $term_1, $term_2 ], 'post_tag', 3 ) );
+		$this->assertSame( $post_ids, Utils\get_term_object_ids( [ $term_1, $term_2 ], 'post_tag' ) );
+	}
 }
