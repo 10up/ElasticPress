@@ -9,13 +9,9 @@ import { useState, WPElement } from '@wordpress/element';
 import { useApiSearch } from '../../api-search';
 import { facets } from '../config';
 import Facet from './facets/facet';
-import SearchTermFacet from './facets/search-term-facet';
+import Header from './layout/header';
 import Results from './layout/results';
 import Sidebar from './layout/sidebar';
-import Toolbar from './layout/toolbar';
-import ActiveConstraints from './tools/active-constraints';
-import ClearConstraints from './tools/clear-constraints';
-import SidebarToggle from './tools/sidebar-toggle';
 import Sort from './tools/sort';
 
 /**
@@ -39,15 +35,7 @@ export default () => {
 
 	return (
 		<div className={`ep-search-page ${isLoading ? 'is-loading' : ''}`}>
-			<div className="ep-search-page__header">
-				<SearchTermFacet />
-
-				<Toolbar>
-					<ActiveConstraints />
-					<ClearConstraints />
-					<SidebarToggle isOpen={isSidebarOpen} onClick={onClickSidebarToggle} />
-				</Toolbar>
-			</div>
+			<Header isSidebarOpen={isSidebarOpen} onClickSidebarToggle={onClickSidebarToggle} />
 
 			<div className="ep-search-page__body">
 				<Sidebar isOpen={isSidebarOpen}>

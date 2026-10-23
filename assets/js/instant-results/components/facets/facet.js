@@ -2,6 +2,7 @@
  * WordPress dependencies.
  */
 import { WPElement } from '@wordpress/element';
+import { applyFilters } from '@wordpress/hooks';
 
 /**
  * Internal dependencies.
@@ -24,16 +25,36 @@ import TaxonomyTermsFacet from './taxonomy-terms-facet';
 export default ({ index, label, name, postTypes, type }) => {
 	const defaultIsOpen = index < 2;
 
+	/**
+	 * Filter the filter label.
+	 *
+	 * @filter ep.InstantResults.filter.label
+	 * @since 5.4.0
+	 *
+	 * @param {string} label Filter label.
+	 * @param {string} name Filter name.
+	 * @param {string} type Filter type.
+	 * @param {string[]} postTypes Filter post types.
+	 * @returns {string} Filtered filter label.
+	 */
+	const filteredLabel = applyFilters(
+		'ep.InstantResults.filter.label',
+		label,
+		name,
+		type,
+		postTypes,
+	);
+
 	switch (type) {
 		case 'post_type':
-			return <PostTypeFacet defaultIsOpen={defaultIsOpen} label={label} />;
+			return <PostTypeFacet defaultIsOpen={defaultIsOpen} label={filteredLabel} />;
 		case 'price_range':
-			return <PriceRangeFacet defaultIsOpen={defaultIsOpen} label={label} />;
+			return <PriceRangeFacet defaultIsOpen={defaultIsOpen} label={filteredLabel} />;
 		case 'taxonomy':
 			return (
 				<TaxonomyTermsFacet
 					defaultIsOpen={defaultIsOpen}
-					label={label}
+					label={filteredLabel}
 					name={name}
 					postTypes={postTypes}
 				/>
