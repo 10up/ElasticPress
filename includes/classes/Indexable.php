@@ -258,6 +258,30 @@ abstract class Indexable {
 	}
 
 	/**
+	 * Log an error thrown while preparing a document and build its sync error.
+	 *
+	 * PHP no longer reports caught errors, so this logs the full error and keeps its file, line, and stack trace.
+	 *
+	 * @since 5.4.0
+	 * @param \Throwable $th        Error thrown while preparing the document.
+	 * @param int        $object_id ID of the object being prepared.
+	 * @return array Sync error with the type, the reason (message with file and line), and the stack trace.
+	 */
+	protected function handle_prepare_document_error( \Throwable $th, $object_id ): array {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( sprintf( 'ElasticPress: could not prepare %s %d for indexing. %s', $this->slug, $object_id, $th ) );
+
+		// Absolute paths are long and expose the server layout in the sync log.
+		$abspaths = [ ABSPATH, wp_normalize_path( ABSPATH ) ];
+
+		return [
+			'type'        => 'prepare_document_error',
+			'reason'      => sprintf( '%s in %s:%d', $th->getMessage(), str_replace( $abspaths, '', $th->getFile() ), $th->getLine() ),
+			'stack_trace' => str_replace( $abspaths, '', $th->getTraceAsString() ),
+		];
+	}
+
+	/**
 	 * Index an object within the indexable. This calls prepare_document
 	 *
 	 * @param  int     $object_id Object to index.
@@ -282,6 +306,8 @@ abstract class Indexable {
 		try {
 			$document = $this->prepare_document( $object_id );
 		} catch ( \Throwable $th ) {
+			// The error is not returned here, but it is still written to the PHP error log.
+			$this->handle_prepare_document_error( $th, $object_id );
 			return false;
 		}
 
@@ -380,10 +406,7 @@ abstract class Indexable {
 				$non_es_errors[] = [
 					'index' => [
 						'_id'   => absint( $object_id ),
-						'error' => [
-							'type'   => 'prepare_document_error',
-							'reason' => $th->getMessage(),
-						],
+						'error' => $this->handle_prepare_document_error( $th, $object_id ),
 					],
 				];
 				continue;
@@ -452,10 +475,7 @@ abstract class Indexable {
 				$non_es_errors[] = [
 					'index' => [
 						'_id'   => absint( $object_id ),
-						'error' => [
-							'type'   => 'prepare_document_error',
-							'reason' => $th->getMessage(),
-						],
+						'error' => $this->handle_prepare_document_error( $th, $object_id ),
 					],
 				];
 				continue;
