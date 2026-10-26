@@ -558,4 +558,47 @@ class TestElasticsearch extends BaseTestCase {
 
 		remove_filter( 'ep_get_query_log', $add_query );
 	}
+
+	/**
+	 * Test get_total_hits_from_query() with and without `hits.total`
+	 *
+	 * @since 5.4.0
+	 * @group elasticsearch
+	 */
+	public function test_get_total_hits_from_query() {
+		$elasticsearch = new \ElasticPress\Elasticsearch();
+
+		$this->assertSame( 0, $elasticsearch->get_total_hits_from_query( [] ) );
+		$this->assertSame( 0, $elasticsearch->get_total_hits_from_query( [ 'hits' => [ 'total' => 0 ] ] ) );
+		$this->assertSame(
+			25,
+			$elasticsearch->get_total_hits_from_query(
+				[
+					'hits' => [
+						'total' => 25,
+						'hits'  => [ [], [] ],
+					],
+				]
+			)
+		);
+	}
+
+	/**
+	 * Test get_total_hits_from_query() when `track_total_hits` is false and `hits.total` is omitted
+	 *
+	 * @since 5.4.0
+	 * @group elasticsearch
+	 */
+	public function test_get_total_hits_from_query_without_total() {
+		$elasticsearch = new \ElasticPress\Elasticsearch();
+
+		$response = [
+			'hits' => [
+				'max_score' => 1.0,
+				'hits'      => [ [ '_id' => '1' ], [ '_id' => '2' ] ],
+			],
+		];
+
+		$this->assertSame( 0, $elasticsearch->get_total_hits_from_query( $response ) );
+	}
 }
