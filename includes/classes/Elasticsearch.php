@@ -516,6 +516,10 @@ class Elasticsearch {
 			return 0;
 		}
 
+		if ( ! isset( $response['hits']['total'] ) ) {
+			return 0;
+		}
+
 		return $response['hits']['total'];
 	}
 

@@ -8463,6 +8463,125 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests a term edit over the per-cycle limit only fetches enough object IDs to know it is skipped
+	 *
+	 * @since 5.4.0
+	 * @group post
+	 */
+	public function test_edited_term_over_per_page_limit_fetches_only_enough_object_ids() {
+		for ( $i = 0; $i < 4; $i++ ) {
+			$this->ep_factory->post->create( [ 'tags_input' => [ 'test-tag' ] ] );
+		}
+
+		$test_tag     = get_term_by( 'name', 'test-tag', 'post_tag' );
+		$sync_manager = ElasticPress\Indexables::factory()->get( 'post' )->sync_manager;
+		$sync_manager->reset_sync_queue();
+
+		// Only the registered sync manager handles the edit, so its queries can be counted
+		remove_all_actions( 'edited_term' );
+		add_action( 'edited_term', [ $sync_manager, 'action_edited_term' ], 10, 3 );
+		remove_all_filters( 'ep_skip_action_edited_term' );
+
+		add_filter(
+			'ep_index_default_per_page',
+			function () {
+				return 2;
+			}
+		);
+
+		$limits = [];
+		add_filter(
+			'query',
+			function ( $query ) use ( &$limits ) {
+				if ( false !== strpos( $query, 'tr.object_id >' ) && preg_match( '/LIMIT (\d+)/', $query, $matches ) ) {
+					$limits[] = (int) $matches[1];
+				}
+				return $query;
+			}
+		);
+
+		wp_update_term( $test_tag->term_id, 'post_tag', [ 'name' => 'Different Tag Name' ] );
+
+		// One query for one more ID than the limit, then the edit is skipped
+		$this->assertSame( [ 3 ], $limits );
+		$this->assertEmpty( $sync_manager->get_sync_queue() );
+	}
+
+	/**
+	 * Tests ep_skip_action_edited_term callbacks still receive every object ID of the term
+	 *
+	 * @since 5.4.0
+	 * @group post
+	 */
+	public function test_edited_term_passes_every_object_id_to_skip_filter_callbacks() {
+		$post_ids = [];
+		for ( $i = 0; $i < 4; $i++ ) {
+			$post_ids[] = $this->ep_factory->post->create( [ 'tags_input' => [ 'test-tag' ] ] );
+		}
+
+		$test_tag     = get_term_by( 'name', 'test-tag', 'post_tag' );
+		$sync_manager = ElasticPress\Indexables::factory()->get( 'post' )->sync_manager;
+
+		remove_all_actions( 'edited_term' );
+		add_action( 'edited_term', [ $sync_manager, 'action_edited_term' ], 10, 3 );
+
+		add_filter(
+			'ep_index_default_per_page',
+			function () {
+				return 2;
+			}
+		);
+
+		$received = null;
+		add_filter(
+			'ep_skip_action_edited_term',
+			function ( $skip, $term_id, $tt_id, $taxonomy, $object_ids ) use ( &$received ) {
+				$received = $object_ids;
+				return $skip;
+			},
+			10,
+			5
+		);
+
+		wp_update_term( $test_tag->term_id, 'post_tag', [ 'name' => 'Different Tag Name' ] );
+
+		$this->assertEqualsCanonicalizing( $post_ids, $received );
+	}
+
+	/**
+	 * Tests a parent term edit reindexes the posts of its child terms when term IDs and term taxonomy IDs differ
+	 *
+	 * @since 5.4.0
+	 * @group post
+	 */
+	public function test_parent_edited_term_matches_child_terms_by_term_id() {
+		global $wpdb;
+
+		// Add a term taxonomy row so the terms created below get a term_taxonomy_id different from their term_id
+		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->term_taxonomy,
+			[
+				'term_id'     => 1,
+				'taxonomy'    => 'ep_test_offset',
+				'description' => '',
+			]
+		);
+
+		$parent = wp_insert_term( 'Parent category', 'category' );
+		$child  = wp_insert_term( 'Child category', 'category', [ 'parent' => $parent['term_id'] ] );
+		$this->assertNotEquals( $child['term_id'], $child['term_taxonomy_id'] );
+
+		$post_id = $this->ep_factory->post->create( [ 'post_category' => [ $child['term_id'] ] ] );
+
+		$sync_manager = ElasticPress\Indexables::factory()->get( 'post' )->sync_manager;
+		$sync_manager->reset_sync_queue();
+
+		wp_update_term( $parent['term_id'], 'category', [ 'name' => 'Renamed parent category' ] );
+
+		$this->assertArrayHasKey( $post_id, $sync_manager->get_sync_queue() );
+	}
+
+	/**
 	 * Tests post without meta value.
 	 *
 	 * @return void
