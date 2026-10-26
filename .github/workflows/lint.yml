@@ -17,6 +17,9 @@ on:
       - trunk # useful for hotfix releases
       - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
 
+permissions:
+  contents: read
+
 jobs:
   es_css_lint:
     name: ES and Style Lint
