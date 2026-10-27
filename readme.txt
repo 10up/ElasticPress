@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
 Tested up to: 7.1
-Stable tag:   5.4.0
+Stable tag:   5.3.6
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,7 +79,7 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
-= 5.4.0 - 2026-XX-XX =
+= 5.3.6 - 2026-XX-XX =
 
 __Added:__
 

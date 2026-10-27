@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
-## [5.4.0] - 2026-XX-XX
+## [5.3.6] - 2026-XX-XX
 
 ### Added
 * `$source_includes` parameter to `Elasticsearch::get_documents()`, to fetch only some fields of each document. Props [@felipeelia](https://github.com/felipeelia) via [#4376](https://github.com/10up/ElasticPress/pull/4376).
@@ -2445,7 +2445,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
-[5.4.0]: https://github.com/10up/ElasticPress/compare/5.3.5...5.4.0
+[5.3.6]: https://github.com/10up/ElasticPress/compare/5.3.5...5.3.6
 [5.3.5]: https://github.com/10up/ElasticPress/compare/5.3.4...5.3.5
 [5.3.4]: https://github.com/10up/ElasticPress/compare/5.3.3...5.3.4
 [5.3.3]: https://github.com/10up/ElasticPress/compare/5.3.2.2...5.3.3
