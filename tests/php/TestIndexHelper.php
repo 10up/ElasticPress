@@ -16,7 +16,7 @@ class TestIndexHelper extends BaseTestCase {
 	/**
 	 * Test that error data keeps a stack trace when messages share an error key.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group indexHelper
 	 */
 	public function test_build_message_errors_data_keeps_stack_trace_for_shared_key() {

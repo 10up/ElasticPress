@@ -1022,7 +1022,7 @@ class IndexHelper {
 	 * Output a message.
 	 *
 	 * @since 4.0.0
-	 * @since 5.4.0 Added `$stack_traces`
+	 * @since 5.3.6 Added `$stack_traces`
 	 * @param string|array $message_text Message to be outputted
 	 * @param string       $type         Type of message
 	 * @param string       $context      Context of the output
@@ -1098,7 +1098,7 @@ class IndexHelper {
 	 *
 	 * Only errors thrown while preparing a document have a stack trace.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @param array $failed_objects Failed objects
 	 * @param array $error_messages Error messages from output_index_errors(), in the same order
 	 * @return array Stack traces keyed by error message
@@ -1478,7 +1478,7 @@ class IndexHelper {
 	 * Add a message to the queue
 	 *
 	 * @since 4.7.0
-	 * @since 5.4.0 Added `$stack_traces`
+	 * @since 5.3.6 Added `$stack_traces`
 	 * @param string|array $message_text Message to be outputted
 	 * @param string       $type         Type of message
 	 * @param string       $context      Context of the output
@@ -1522,7 +1522,7 @@ class IndexHelper {
 	 * Get data for a given error message(s)
 	 *
 	 * @since 5.0.0
-	 * @since 5.4.0 Added `$stack_traces`
+	 * @since 5.3.6 Added `$stack_traces`
 	 * @param string|array $messages     Messages
 	 * @param array        $stack_traces Optional. Stack traces keyed by error message. Default empty array.
 	 * @return array

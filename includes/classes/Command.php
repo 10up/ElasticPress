@@ -1309,7 +1309,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Output the stack traces attached to the errors of a message.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @param array $message Message data from IndexHelper
 	 * @return void
 	 */

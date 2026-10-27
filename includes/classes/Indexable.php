@@ -262,7 +262,7 @@ abstract class Indexable {
 	 *
 	 * PHP no longer reports caught errors, so this logs the full error when WP_DEBUG and WP_DEBUG_LOG are on and keeps its file, line, and stack trace.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @param \Throwable $th        Error thrown while preparing the document.
 	 * @param int        $object_id ID of the object being prepared.
 	 * @return array Sync error with the type, the reason (message with file and line), and the stack trace.

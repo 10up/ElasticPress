@@ -10738,7 +10738,7 @@ class TestPost extends BaseTestCase {
 	 * Assert that bulk index items contain the error thrown by `throw_exception()`,
 	 * including where it was thrown and its stack trace.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @param int   $post_id ID of the post that failed.
 	 * @param array $items   Items returned by the bulk index methods.
 	 */
