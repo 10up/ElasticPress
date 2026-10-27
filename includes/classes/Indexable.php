@@ -273,7 +273,7 @@ abstract class Indexable {
 		 * instead of one request per object in `prepare_document()`.
 		 *
 		 * @hook ep_pre_prepare_documents
-		 * @since 5.4.0
+		 * @since 5.3.6
 		 * @param {array}  $object_ids IDs of the objects about to be prepared
 		 * @param {string} $slug       Indexable slug
 		 */

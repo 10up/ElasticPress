@@ -665,7 +665,7 @@ class TestUtils extends BaseTestCase {
 	/**
 	 * Tests the feature settings field types, and their filter.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group utils
 	 */
 	public function test_get_settings_field_types() {
@@ -685,7 +685,7 @@ class TestUtils extends BaseTestCase {
 	/**
 	 * Tests get_term_object_ids() returns each object once, in ascending order, across several terms
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group utils
 	 */
 	public function test_get_term_object_ids_for_several_terms() {
@@ -720,7 +720,7 @@ class TestUtils extends BaseTestCase {
 	/**
 	 * Tests get_term_object_ids() stops at the limit, counting objects shared by several terms once
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group utils
 	 */
 	public function test_get_term_object_ids_limit() {

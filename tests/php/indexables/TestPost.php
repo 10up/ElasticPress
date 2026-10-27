@@ -8465,7 +8465,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Tests a term edit over the per-cycle limit only fetches enough object IDs to know it is skipped
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group post
 	 */
 	public function test_edited_term_over_per_page_limit_fetches_only_enough_object_ids() {
@@ -8510,7 +8510,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Tests ep_skip_action_edited_term callbacks still receive every object ID of the term
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group post
 	 */
 	public function test_edited_term_passes_every_object_id_to_skip_filter_callbacks() {
@@ -8551,7 +8551,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Tests a parent term edit reindexes the posts of its child terms when term IDs and term taxonomy IDs differ
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group post
 	 */
 	public function test_parent_edited_term_matches_child_terms_by_term_id() {
@@ -10695,7 +10695,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Data provider for the `ep_pre_prepare_documents` test.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @return array
 	 */
 	public function pre_prepare_documents_methods_provider(): array {
@@ -10712,7 +10712,7 @@ class TestPost extends BaseTestCase {
 	 * @param string $method Indexable method to call.
 	 * @param bool   $bulk   Whether the method takes a list of IDs.
 	 * @dataProvider pre_prepare_documents_methods_provider
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group post
 	 */
 	public function test_pre_prepare_documents_action( string $method, bool $bulk ) {

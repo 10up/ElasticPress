@@ -44,7 +44,7 @@ export default ({ feature, settingsSchema }) => {
 	 *
 	 * @param {object} requires_fields An object representing the required field values for rendering.
 	 * Can contain 'conditions' object with field requirements and 'relationship' key ('AND' or 'OR').
-	 * A requirement is the value the field must have, or (since 5.4.0) an array of values the field
+	 * A requirement is the value the field must have, or (since 5.3.6) an array of values the field
 	 * may have.
 	 * @returns {boolean} Returns `true` if the control should be rendered, otherwise `false`.
 	 */
