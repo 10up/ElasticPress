@@ -260,7 +260,7 @@ abstract class Indexable {
 	/**
 	 * Log an error thrown while preparing a document and build its sync error.
 	 *
-	 * PHP no longer reports caught errors, so this logs the full error when WP_DEBUG is on and keeps its file, line, and stack trace.
+	 * PHP no longer reports caught errors, so this logs the full error when WP_DEBUG and WP_DEBUG_LOG are on and keeps its file, line, and stack trace.
 	 *
 	 * @since 5.4.0
 	 * @param \Throwable $th        Error thrown while preparing the document.
@@ -268,7 +268,7 @@ abstract class Indexable {
 	 * @return array Sync error with the type, the reason (message with file and line), and the stack trace.
 	 */
 	protected function handle_prepare_document_error( \Throwable $th, $object_id ): array {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( sprintf( 'ElasticPress: could not prepare %s %d for indexing. %s', $this->slug, $object_id, $th ) );
 		}
@@ -308,7 +308,7 @@ abstract class Indexable {
 		try {
 			$document = $this->prepare_document( $object_id );
 		} catch ( \Throwable $th ) {
-			// The error is not returned here, but it is still written to the PHP error log when WP_DEBUG is on.
+			// The error is not returned here, but it is still written to the PHP error log when WP_DEBUG and WP_DEBUG_LOG are on.
 			$this->handle_prepare_document_error( $th, $object_id );
 			return false;
 		}
