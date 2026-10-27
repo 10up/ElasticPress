@@ -326,59 +326,27 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 			await paddingButton.press('Escape');
 		}
 
-		if (process.env.WP_VERSION === '6.2') {
-			await page.locator('.components-button[aria-label="Unlink sides"]').click();
+		const verticalInputsWrapper = dimensionsPanel
+			.locator('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
+			.first();
 
-			const inputs = [
-				{ label: 'Top padding', value: 10 },
-				{ label: 'Right padding', value: 15 },
-				{ label: 'Bottom padding', value: 10 },
-				{ label: 'Left padding', value: 15 },
-			];
+		await verticalInputsWrapper
+			.locator('button[aria-label="Set custom value"], button[aria-label="Set custom size"]')
+			.first()
+			.click();
+		await verticalInputsWrapper.locator('input[type="number"]').fill('10');
 
-			for await (const { label, value } of inputs) {
-				const customSizeButton = dimensionsPanel
-					.locator('button[aria-label="Set custom size"]')
-					.first();
-				const input = dimensionsPanel
-					.locator(`label:has-text("${label}")`)
-					.locator('..')
-					.locator('input');
+		const horizontalInputsWrapper = dimensionsPanel
+			.locator('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
+			.nth(1);
 
-				await customSizeButton.click({ force: true });
-				await input.fill(value.toString());
-			}
+		await horizontalInputsWrapper
+			.locator('button[aria-label="Set custom value"], button[aria-label="Set custom size"]')
+			.first()
+			.click();
+		await horizontalInputsWrapper.locator('input[type="number"]').fill('15');
 
-			await dimensionsPanel.click();
-		} else {
-			const verticalInputsWrapper = dimensionsPanel
-				.locator('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
-				.first();
-
-			await verticalInputsWrapper
-				.locator(
-					'button[aria-label="Set custom value"], button[aria-label="Set custom size"]',
-				)
-				.first()
-				.click();
-			await verticalInputsWrapper.locator('input[type="number"]').fill('10');
-
-			const horizontalInputsWrapper = dimensionsPanel
-				.locator('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
-				.nth(1);
-
-			await horizontalInputsWrapper
-				.locator(
-					'button[aria-label="Set custom value"], button[aria-label="Set custom size"]',
-				)
-				.first()
-				.click();
-			await horizontalInputsWrapper.locator('input[type="number"]').fill('15');
-
-			await page
-				.locator('.block-editor-block-inspector button[aria-label="Settings"]')
-				.click();
-		}
+		await page.locator('.block-editor-block-inspector button[aria-label="Settings"]').click();
 	}
 
 	await expect(element).toHaveCSS('padding', '10px 15px');
