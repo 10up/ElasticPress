@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
 Tested up to: 7.1
-Stable tag:   5.3.5
+Stable tag:   5.3.6
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,32 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 5.3.6 - 2026-XX-XX =
+
+__Added:__
+
+* `$source_includes` parameter to `Elasticsearch::get_documents()`, to fetch only some fields of each document. Props [@felipeelia](https://github.com/felipeelia).
+* `ep_pre_prepare_documents` action, fired once before a batch of documents is prepared to be indexed. Props [@felipeelia](https://github.com/felipeelia).
+* Feature settings `requires_fields` conditions accept a list of values. Props [@felipeelia](https://github.com/felipeelia).
+* Feature settings field groups can be collapsible (`collapsible`, `initialOpen`) and show a status badge (`badge`). Props [@felipeelia](https://github.com/felipeelia).
+* `combobox` field type for feature settings. Props [@felipeelia](https://github.com/felipeelia).
+* `ep.Features.Control` JS filter to render custom feature settings fields, and `ep_settings_field_types` filter with `ElasticPress\Utils\get_settings_field_types()` to check the available field types. Props [@felipeelia](https://github.com/felipeelia).
+
+__Fixed:__
+
+* Memory exhaustion when preparing term documents for terms with a large number of objects, by fetching object IDs in chunks (filterable with the new `ep_term_object_ids_chunk_size` filter). Props [@rebeccahum](https://github.com/rebeccahum).
+
+__Security:__
+
+* Updated Node.js to v26.11.0 and the npm packages to their latest versions. Props [@ZacharyRener](https://github.com/ZacharyRener).
+* Bumped `fast-uri` from 3.1.7 to 3.1.8 (CVE-2026-86472). Props [@ZacharyRener](https://github.com/ZacharyRener).
+
+__Developer:__
+
+* Pre-commit hook and `composer lint` check the test suite against PHP 8.2+, matching CI. Props [@felipeelia](https://github.com/felipeelia).
+* Fixed the privileged e2e workflow, which now shows its result as a commit status on the pull request. Props [@felipeelia](https://github.com/felipeelia).
+* Stage `elasticpress-playwright-utils` releases from CI, to be approved before they are published to npm. Props [@felipeelia](https://github.com/felipeelia).
 
 = 5.3.5 - 2026-09-10 =
 
