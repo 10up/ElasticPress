@@ -1,5 +1,8 @@
 name: Unit Tests
 
+permissions:
+  contents: read
+
 env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"

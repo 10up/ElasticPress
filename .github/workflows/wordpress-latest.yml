@@ -10,6 +10,9 @@ on:
   schedule:
     - cron: '0 0 * * 1'
 
+permissions:
+  contents: read
+
 jobs:
   wordpress-version-checker:
     runs-on: ubuntu-latest
