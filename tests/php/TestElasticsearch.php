@@ -100,7 +100,7 @@ class TestElasticsearch extends BaseTestCase {
 	/**
 	 * Test get documents returning only some source fields
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group elasticsearch
 	 */
 	public function test_get_documents_source_includes() {
@@ -141,7 +141,7 @@ class TestElasticsearch extends BaseTestCase {
 	/**
 	 * Test that get documents sends the source fields in the request path, after the path filter
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group elasticsearch
 	 */
 	public function test_get_documents_source_includes_request_path() {
@@ -562,7 +562,7 @@ class TestElasticsearch extends BaseTestCase {
 	/**
 	 * Test get_total_hits_from_query() with and without `hits.total`
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group elasticsearch
 	 */
 	public function test_get_total_hits_from_query() {
@@ -586,7 +586,7 @@ class TestElasticsearch extends BaseTestCase {
 	/**
 	 * Test get_total_hits_from_query() when `track_total_hits` is false and `hits.total` is omitted
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group elasticsearch
 	 */
 	public function test_get_total_hits_from_query_without_total() {

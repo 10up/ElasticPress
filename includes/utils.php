@@ -985,7 +985,7 @@ function get_post_types_for_tax_query( ?\WP_Query $query = null ): array {
  * an older one (for example `select` instead of `combobox`). A plugin that renders its own type
  * with the `ep.Features.Control` JavaScript filter adds it here with `ep_settings_field_types`.
  *
- * @since 5.4.0
+ * @since 5.3.6
  * @return string[]
  */
 function get_settings_field_types(): array {
@@ -994,7 +994,7 @@ function get_settings_field_types(): array {
 	/**
 	 * Filter the field types the feature settings screen can render.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @hook ep_settings_field_types
 	 * @param {string[]} $types Field types.
 	 * @return {string[]} Filtered field types.
@@ -1008,7 +1008,7 @@ function get_settings_field_types(): array {
  * Runs the same query as get_objects_in_term(), paginated by object ID, so terms with many
  * objects do not load every relationship row (and cache the full list) in memory at once.
  *
- * @since 5.4.0
+ * @since 5.3.6
  * @param int[]  $term_ids Term IDs.
  * @param string $taxonomy Taxonomy name.
  * @param int    $limit    Maximum number of object IDs to return, or 0 for all of them. When several
@@ -1030,7 +1030,7 @@ function get_term_object_ids( array $term_ids, string $taxonomy, int $limit = 0 
 	 * @param  {int}    $chunk_size Number of object IDs fetched per query
 	 * @param  {int}    $term_id    Term ID (the first one, when getting the objects of several terms)
 	 * @param  {string} $taxonomy   Term taxonomy
-	 * @since  5.4.0
+	 * @since  5.3.6
 	 * @return {int} New chunk size
 	 */
 	$chunk_size = max( 1, (int) apply_filters( 'ep_term_object_ids_chunk_size', 10000, $term_ids[0], $taxonomy ) );

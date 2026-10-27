@@ -729,7 +729,7 @@ class Elasticsearch {
 	 *                                 `[ 'post_title', 'chunks.vector' ]`. Empty returns the whole source.
 	 *                                 Naming a field also returns values that the index keeps out of
 	 *                                 `_source`, like dense vectors in Elasticsearch 9.
-	 * @since  3.6.0, 5.4.0 added $source_includes
+	 * @since  3.6.0, 5.3.6 added $source_includes
 	 * @return boolean|array
 	 */
 	public function get_documents( $index, $type, $document_ids, $source_includes = [] ) {
