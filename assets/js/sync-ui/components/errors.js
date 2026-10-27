@@ -11,6 +11,22 @@ import { __ } from '@wordpress/i18n';
 import { useSync } from '../../sync';
 
 /**
+ * Stack trace component.
+ *
+ * @param {object} props Component props.
+ * @param {string} props.stackTrace Stack trace for the error.
+ * @returns {WPElement} Component.
+ */
+const StackTrace = ({ stackTrace }) => {
+	return (
+		<details className="ep-sync-errors__stack-trace">
+			<summary>{__('Stack trace', 'elasticpress')}</summary>
+			<pre>{stackTrace}</pre>
+		</details>
+	);
+};
+
+/**
  * Log messages component.
  *
  * @returns {WPElement} Component.
@@ -36,6 +52,7 @@ export default () => {
 								<RawHTML className="ep-sync-errors__solution">
 									{safeHTML(e.solution)}
 								</RawHTML>
+								{e.stack_trace ? <StackTrace stackTrace={e.stack_trace} /> : null}
 							</td>
 						</tr>
 					))}

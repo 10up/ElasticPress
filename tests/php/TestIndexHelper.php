@@ -14,6 +14,32 @@ namespace ElasticPressTest;
 class TestIndexHelper extends BaseTestCase {
 
 	/**
+	 * Test that error data keeps a stack trace when messages share an error key.
+	 *
+	 * @since 5.3.6
+	 * @group indexHelper
+	 */
+	public function test_build_message_errors_data_keeps_stack_trace_for_shared_key() {
+		// Both messages map to the "no such index [???]" key.
+		$messages = [
+			'1 (Post): [index_not_found_exception] no such index [first]',
+			'2 (Post): [prepare_document_error] no such index [second] in wp-content/plugins/example.php:10',
+		];
+
+		$stack_traces = [
+			$messages[1] => '#0 wp-content/plugins/example.php(10): example()',
+		];
+
+		$method = new \ReflectionMethod( \ElasticPress\IndexHelper::class, 'build_message_errors_data' );
+		$method->setAccessible( true );
+		$errors = $method->invoke( \ElasticPress\IndexHelper::factory(), $messages, $stack_traces );
+
+		$this->assertCount( 1, $errors );
+		$this->assertSame( 2, $errors['no such index [???]']['count'] );
+		$this->assertSame( $stack_traces[ $messages[1] ], $errors['no such index [???]']['stack_trace'] );
+	}
+
+	/**
 	 * Test if the ep_sync_args filter is applied in the full_index method
 	 *
 	 * @since 4.5.0
