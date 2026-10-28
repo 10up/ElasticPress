@@ -284,9 +284,26 @@ class TestAutosuggest extends BaseTestCase {
 		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
 
 		$this->assertSame(
-			[ 'active', 'autosuggest_selector', 'trigger_ga_event', 'endpoint_url' ],
+			[ 'active', 'autosuggest_selector', 'trigger_ga_event', 'enable_admin_autosuggest', 'endpoint_url' ],
 			$settings_keys
 		);
+	}
+
+	/**
+	 * Test admin autosuggest setting schema
+	 *
+	 * @since 5.4.0
+	 * @group autosuggest
+	 */
+	public function test_admin_autosuggest_setting_schema() {
+		$settings_schema = $this->get_feature()->get_settings_schema();
+
+		$admin_setting = wp_list_filter( $settings_schema, [ 'key' => 'enable_admin_autosuggest' ] );
+		$admin_setting = array_values( $admin_setting );
+
+		$this->assertNotEmpty( $admin_setting );
+		$this->assertSame( 'checkbox', $admin_setting[0]['type'] );
+		$this->assertSame( '0', $admin_setting[0]['default'] );
 	}
 
 	/**
@@ -494,5 +511,147 @@ class TestAutosuggest extends BaseTestCase {
 	 */
 	public function test_intercept_remote_request_method_throws_warning() {
 		$this->assertTrue( $this->get_feature()->intercept_remote_request() );
+	}
+
+	/**
+	 * Reset autosuggest script/style registrations between enqueue tests.
+	 */
+	protected function reset_autosuggest_assets() {
+		wp_dequeue_script( 'elasticpress-autosuggest' );
+		wp_deregister_script( 'elasticpress-autosuggest' );
+		wp_dequeue_style( 'elasticpress-autosuggest' );
+		wp_deregister_style( 'elasticpress-autosuggest' );
+	}
+
+	/**
+	 * Test admin autosuggest is not enqueued by default.
+	 *
+	 * @since 5.4.0
+	 * @group autosuggest
+	 */
+	public function test_admin_autosuggest_default_off() {
+		set_current_screen( 'edit.php' );
+		$this->reset_autosuggest_assets();
+
+		$this->get_feature()->enqueue_admin_scripts();
+
+		$this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
+		$this->assertFalse( wp_style_is( 'elasticpress-autosuggest' ) );
+	}
+
+	/**
+	 * Test admin autosuggest enqueue respects the setting and endpoint.
+	 *
+	 * @since 5.4.0
+	 * @group autosuggest
+	 */
+	public function test_admin_autosuggest_enqueue_respects_setting() {
+		set_current_screen( 'edit.php' );
+		$this->reset_autosuggest_assets();
+
+		$filter = function () {
+			return [
+				'autosuggest' => [
+					'endpoint_url'             => 'http://example.com',
+					'enable_admin_autosuggest' => '1',
+				],
+			];
+		};
+
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		$this->get_feature()->enqueue_admin_scripts();
+
+		$this->assertTrue( wp_script_is( 'elasticpress-autosuggest' ) );
+		$this->assertTrue( wp_style_is( 'elasticpress-autosuggest' ) );
+	}
+
+	/**
+	 * Test admin autosuggest enqueue without endpoint does not load assets.
+	 *
+	 * @since 5.4.0
+	 * @group autosuggest
+	 */
+	public function test_admin_autosuggest_enqueue_without_endpoint() {
+		set_current_screen( 'edit.php' );
+		$this->reset_autosuggest_assets();
+
+		$filter = function () {
+			return [
+				'autosuggest' => [
+					'enable_admin_autosuggest' => '1',
+				],
+			];
+		};
+
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		$this->get_feature()->enqueue_admin_scripts();
+
+		$this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
+		$this->assertFalse( wp_style_is( 'elasticpress-autosuggest' ) );
+	}
+
+	/**
+	 * Test admin autosuggest enqueue respects capability.
+	 *
+	 * @since 5.4.0
+	 * @group autosuggest
+	 */
+	public function test_admin_autosuggest_enqueue_respects_capability() {
+		set_current_screen( 'edit.php' );
+		$this->reset_autosuggest_assets();
+
+		$subscriber_id = $this->factory->user->create( [ 'role' => 'subscriber' ] );
+		wp_set_current_user( $subscriber_id );
+
+		$filter = function () {
+			return [
+				'autosuggest' => [
+					'endpoint_url'             => 'http://example.com',
+					'enable_admin_autosuggest' => '1',
+				],
+			];
+		};
+
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		$this->get_feature()->enqueue_admin_scripts();
+
+		$this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
+		$this->assertFalse( wp_style_is( 'elasticpress-autosuggest' ) );
+	}
+
+	/**
+	 * Test the admin query template integration override.
+	 *
+	 * @since 5.4.0
+	 * @group autosuggest
+	 */
+	public function test_is_integrated_request_for_admin_template() {
+		$feature = $this->get_feature();
+
+		$this->assertTrue( $feature->is_integrated_request_for_admin_template( false, 'search' ) );
+		$this->assertTrue( $feature->is_integrated_request_for_admin_template( false, 'autosuggest' ) );
+		$this->assertFalse( $feature->is_integrated_request_for_admin_template( false, 'some_other_context' ) );
+		$this->assertTrue( $feature->is_integrated_request_for_admin_template( true, 'some_other_context' ) );
+	}
+
+	/**
+	 * Test the admin search query template.
+	 *
+	 * @since 5.4.0
+	 * @group autosuggest
+	 */
+	public function test_generate_admin_search_query() {
+		$feature = $this->get_feature();
+		$query   = $feature->generate_admin_search_query();
+
+		$this->assertArrayHasKey( 'body', $query );
+		$this->assertArrayHasKey( 'placeholder', $query );
+		$this->assertContains( 'ep_autosuggest_placeholder', $query );
 	}
 }

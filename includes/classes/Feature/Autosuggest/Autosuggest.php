@@ -45,9 +45,10 @@ class Autosuggest extends Feature {
 		$this->requires_install_reindex = true;
 
 		$this->default_settings = [
-			'endpoint_url'         => '',
-			'autosuggest_selector' => '',
-			'trigger_ga_event'     => '0',
+			'endpoint_url'             => '',
+			'autosuggest_selector'     => '',
+			'trigger_ga_event'         => '0',
+			'enable_admin_autosuggest' => '0',
 		];
 
 		$this->available_during_installation = true;
@@ -80,6 +81,7 @@ class Autosuggest extends Feature {
 	 */
 	public function setup() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
 		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
 		add_filter( 'ep_post_fuzziness_arg', [ $this, 'set_fuzziness' ], 10, 3 );
@@ -293,21 +295,74 @@ class Autosuggest extends Feature {
 			return;
 		}
 
-		$host     = Utils\get_host();
-		$settings = $this->get_settings();
-
-		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
-			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
-		} elseif ( Utils\is_epio() ) {
-				$endpoint_url = trailingslashit( $host ) . Indexables::factory()->get( 'post' )->get_index_name() . '/autosuggest';
-		} else {
-			$endpoint_url = $settings['endpoint_url'];
-		}
+		$settings     = $this->get_settings();
+		$endpoint_url = $this->get_autosuggest_endpoint_url();
 
 		if ( empty( $endpoint_url ) ) {
 			return;
 		}
 
+		$this->enqueue_autosuggest_assets();
+
+		$query = $this->generate_search_query();
+
+		wp_localize_script(
+			'elasticpress-autosuggest',
+			'epas',
+			apply_filters(
+				'ep_autosuggest_options',
+				$this->get_epas_options( $query, $endpoint_url, $settings )
+			)
+		);
+	}
+
+	/**
+	 * Enqueue autosuggest assets for the WordPress admin.
+	 *
+	 * @since 5.4.0
+	 */
+	public function enqueue_admin_scripts() {
+		if ( Utils\is_indexing() ) {
+			return;
+		}
+
+		$settings = $this->get_settings();
+
+		if ( empty( $settings['enable_admin_autosuggest'] ) ) {
+			return;
+		}
+
+		$capability = apply_filters( 'ep_admin_autosuggest_capability', 'edit_posts' );
+		if ( ! current_user_can( $capability ) ) {
+			return;
+		}
+
+		$endpoint_url = $this->get_autosuggest_endpoint_url();
+
+		if ( empty( $endpoint_url ) ) {
+			return;
+		}
+
+		$this->enqueue_autosuggest_assets();
+
+		$query = $this->generate_admin_search_query();
+
+		wp_localize_script(
+			'elasticpress-autosuggest',
+			'epas',
+			apply_filters(
+				'ep_autosuggest_options',
+				$this->get_epas_options( $query, $endpoint_url, $settings )
+			)
+		);
+	}
+
+	/**
+	 * Enqueue the shared autosuggest script and stylesheet.
+	 *
+	 * @since 5.4.0
+	 */
+	protected function enqueue_autosuggest_assets() {
 		wp_enqueue_script(
 			'elasticpress-autosuggest',
 			EP_URL . 'dist/js/autosuggest-script.js',
@@ -324,14 +379,42 @@ class Autosuggest extends Feature {
 			Utils\get_asset_info( 'autosuggest-styles', 'dependencies' ),
 			Utils\get_asset_info( 'autosuggest-styles', 'version' )
 		);
+	}
 
+	/**
+	 * Get the configured autosuggest endpoint URL.
+	 *
+	 * @since 5.4.0
+	 * @return string
+	 */
+	protected function get_autosuggest_endpoint_url() {
+		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
+			return EP_AUTOSUGGEST_ENDPOINT;
+		}
+
+		if ( Utils\is_epio() ) {
+			return trailingslashit( Utils\get_host() ) . Indexables::factory()->get( 'post' )->get_index_name() . '/autosuggest';
+		}
+
+		$settings = $this->get_settings();
+		return $settings['endpoint_url'];
+	}
+
+	/**
+	 * Build the autosuggest options array to localize to JavaScript.
+	 *
+	 * @since 5.4.0
+	 * @param array  $query        Generated query array.
+	 * @param string $endpoint_url Endpoint URL.
+	 * @param array  $settings     Feature settings.
+	 * @return array
+	 */
+	protected function get_epas_options( $query, $endpoint_url, $settings ) {
 		/** Features Class @var Features $features */
 		$features = Features::factory();
 
 		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
-
-		$query = $this->generate_search_query();
 
 		$epas_options = [
 			'query'               => $query['body'],
@@ -380,37 +463,17 @@ class Autosuggest extends Feature {
 			$epas_options['highlightingClass']   = apply_filters( 'ep_highlighting_class', 'ep-highlight' );
 		}
 
-		/**
-		 * Output variables to use in Javascript
-		 * index: the Elasticsearch index name
-		 * endpointUrl:  the Elasticsearch autosuggest endpoint url
-		 * postType: which post types to use for suggestions
-		 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
-		 */
-		wp_localize_script(
-			'elasticpress-autosuggest',
-			'epas',
-			/**
-			 * Filter autosuggest JavaScript options
-			 *
-			 * @hook ep_autosuggest_options
-			 * @param  {array} $options Autosuggest options to be localized
-			 * @return  {array} New options
-			 */
-			apply_filters(
-				'ep_autosuggest_options',
-				$epas_options
-			)
-		);
+		return $epas_options;
 	}
 
 	/**
 	 * Build a default search request to pass to the autosuggest javascript.
 	 * The request will include a placeholder that can then be replaced.
 	 *
+	 * @param bool $is_admin Whether the query is being generated for the admin.
 	 * @return array Generated ElasticSearch request array( 'placeholder'=> placeholderstring, 'body' => request body )
 	 */
-	public function generate_search_query() {
+	public function generate_search_query( $is_admin = false ) {
 
 		/**
 		 * Filter autosuggest query placeholder
@@ -435,12 +498,16 @@ class Autosuggest extends Feature {
 		 */
 		$post_type = apply_filters( 'ep_term_suggest_post_type', array_values( $post_type ) );
 
-		$post_status = get_post_stati(
-			[
-				'public'              => true,
-				'exclude_from_search' => false,
-			]
-		);
+		if ( $is_admin ) {
+			$post_status = Indexables::factory()->get( 'post' )->get_indexable_post_status();
+		} else {
+			$post_status = get_post_stati(
+				[
+					'public'              => true,
+					'exclude_from_search' => false,
+				]
+			);
+		}
 
 		/**
 		 * Filter post statuses available to autosuggest
@@ -501,6 +568,52 @@ class Autosuggest extends Feature {
 			'placeholder' => $placeholder,
 			'query_vars'  => $args,
 		];
+	}
+
+	/**
+	 * Generate an autosuggest query template for the WordPress admin.
+	 *
+	 * Forces ElasticPress integration for the duration of the query so the
+	 * template can be captured from an admin context.
+	 *
+	 * @since 5.4.0
+	 * @return array Generated query array.
+	 */
+	public function generate_admin_search_query() {
+		$original_user_id = get_current_user_id();
+		wp_set_current_user( 0 );
+
+		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request_for_admin_template' ], 10, 2 );
+
+		$query = $this->generate_search_query( true );
+
+		remove_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request_for_admin_template' ], 10 );
+
+		wp_set_current_user( $original_user_id );
+
+		return $query;
+	}
+
+	/**
+	 * Enable ElasticPress integration for the admin query template.
+	 *
+	 * Applied as a filter on Utils\is_integrated_request() so the query used to
+	 * generate the admin autosuggest template is integrated regardless of the
+	 * request type.
+	 *
+	 * @since 5.4.0
+	 * @param bool   $is_integrated Whether queries for the request will be integrated.
+	 * @param string $context       Context for the original check.
+	 * @return bool
+	 */
+	public function is_integrated_request_for_admin_template( $is_integrated, $context ) {
+		$supported_contexts = [ 'search', 'autosuggest' ];
+
+		if ( in_array( $context, $supported_contexts, true ) ) {
+			return true;
+		}
+
+		return $is_integrated;
 	}
 
 	/**
@@ -878,6 +991,13 @@ class Autosuggest extends Feature {
 				'key'     => 'trigger_ga_event',
 				'help'    => __( 'Enable to fire a gtag tracking event when an autosuggest result is clicked.', 'elasticpress' ),
 				'label'   => __( 'Trigger Google Analytics events', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+			[
+				'default' => '0',
+				'key'     => 'enable_admin_autosuggest',
+				'help'    => __( 'Adds autosuggest to admin search fields such as the post list table. Requires a publicly accessible autosuggest endpoint or ElasticPress.io.', 'elasticpress' ),
+				'label'   => __( 'Enable autosuggest in the WordPress admin', 'elasticpress' ),
 				'type'    => 'checkbox',
 			],
 		];
