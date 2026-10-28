@@ -62,6 +62,7 @@ class Search extends Feature {
 			'highlight_enabled'    => '0',
 			'highlight_excerpt'    => '0',
 			'highlight_tag'        => 'mark',
+			'keyword_boosts'       => '',
 		];
 
 		$this->available_during_installation = true;
@@ -117,6 +118,7 @@ class Search extends Feature {
 	public function search_setup() {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
 		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 11, 2 );
+		add_filter( 'ep_formatted_args', [ $this, 'apply_keyword_boosts' ], 25, 2 );
 		add_filter( 'ep_query_post_type', [ $this, 'filter_query_post_type_for_search' ], 10, 2 );
 
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
@@ -731,6 +733,177 @@ class Search extends Feature {
 	}
 
 	/**
+	 * Sanitize settings before saving.
+	 *
+	 * @since 5.3.4
+	 * @param array $settings Submitted settings for the feature.
+	 * @return array
+	 */
+	public function sanitize_settings_callback( $settings ) {
+		if ( isset( $settings['keyword_boosts'] ) ) {
+			$settings['keyword_boosts'] = $this->normalize_keyword_boosts( $settings['keyword_boosts'] );
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * Parse and normalize keyword:boost pairs.
+	 *
+	 * @since 5.3.4
+	 * @param string $raw Raw textarea value.
+	 * @return string Normalized line-separated keyword:boost pairs.
+	 */
+	protected function normalize_keyword_boosts( $raw ) {
+		$boosts = $this->parse_keyword_boosts( $raw );
+		$lines  = array();
+
+		foreach ( $boosts as $keyword => $boost ) {
+			$lines[] = $keyword . ':' . $boost;
+		}
+
+		return implode( "\n", $lines );
+	}
+
+	/**
+	 * Parse keyword:boost pairs from a string.
+	 *
+	 * @since 5.3.4
+	 * @param string $raw Raw textarea value.
+	 * @return array Associative array of keyword => boost.
+	 */
+	protected function parse_keyword_boosts( $raw ) {
+		$parsed = array();
+
+		if ( empty( $raw ) ) {
+			return $parsed;
+		}
+
+		$lines = preg_split( '/\r\n|\r|\n/', $raw );
+
+		foreach ( $lines as $line ) {
+			$line = trim( $line );
+
+			if ( empty( $line ) || false === strpos( $line, ':' ) ) {
+				continue;
+			}
+
+			$parts   = explode( ':', $line, 2 );
+			$keyword = sanitize_text_field( trim( $parts[0] ) );
+			$boost   = trim( $parts[1] );
+
+			if ( '' === $keyword || '' === $boost ) {
+				continue;
+			}
+
+			$boost = floatval( $boost );
+
+			if ( $boost <= 0 || $boost > 100 ) {
+				continue;
+			}
+
+			$parsed[ $keyword ] = $boost;
+		}
+
+		return $parsed;
+	}
+
+	/**
+	 * Get keyword boosts for the current search query.
+	 *
+	 * @since 5.3.4
+	 * @return array Associative array of keyword => boost.
+	 */
+	protected function get_keyword_boosts() {
+		$settings = $this->get_settings();
+		$raw      = isset( $settings['keyword_boosts'] ) ? $settings['keyword_boosts'] : '';
+		$boosts   = $this->parse_keyword_boosts( $raw );
+
+		/**
+		 * Filter keyword boosts.
+		 *
+		 * @since 5.3.4
+		 * @hook ep_search_keyword_boosts
+		 * @param array $boosts Keyword => boost pairs.
+		 * @return array
+		 */
+		return apply_filters( 'ep_search_keyword_boosts', $boosts );
+	}
+
+	/**
+	 * Apply keyword boosts to the Elasticsearch query.
+	 *
+	 * @since 5.3.4
+	 * @param array $formatted_args Formatted ES args.
+	 * @param array $args           WP_Query args.
+	 * @return array
+	 */
+	public function apply_keyword_boosts( $formatted_args, $args ) {
+		if ( empty( $args['s'] ) ) {
+			return $formatted_args;
+		}
+
+		$boosts = $this->get_keyword_boosts();
+
+		if ( empty( $boosts ) ) {
+			return $formatted_args;
+		}
+
+		$default_search_fields = array(
+			'post_title',
+			'post_excerpt',
+			'post_content',
+		);
+
+		/**
+		 * Filter default post search fields
+		 *
+		 * @hook ep_search_fields
+		 * @param array $fields Default search fields
+		 * @param array $args   WP Query args
+		 * @return array
+		 */
+		$search_fields = apply_filters( 'ep_search_fields', $default_search_fields, $args );
+
+		if ( empty( $search_fields ) ) {
+			return $formatted_args;
+		}
+
+		if ( ! isset( $formatted_args['query'] ) ) {
+			return $formatted_args;
+		}
+
+		$query = &$formatted_args['query'];
+
+		if ( isset( $query['function_score']['query'] ) ) {
+			$query = &$query['function_score']['query'];
+		}
+
+		if ( ! isset( $query['bool']['should'] ) ) {
+			$existing_query = $query;
+			$query          = array(
+				'bool' => array(
+					'must'   => array( $existing_query ),
+					'should' => array(),
+				),
+			);
+		}
+
+		foreach ( $boosts as $keyword => $boost ) {
+			$query['bool']['should'][] = array(
+				'multi_match' => array(
+					'query'  => $keyword,
+					'type'   => 'phrase',
+					'fields' => $search_fields,
+					'boost'  => (float) $boost,
+				),
+			);
+		}
+
+		return $formatted_args;
+	}
+
+	/**
 	 * Saves exclude from search meta.
 	 *
 	 * @param int $post_id The post ID.
@@ -870,6 +1043,13 @@ class Search extends Feature {
 				'default' => 'simple',
 				'key'     => 'synonyms_editor_mode',
 				'type'    => 'hidden',
+			],
+			[
+				'default' => '',
+				'help'    => __( 'Boost specific keywords in search results. Enter one keyword per line, followed by a colon and a boost number, e.g. <code>premium:5</code>. Boosts must be between 0.01 and 100.', 'elasticpress' ),
+				'key'     => 'keyword_boosts',
+				'label'   => __( 'Keyword boosts', 'elasticpress' ),
+				'type'    => 'textarea',
 			],
 		];
 

@@ -45,6 +45,13 @@ class TestSearch extends BaseTestCase {
 		parent::tear_down();
 
 		$this->fired_actions = array();
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'keyword_boosts' => '',
+			)
+		);
 	}
 
 	/**
@@ -346,11 +353,221 @@ class TestSearch extends BaseTestCase {
 
 		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
 
-		$expected = [ 'active', 'decaying_enabled', 'highlight_enabled', 'highlight_excerpt', 'highlight_tag', 'synonyms_editor_mode' ];
+		$expected = [ 'active', 'decaying_enabled', 'highlight_enabled', 'highlight_excerpt', 'highlight_tag', 'synonyms_editor_mode', 'keyword_boosts' ];
 		if ( ! is_multisite() ) {
 			$expected[] = 'additional_links';
 		}
 
 		$this->assertSame( $expected, $settings_keys );
+	}
+
+	/**
+	 * Test keyword boosts are injected into the ES query when date decay is enabled.
+	 *
+	 * @since 5.3.4
+	 * @group search
+	 */
+	public function testKeywordBoostsInjectedWithDecay() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'         => true,
+				'keyword_boosts' => "premium:5\nsale:3.5\n",
+			)
+		);
+
+		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ), 25 );
+
+		$query = new \WP_Query(
+			array(
+				's' => 'test',
+			)
+		);
+
+		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
+
+		$es_query = $this->fired_actions['ep_formatted_args']['query'];
+		$this->assertTrue( isset( $es_query['function_score']['query']['bool']['should'] ) );
+
+		$shoulds = $es_query['function_score']['query']['bool']['should'];
+		$found   = 0;
+
+		foreach ( $shoulds as $should ) {
+			if ( ! isset( $should['multi_match']['query'] ) ) {
+				continue;
+			}
+
+			if ( 'premium' === $should['multi_match']['query'] && 5.0 === $should['multi_match']['boost'] ) {
+				++$found;
+			}
+
+			if ( 'sale' === $should['multi_match']['query'] && 3.5 === $should['multi_match']['boost'] ) {
+				++$found;
+			}
+		}
+
+		$this->assertSame( 2, $found );
+	}
+
+	/**
+	 * Test keyword boosts are injected into the ES query when date decay is disabled.
+	 *
+	 * @since 5.3.4
+	 * @group search
+	 */
+	public function testKeywordBoostsInjectedWithoutDecay() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'           => true,
+				'decaying_enabled' => false,
+				'keyword_boosts'   => "premium:5\n",
+			)
+		);
+
+		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ), 25 );
+
+		$query = new \WP_Query(
+			array(
+				's' => 'test',
+			)
+		);
+
+		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
+
+		$es_query = $this->fired_actions['ep_formatted_args']['query'];
+		$this->assertTrue( isset( $es_query['bool']['should'] ) );
+		$this->assertFalse( isset( $es_query['function_score'] ) );
+
+		$found = false;
+		foreach ( $es_query['bool']['should'] as $should ) {
+			if ( isset( $should['multi_match']['query'] ) && 'premium' === $should['multi_match']['query'] && 5.0 === $should['multi_match']['boost'] ) {
+				$found = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $found );
+	}
+
+	/**
+	 * Test keyword boosts are not injected when empty.
+	 *
+	 * @since 5.3.4
+	 * @group search
+	 */
+	public function testKeywordBoostsNotInjectedWhenEmpty() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'           => true,
+				'decaying_enabled' => false,
+				'keyword_boosts'   => '',
+			)
+		);
+
+		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ), 25 );
+
+		$query = new \WP_Query(
+			array(
+				's' => 'test',
+			)
+		);
+
+		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
+
+		$es_query      = $this->fired_actions['ep_formatted_args']['query'];
+		$boost_clauses = 0;
+		$other_clauses = 0;
+
+		foreach ( $es_query['bool']['should'] as $should ) {
+			if ( isset( $should['multi_match']['query'] ) ) {
+				++$boost_clauses;
+			} else {
+				++$other_clauses;
+			}
+		}
+
+		$this->assertSame( 0, $boost_clauses );
+		$this->assertGreaterThan( 0, $other_clauses );
+	}
+
+	/**
+	 * Test keyword boost parsing and sanitization.
+	 *
+	 * @since 5.3.4
+	 * @group search
+	 */
+	public function testKeywordBoostsSanitization() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
+
+		$normalized = $search->sanitize_settings_callback(
+			array(
+				'keyword_boosts' => "premium:5\nno-colon\n  sale:0 \n  valid:2.5  \nbig:101\nnegative:-3\n",
+			)
+		);
+
+		$this->assertSame( "premium:5\nvalid:2.5", $normalized['keyword_boosts'] );
+	}
+
+	/**
+	 * Test keyword boosts filter allows programmatic override.
+	 *
+	 * @since 5.3.4
+	 * @group search
+	 */
+	public function testKeywordBoostsFilter() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'         => true,
+				'keyword_boosts' => '',
+			)
+		);
+
+		add_filter(
+			'ep_search_keyword_boosts',
+			function () {
+				return array( 'filterterm' => 7 );
+			}
+		);
+
+		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ), 25 );
+
+		$query = new \WP_Query(
+			array(
+				's' => 'test',
+			)
+		);
+
+		$es_query = $this->fired_actions['ep_formatted_args']['query'];
+		$shoulds  = isset( $es_query['function_score']['query']['bool']['should'] ) ? $es_query['function_score']['query']['bool']['should'] : $es_query['bool']['should'];
+		$found    = false;
+		foreach ( $shoulds as $should ) {
+			if ( isset( $should['multi_match']['query'] ) && 'filterterm' === $should['multi_match']['query'] && 7.0 === $should['multi_match']['boost'] ) {
+				$found = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $found );
 	}
 }
