@@ -1,13 +1,16 @@
 name: Build with vendor-prefixed
 
 env:
-  NODE_VERSION: "24"
+  NODE_VERSION: "26.11.0"
 
 on:
   pull_request:
     branches:
       - develop
       - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
+
+permissions:
+  contents: read
 
 jobs:
   wordpress:
