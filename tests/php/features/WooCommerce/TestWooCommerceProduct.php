@@ -1382,4 +1382,285 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 			]
 		);
 	}
+
+	/**
+	 * Create two taxonomy-bound products and index them correctly.
+	 *
+	 * Categories/tags are set after creation, so the products are explicitly
+	 * re-indexed afterwards to make sure the documents contain the terms.
+	 *
+	 * @param string $first_slug  Slug of the first product_cat term.
+	 * @param string $second_slug Slug of the second product_cat term.
+	 * @param array  $extra_tags  Extra product_tag slugs, indexed by product slug, e.g. [ 'shirts' => [ 'sale' ] ].
+	 * @return array IDs of the products, indexed by the term slugs.
+	 */
+	protected function setup_category_products( string $first_slug, string $second_slug, array $extra_tags = [] ): array {
+		$term_ids = [];
+
+		foreach ( [ $first_slug, $second_slug ] as $slug ) {
+			$term_ids[ $slug ] = $this->factory->term->create(
+				[
+					'taxonomy' => 'product_cat',
+					'slug'     => $slug,
+				]
+			);
+		}
+
+		$product_ids = [];
+
+		foreach ( [ $first_slug, $second_slug ] as $slug ) {
+			$product_ids[ $slug ] = $this->ep_factory->product->create(
+				[
+					'description' => "product {$slug}",
+				]
+			);
+
+			wp_set_object_terms( $product_ids[ $slug ], [ $term_ids[ $slug ] ], 'product_cat' );
+
+			if ( ! empty( $extra_tags[ $slug ] ) ) {
+				wp_set_object_terms( $product_ids[ $slug ], $extra_tags[ $slug ], 'product_tag' );
+			}
+
+			ElasticPress\Indexables::factory()->get( 'post' )->index( $product_ids[ $slug ], true );
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		return $product_ids;
+	}
+
+	/**
+	 * A single taxonomy query var must keep returning the products of that term.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testTaxonomyQueryVarSingleSlug() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_ids = $this->setup_category_products( 'shirts', 'hoodies' );
+
+		$query = new \WP_Query(
+			[
+				'product_cat'  => 'shirts',
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( $product_ids['shirts'], $query->posts[0]->ID );
+	}
+
+	/**
+	 * Comma-separated taxonomy query vars must be handled as separate terms, in
+	 * an OR fashion, not as a single slug.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testTaxonomyQueryVarCommaSeparatedSlugs() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_ids = $this->setup_category_products( 'shirts', 'hoodies' );
+
+		$query = new \WP_Query(
+			[
+				'product_cat'  => 'shirts,hoodies',
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEqualsCanonicalizing(
+			[ $product_ids['shirts'], $product_ids['hoodies'] ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
+	}
+
+	/**
+	 * Comma-separated taxonomy query vars must tolerate surrounding whitespace.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testTaxonomyQueryVarCommaSeparatedSlugsWithWhitespace() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_ids = $this->setup_category_products( 'shirts', 'hoodies' );
+
+		$query = new \WP_Query(
+			[
+				'product_cat'  => ' shirts , hoodies ',
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEqualsCanonicalizing(
+			[ $product_ids['shirts'], $product_ids['hoodies'] ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
+	}
+
+	/**
+	 * Plus-separated taxonomy query vars must follow core's AND semantics: only
+	 * products belonging to all the terms are returned.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testTaxonomyQueryVarPlusSeparatedSlugs() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shirts  = $this->factory->term->create(
+			[
+				'taxonomy' => 'product_cat',
+				'slug'     => 'shirts',
+			]
+		);
+		$hoodies = $this->factory->term->create(
+			[
+				'taxonomy' => 'product_cat',
+				'slug'     => 'hoodies',
+			]
+		);
+		$jeans   = $this->factory->term->create(
+			[
+				'taxonomy' => 'product_cat',
+				'slug'     => 'jeans',
+			]
+		);
+
+		$both_product = $this->ep_factory->product->create(
+			[
+				'description' => 'product shirts and hoodies',
+			]
+		);
+		wp_set_object_terms( $both_product, [ $shirts, $hoodies ], 'product_cat' );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $both_product, true );
+
+		$jeans_product = $this->ep_factory->product->create(
+			[
+				'description' => 'product jeans',
+			]
+		);
+		wp_set_object_terms( $jeans_product, [ $jeans ], 'product_cat' );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $jeans_product, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'product_cat'  => 'shirts+hoodies',
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( $both_product, $query->posts[0]->ID );
+	}
+
+	/**
+	 * Array query vars must keep working as before.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testTaxonomyQueryVarArray() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_ids = $this->setup_category_products( 'shirts', 'hoodies' );
+
+		$query = new \WP_Query(
+			[
+				'product_cat'  => [ 'shirts', 'hoodies' ],
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEqualsCanonicalizing(
+			[ $product_ids['shirts'], $product_ids['hoodies'] ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
+	}
+
+	/**
+	 * Existing `tax_query` clauses must be preserved when a taxonomy query var
+	 * is added to the query.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testTaxonomyQueryVarWithExistingTaxQuery() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_ids = $this->setup_category_products(
+			'shirts',
+			'hoodies',
+			[
+				'shirts' => [ 'sale' ],
+			]
+		);
+
+		$query = new \WP_Query(
+			[
+				'tax_query'    => [
+					[
+						'taxonomy' => 'product_tag',
+						'field'    => 'slug',
+						'terms'    => [ 'sale' ],
+					],
+				],
+				'product_cat'  => 'shirts,hoodies',
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( $product_ids['shirts'], $query->posts[0]->ID );
+	}
+
+	/**
+	 * Other supported taxonomy query vars, like product_tag, must not be
+	 * affected by the change.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testOtherTaxonomyQueryVarSingleSlug() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_ids = $this->setup_category_products(
+			'shirts',
+			'hoodies',
+			[
+				'shirts' => [ 'sale' ],
+			]
+		);
+
+		$query = new \WP_Query(
+			[
+				'product_tag'  => 'sale',
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( $product_ids['shirts'], $query->posts[0]->ID );
+	}
 }

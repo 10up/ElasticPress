@@ -856,10 +856,51 @@ class Products {
 			$term = $query->get( $taxonomy, false );
 
 			if ( ! empty( $term ) ) {
-				$tax_query[] = array(
+				$tax_query_defaults = array(
 					'taxonomy' => $taxonomy,
 					'field'    => 'slug',
-					'terms'    => (array) $term,
+				);
+
+				/*
+				 * Parse the value the same way WP_Query::parse_tax_query() does.
+				 */
+				if ( is_string( $term ) ) {
+					$tax_object = get_taxonomy( $taxonomy );
+
+					if ( $tax_object && ! empty( $tax_object->rewrite['hierarchical'] ) ) {
+						$term = wp_basename( $term );
+					}
+
+					$pieces = array_map( 'trim', explode( ',', $term ) );
+					sort( $pieces );
+					$parsed_term = implode( ',', $pieces );
+
+					if ( false !== strpos( $parsed_term, '+' ) ) {
+						foreach ( preg_split( '/[+]+/', $parsed_term ) as $plus_term ) {
+							$tax_query[] = array_merge(
+								$tax_query_defaults,
+								array(
+									'terms' => array( $plus_term ),
+								)
+							);
+						}
+					} else {
+						$tax_query[] = array_merge(
+							$tax_query_defaults,
+							array(
+								'terms' => preg_split( '/[,]+/', $parsed_term ),
+							)
+						);
+					}
+
+					continue;
+				}
+
+				$tax_query[] = array_merge(
+					$tax_query_defaults,
+					array(
+						'terms' => (array) $term,
+					)
 				);
 			}
 		}
