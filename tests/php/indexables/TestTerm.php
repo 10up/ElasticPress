@@ -818,7 +818,7 @@ class TestTerm extends BaseTestCase {
 	 * @param int $chunk_size       Number of object IDs fetched per query
 	 * @param int $expected_queries Number of queries expected to fetch the object IDs
 	 * @dataProvider prepare_object_ids_chunk_size_data_provider
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group term
 	 */
 	public function test_prepare_object_ids( $chunk_size, $expected_queries ) {
@@ -885,7 +885,7 @@ class TestTerm extends BaseTestCase {
 	/**
 	 * Tests prepare_object_ids() for terms without objects and terms that do not exist.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group term
 	 */
 	public function test_prepare_object_ids_without_objects() {

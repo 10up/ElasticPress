@@ -574,8 +574,6 @@ class SyncManager extends \ElasticPress\SyncManager {
 	 * @since  4.0.0
 	 */
 	public function action_edited_term( $term_id, $tt_id, $taxonomy ) {
-		global $wpdb;
-
 		if ( $this->kill_sync() ) {
 			return;
 		}
@@ -598,22 +596,20 @@ class SyncManager extends \ElasticPress\SyncManager {
 			}
 		}
 
-		// Find ID of all attached posts (query lifted from wp_delete_term())
-		$object_ids = (array) $wpdb->get_col( // phpcs:disable WordPress.DB.DirectDatabaseQuery
-			$wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d", $tt_id )
-		);
+		$per_page = IndexHelper::factory()->get_index_default_per_page();
+
+		// Without ep_skip_action_edited_term callbacks, which receive every object ID, one more ID than
+		// the per-cycle limit is enough to know whether the term is skipped.
+		$limit = has_filter( 'ep_skip_action_edited_term' ) ? 0 : max( 0, $per_page ) + 1;
+
+		// Find ID of all attached posts
+		$object_ids = Utils\get_term_object_ids( [ $term_id ], $taxonomy, $limit );
 
 		// If the current term is not attached, check if the child terms are attached to the post
 		if ( empty( $object_ids ) ) {
 			$child_terms = get_term_children( $term_id, $taxonomy );
-			if ( ! empty( $child_terms ) ) {
-				$in_id      = join( ',', array_fill( 0, count( $child_terms ), '%d' ) );
-				$object_ids = (array) $wpdb->get_col( // phpcs:disable WordPress.DB.DirectDatabaseQuery
-					$wpdb->prepare(
-						"SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id IN ( {$in_id} )", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-						$child_terms
-					)
-				);
+			if ( ! empty( $child_terms ) && ! is_wp_error( $child_terms ) ) {
+				$object_ids = Utils\get_term_object_ids( $child_terms, $taxonomy, $limit );
 			}
 		}
 		if ( ! count( $object_ids ) ) {
@@ -621,7 +617,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 		}
 
 		// If we have more items to update than the number set as Content Items per Index Cycle, skip it.
-		$should_skip = count( $object_ids ) > IndexHelper::factory()->get_index_default_per_page();
+		$should_skip = count( $object_ids ) > $per_page;
 
 		/**
 		 * Filter to allow skipping this action in case of custom handling

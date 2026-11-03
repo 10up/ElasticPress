@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
@@ -60,8 +61,49 @@ function spawnCommandDirectly({ container, command, dockerComposeConfigPath }) {
 	});
 }
 
+/**
+ * Path of the environment's docker-compose.yml.
+ *
+ * Loading the wp-env config asks api.wordpress.org for the latest WordPress version on every
+ * call, which makes each command slower and fails it when that request fails. The path only
+ * depends on where the config file is, so it is kept after the first call, while the file exists.
+ *
+ * @returns {Promise<string>} The path.
+ */
+const getDockerComposeConfigPath = async () => {
+	const configDirectoryPath = path.resolve(__dirname, '..');
+	const cacheFile = path.join(
+		configDirectoryPath,
+		'node_modules',
+		'.cache',
+		'wp-env-cli',
+		'docker-compose-path',
+	);
+
+	try {
+		const cached = fs.readFileSync(cacheFile, 'utf8').trim();
+
+		if (cached && fs.existsSync(cached)) {
+			return cached;
+		}
+	} catch {
+		// Not cached yet.
+	}
+
+	const { dockerComposeConfigPath } = await loadConfig(configDirectoryPath);
+
+	try {
+		fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
+		fs.writeFileSync(cacheFile, dockerComposeConfigPath);
+	} catch {
+		// Not cached: the next call loads the config again.
+	}
+
+	return dockerComposeConfigPath;
+};
+
 const run = async () => {
-	const { dockerComposeConfigPath } = await loadConfig(path.resolve(__dirname, '..'));
+	const dockerComposeConfigPath = await getDockerComposeConfigPath();
 
 	const container = process.argv[2];
 	const command = process.argv.splice(3).join(' ');
