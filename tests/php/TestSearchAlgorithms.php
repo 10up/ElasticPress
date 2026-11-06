@@ -21,7 +21,7 @@ class TestSearchAlgorithms extends BaseTestCase {
 	 *
 	 * @group searchAlgorithms
 	 */
-	public function testRegisterAndGetSearchAlgorithms() {
+	public function test_register_and_get_search_algorithms() {
 		/**
 		 * Test registering and getting a new search algorithm
 		 */
@@ -43,10 +43,10 @@ class TestSearchAlgorithms extends BaseTestCase {
 	/**
 	 * Test unregistering search algorithms
 	 *
-	 * @depends testRegisterAndGetSearchAlgorithms
+	 * @depends test_register_and_get_search_algorithms
 	 * @group searchAlgorithms
 	 */
-	public function testUnregisterSearchAlgorithms() {
+	public function test_unregister_search_algorithms() {
 		$this->assertTrue( SearchAlgorithms::factory()->unregister( 'stub' ) );
 		$this->assertFalse( SearchAlgorithms::factory()->unregister( 'foobar' ) );
 
@@ -71,10 +71,10 @@ class TestSearchAlgorithms extends BaseTestCase {
 	/**
 	 * Test getting all search algorithms
 	 *
-	 * @depends testUnregisterSearchAlgorithms
+	 * @depends test_unregister_search_algorithms
 	 * @group searchAlgorithms
 	 */
-	public function testGetAll() {
+	public function test_get_all() {
 		$this->assertEqualsCanonicalizing( [ 'default', '3.5', '4.0' ], SearchAlgorithms::factory()->get_all( true ) );
 
 		$search_algorithms = SearchAlgorithms::factory()->get_all();

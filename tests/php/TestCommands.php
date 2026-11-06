@@ -52,7 +52,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test activate-feature command can activate feature.
 	 */
-	public function testActivateFeature() {
+	public function test_activate_feature() {
 
 		$this->command->activate_feature( [ 'comments' ], [] );
 
@@ -63,7 +63,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test activate-feature throws warning when feature needs re-index.
 	 */
-	public function testActivateFeatureThrowWarnings() {
+	public function test_activate_feature_throw_warnings() {
 
 		$this->command->activate_feature( [ 'comments' ], [] );
 
@@ -74,7 +74,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test activate-feature command throws error when feature is already activated.
 	 */
-	public function testActivateFeatureWhenFeatureIsAlreadyActivated() {
+	public function test_activate_feature_when_feature_is_already_activated() {
 
 		$this->expectExceptionMessage( 'This feature is already active' );
 
@@ -84,7 +84,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test activate-feature command throws error when feature is not registered.
 	 */
-	public function testActivateFeatureForInvalidFeature() {
+	public function test_activate_feature_for_invalid_feature() {
 
 		$this->expectExceptionMessage( 'No feature with that slug is registered' );
 
@@ -94,7 +94,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test activate-feature command throws error when requirement is not met.
 	 */
-	public function testActivateFeatureWhenRequirementIsNotMet() {
+	public function test_activate_feature_when_requirement_is_not_met() {
 
 		$this->expectExceptionMessage( 'Feature requirements are not met' );
 
@@ -104,7 +104,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test deactivate-feature command can deactivate feature.
 	 */
-	public function testDeactivateFeature() {
+	public function test_deactivate_feature() {
 
 		$this->command->deactivate_feature( [ 'search' ], [] );
 
@@ -116,7 +116,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test deactivate-feature command throws error when feature is already deactivated.
 	 */
-	public function testDeactivateFeatureWhenFeatureIsAlreadyDeactivated() {
+	public function test_deactivate_feature_when_feature_is_already_deactivated() {
 
 		$this->expectExceptionMessage( 'Feature is not active' );
 
@@ -126,7 +126,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test deactivate-feature command throws error when feature is not registered.
 	 */
-	public function testDeactivateFeatureForInvalidFeature() {
+	public function test_deactivate_feature_for_invalid_feature() {
 
 		$this->expectExceptionMessage( 'No feature with that slug is registered' );
 
@@ -136,7 +136,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test list-features command can list all active features.
 	 */
-	public function testListFeature() {
+	public function test_list_feature() {
 
 		$this->command->list_features( [], [] );
 
@@ -148,7 +148,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test list-features command can list all features.
 	 */
-	public function testListFeatureAll() {
+	public function test_list_feature_all() {
 
 		$this->command->list_features( [], [ 'all' => true ] );
 
@@ -160,7 +160,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test put-mapping command can put mapping for active features.
 	 */
-	public function testPutMapping() {
+	public function test_put_mapping() {
 
 		$this->command->put_mapping( [], [] );
 
@@ -172,7 +172,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test put-mapping command can put mapping for specific indexable.
 	 */
-	public function testPutMappingWithIndexablesFlag() {
+	public function test_put_mapping_with_indexables_flag() {
 
 		ElasticPress\Features::factory()->activate_feature( 'comments' );
 		ElasticPress\Features::factory()->setup_features();
@@ -190,7 +190,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-single-site
 	 */
-	public function testPutMappingForNetworkWide() {
+	public function test_put_mapping_for_network_wide() {
 
 		ElasticPress\Features::factory()->activate_feature( 'comments' );
 		ElasticPress\Features::factory()->setup_features();
@@ -219,7 +219,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test put-mapping command throws error if mapping failed.
 	 */
-	public function testPutMappingThrowErrorIfMappingFailed() {
+	public function test_put_mapping_throw_error_if_mapping_failed() {
 
 		$this->expectExceptionMessage( 'Mapping failed: This was forced to fail' );
 
@@ -236,7 +236,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test put-mapping command throws error if mapping failed for network-wide.
 	 */
-	public function testPutMappingForNetworkWideThrowErrorIfMappingFailed() {
+	public function test_put_mapping_for_network_wide_throw_error_if_mapping_failed() {
 
 		$this->expectExceptionMessage( 'Mapping failed: This was forced to fail' );
 
@@ -253,7 +253,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test put-mapping command can put mapping for global indexables.
 	 */
-	public function testPutMappingForGlobalIndexables() {
+	public function test_put_mapping_for_global_indexables() {
 		ElasticPress\Features::factory()->activate_feature( 'global' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -268,7 +268,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test get-mapping command returns mapping.
 	 */
-	public function testGetMapping() {
+	public function test_get_mapping() {
 
 		$this->command->get_mapping( [], [] );
 
@@ -302,7 +302,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test get-cluster-indices command returns cluster indices.
 	 */
-	public function testGetClusterIndices() {
+	public function test_get_cluster_indices() {
 
 		$this->command->get_cluster_indices( [], [] );
 
@@ -322,7 +322,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test get-indices command returns indices information.
 	 */
-	public function testGetIndices() {
+	public function test_get_indices() {
 
 		$this->command->get_indices( [], [] );
 
@@ -357,7 +357,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-single-site
 	 */
-	public function testReCreateNetworkAlias() {
+	public function test_recreate_network_alias() {
 
 		$this->command->recreate_network_alias( [], [] );
 
@@ -371,7 +371,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-multi-site
 	 */
-	public function testReCreateNetworkAliasOnSingleSite() {
+	public function test_recreate_network_alias_on_single_site() {
 
 		$this->expectExceptionMessage( 'ElasticPress is not network activated.' );
 
@@ -383,7 +383,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-multi-site
 	 */
-	public function testSync() {
+	public function test_sync() {
 
 		// activate comments feature
 		ElasticPress\Features::factory()->activate_feature( 'comments' );
@@ -408,7 +408,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-single-site
 	 */
-	public function testSyncOnNetwork() {
+	public function test_sync_on_network() {
 
 		// activate comments feature
 		ElasticPress\Features::factory()->activate_feature( 'comments' );
@@ -433,7 +433,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	public function testSyncIndexCreationWithoutSetupFlag() {
+	public function test_sync_index_creation_without_setup_flag() {
 		Indexables::factory()->get( 'post' )->delete_index();
 
 		$this->command->sync( [], [] );
@@ -445,7 +445,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test sync command with setup flag.
 	 */
-	public function testSyncWithSetupFlag() {
+	public function test_sync_with_setup_flag() {
 
 		// activate comments feature
 		ElasticPress\Features::factory()->activate_feature( 'comments' );
@@ -476,7 +476,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	public function testSyncWithSetupFlagDeleteUnusedIndices() {
+	public function test_sync_with_setup_flag_delete_unused_indices() {
 		// activate comments and users features
 		ElasticPress\Indexables::factory()->get( 'comment' )->put_mapping();
 		ElasticPress\Indexables::factory()->get( 'term' )->put_mapping();
@@ -497,7 +497,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test sync command with indexables flag.
 	 */
-	public function testSyncWithIndexablesFlag() {
+	public function test_sync_with_indexables_flag() {
 
 		ElasticPress\Features::factory()->activate_feature( 'comments' );
 		ElasticPress\Features::factory()->setup_features();
@@ -521,7 +521,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-multi-site
 	 */
-	public function testSyncWithIncludeFlag() {
+	public function test_sync_with_include_flag() {
 
 		$post_id = $this->ep_factory->post->create();
 
@@ -537,7 +537,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-single-site
 	 */
-	public function testSyncWithIncludeFlagForNetwork() {
+	public function test_sync_with_include_flag_for_network() {
 
 		$post_id = $this->ep_factory->post->create();
 
@@ -551,7 +551,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test sync command with per-page flag.
 	 */
-	public function testSyncWithPerPageFlag() {
+	public function test_sync_with_per_page_flag() {
 
 		$this->ep_factory->post->create_many( 10 );
 
@@ -566,7 +566,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test sync command with post-type flag.
 	 */
-	public function testSyncWithPostTypeFlag() {
+	public function test_sync_with_post_type_flag() {
 
 		$this->ep_factory->post->create_many( 10 );
 		$this->ep_factory->post->create_many( 10, [ 'post_type' => 'page' ] );
@@ -581,7 +581,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test sync command with ep-prefix flag.
 	 */
-	public function testSyncWithEPPrefixFlag() {
+	public function test_sync_with_ep_prefix_flag() {
 
 		$this->ep_factory->post->create_many( 10 );
 		$this->ep_factory->post->create_many( 10, [ 'post_type' => 'page' ] );
@@ -595,7 +595,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test sync command with ep-host flag.
 	 */
-	public function testSyncWithEPHostFlag() {
+	public function test_sync_with_ep_host_flag() {
 
 		$this->expectExceptionMessage( 'Could not connect to Elasticsearch' );
 
@@ -605,7 +605,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test sync command can ask for confirmation when setup flag is set
 	 */
-	public function testSyncAskForConfirmationWhenSetupIsPassed() {
+	public function test_sync_ask_for_confirmation_when_setup_is_passed() {
 		$this->expectExceptionMessage( 'Syncing with the --setup option will delete your existing index in Elasticsearch. Are you sure you want to delete your Elasticsearch index' );
 
 		$this->command->sync( [], [ 'setup' => true ] );
@@ -614,7 +614,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test sync command throws error if mapping failed.
 	 */
-	public function testSyncThrowsErrorIfMappingFailed() {
+	public function test_sync_throws_error_if_mapping_failed() {
 
 		$this->expectExceptionMessage( 'Mapping failed: This was forced to fail' );
 
@@ -640,7 +640,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @since 4.6.0
 	 */
-	public function testSyncWithForceFlag() {
+	public function test_sync_with_force_flag() {
 		// mock indexing
 		add_filter( 'ep_is_indexing', '__return_true' );
 
@@ -661,7 +661,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @since 4.6.0
 	 */
-	public function testSyncAskForConfirmationWhenForceIsPassed() {
+	public function test_sync_ask_for_confirmation_when_force_is_passed() {
 		$this->expectExceptionMessage( 'Are you sure you want to stop any other ongoing sync?' );
 
 		$this->command->sync( [], [ 'force' => true ] );
@@ -670,7 +670,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test status command returns status information.
 	 */
-	public function testStatus() {
+	public function test_status() {
 
 		$this->command->status( [], [] );
 
@@ -683,7 +683,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test delete-index command ask for confirmation.
 	 */
-	public function testDeleteIndexAskForConfirmation() {
+	public function test_delete_index_ask_for_confirmation() {
 
 		$this->expectExceptionMessage( 'Are you sure you want to delete your Elasticsearch index?' );
 
@@ -693,7 +693,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test delete-index command can delete index.
 	 */
-	public function testDeleteIndex() {
+	public function test_delete_index() {
 
 		// activate comments feature
 		ElasticPress\Features::factory()->activate_feature( 'comments' );
@@ -724,7 +724,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test delete-index command also delete global index.
 	 */
-	public function testDeleteIndexGlobal() {
+	public function test_delete_index_global() {
 
 		ElasticPress\Features::factory()->activate_feature( 'global' );
 		ElasticPress\Features::factory()->setup_features();
@@ -740,7 +740,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-single-site
 	 */
-	public function testDeleteIndexForNetwork() {
+	public function test_delete_index_for_network() {
 
 		$this->factory->blog->create();
 
@@ -765,7 +765,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-single-site
 	 */
-	public function testClearSync() {
+	public function test_clear_sync() {
 
 		$this->command->clear_sync( [], [] );
 
@@ -776,7 +776,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test get-ongoing-sync-status command returns ongoing sync status.
 	 */
-	public function testGetOnGoingSyncStatus() {
+	public function test_get_ongoing_sync_status() {
 
 		$this->command->get_ongoing_sync_status( [], [] );
 
@@ -787,7 +787,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test get-last-sync command returns last sync information.
 	 */
-	public function testGetLastSync() {
+	public function test_get_last_sync() {
 
 		$this->command->get_last_sync( [], [] );
 
@@ -798,7 +798,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test get-last-cli-sync command returns last cli sync information.
 	 */
-	public function testGetLastCliSync() {
+	public function test_get_last_cli_sync() {
 
 		$this->command->get_last_cli_sync( [], [] );
 
@@ -815,7 +815,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test stop-sync command can stop indexing.
 	 */
-	public function testStopSync() {
+	public function test_stop_sync() {
 
 		$this->command->stop_sync( [], [] );
 
@@ -835,7 +835,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test set-search-algorithm-version command can set search algorithm version.
 	 */
-	public function testSetSearchAlgorithmVersion() {
+	public function test_set_search_algorithm_version() {
 
 		$this->command->set_search_algorithm_version( [], [ 'version' => 1 ] );
 
@@ -857,7 +857,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test set-search-algorithm-version command throws an error if no version is provided.
 	 */
-	public function testSetSearchAlgorithmVersionWithOutVersion() {
+	public function test_set_search_algorithm_version_without_version() {
 
 		$this->expectExceptionMessage( 'This command expects a version number or the --default flag.' );
 
@@ -867,7 +867,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test get-search-algorithm-version returns the algorithm version.
 	 */
-	public function testGetSearchAlgorithmVersion() {
+	public function test_get_search_algorithm_version() {
 
 		// set default version.
 		Utils\update_option( 'ep_search_algorithm_version', '' );
@@ -890,7 +890,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test request command can make a request to Elasticsearch.
 	 */
-	public function testRequest() {
+	public function test_request() {
 
 		$this->command->request(
 			[ '_cat/indices' ],
@@ -978,7 +978,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test request command throws an error if request fails.
 	 */
-	public function testRequestThrowsError() {
+	public function test_request_throws_error() {
 
 		$this->expectExceptionMessage( 'Error: Request failed.' );
 
@@ -998,7 +998,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test settings-reset command delete all settings.
 	 */
-	public function testSettingsReset() {
+	public function test_settings_reset() {
 
 		$this->command->settings_reset( [], [ 'yes' => true ] );
 
@@ -1009,7 +1009,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test settings-reset command ask for confirmation.
 	 */
-	public function testSettingsResetAskForConfirmation() {
+	public function test_settings_reset_ask_for_confirmation() {
 
 		$this->expectExceptionMessage( 'Are you sure you want to delete all ElasticPress settings?' );
 
@@ -1019,7 +1019,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test stats command.
 	 */
-	public function testStats() {
+	public function test_stats() {
 
 		$this->command->stats( [], [] );
 
@@ -1030,7 +1030,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test epio-set-autosuggest command.
 	 */
-	public function testEPioSetAutosuggest() {
+	public function test_epio_set_autosuggest() {
 
 		ElasticPress\Features::factory()->activate_feature( 'autosuggest' );
 
@@ -1043,7 +1043,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test epio-set-autosuggest command throws an error if autosuggest is not enabled.
 	 */
-	public function testEPioSetAutosuggestThrowsError() {
+	public function test_epio_set_autosuggest_throws_error() {
 
 		$this->expectExceptionMessage( 'Autosuggest is not enabled.' );
 
@@ -1053,7 +1053,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test `should_interrupt_sync` method.
 	 */
-	public function testShouldInterruptSync() {
+	public function test_should_interrupt_sync() {
 
 		set_transient( 'ep_wpcli_sync_interrupted', true );
 
@@ -1067,7 +1067,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test commands throws an error when host is not set.
 	 */
-	public function testThrowsErrorWhenHostIsNotSet() {
+	public function test_throws_error_when_host_is_not_set() {
 
 		$this->expectExceptionMessage( 'Elasticsearch host is not set.' );
 
@@ -1082,7 +1082,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @since 4.7.0
 	 */
-	public function testGetIndexSettings() {
+	public function test_get_index_settings() {
 		$this->command->get_index_settings( [ 'exampleorg-post-1' ], [] );
 
 		$output = $this->getActualOutputForAssertion();
@@ -1170,7 +1170,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test commands throws an error if indexing is already happening.
 	 */
-	public function testThrowsErrorIfIndexingIsAlreadyHappening() {
+	public function test_throws_error_if_indexing_is_already_happening() {
 
 		$this->expectExceptionMessage( 'An index is already occurring. Try again later.' );
 
@@ -1223,7 +1223,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 *  @expectedDeprecated get-indexes
 	 */
-	public function testGetIndexesThrowsDeprecatedWarning() {
+	public function test_get_indexes_throws_deprecated_warning() {
 
 		$this->command->get_indexes( [], [] );
 
@@ -1236,7 +1236,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 *  @expectedDeprecated get-cluster-indexes
 	 */
-	public function testGetClusterIndexesThrowsDeprecatedWarning() {
+	public function test_get_cluster_indexes_throws_deprecated_warning() {
 
 		$this->command->get_cluster_indexes( [], [] );
 
@@ -1249,7 +1249,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 *  @expectedDeprecated index
 	 */
-	public function testIndexThrowsDeprecatedWarning() {
+	public function test_index_throws_deprecated_warning() {
 
 		// activate comments feature
 		ElasticPress\Features::factory()->activate_feature( 'comments' );
@@ -1272,7 +1272,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 *  @expectedDeprecated clear-index
 	 */
-	public function testClearIndexThrowsDeprecatedWarning() {
+	public function test_clear_index_throws_deprecated_warning() {
 
 		$this->command->clear_index( [], [] );
 
@@ -1285,7 +1285,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 *  @expectedDeprecated get-indexing-status
 	 */
-	public function testGetIndexingStatusThrowsDeprecatedWarning() {
+	public function test_get_indexing_status_throws_deprecated_warning() {
 
 		$this->command->get_indexing_status( [], [] );
 
@@ -1298,7 +1298,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 *  @expectedDeprecated get-last-cli-index
 	 */
-	public function testGetLastCliIndexThrowsDeprecatedWarning() {
+	public function test_get_last_cli_index_throws_deprecated_warning() {
 
 		$this->command->get_last_cli_index( [], [] );
 
@@ -1311,7 +1311,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 *  @expectedDeprecated stop-indexing
 	 */
-	public function testStopIndexingThrowsDeprecatedWarning() {
+	public function test_stop_indexing_throws_deprecated_warning() {
 
 		$this->command->stop_indexing( [], [] );
 

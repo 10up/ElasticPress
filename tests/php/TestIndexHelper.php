@@ -19,7 +19,7 @@ class TestIndexHelper extends BaseTestCase {
 	 * @since 4.5.0
 	 * @group indexHelper
 	 */
-	public function testFullIndexEpSyncArgsFilter() {
+	public function test_full_index_ep_sync_args_filter() {
 		$index_helper = \ElasticPress\IndexHelper::factory();
 
 		$args = [
@@ -44,7 +44,7 @@ class TestIndexHelper extends BaseTestCase {
 	 *
 	 * @group indexHelper
 	 */
-	public function testGetIndexDefaultPerPage() {
+	public function test_get_index_default_per_page() {
 		$index_helper = \ElasticPress\IndexHelper::factory();
 
 		/**

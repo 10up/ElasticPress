@@ -22,7 +22,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 *
 	 * @group statusReport
 	 */
-	public function testGetReports() {
+	public function test_get_reports() {
 		$status_report = new StatusReport();
 
 		$reports = $status_report->get_reports();
@@ -37,7 +37,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 *
 	 * @group statusReport
 	 */
-	public function testGetReportsFilter() {
+	public function test_get_reports_filter() {
 		$status_report = new StatusReport();
 
 		$add_filter = function ( $reports ) {
@@ -58,7 +58,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 *
 	 * @group statusReport
 	 */
-	public function testGetReportsSkipped() {
+	public function test_get_reports_skipped() {
 		$status_report = new StatusReport();
 
 		parse_str( 'ep-skip-reports[]=wordpress&ep-skip-reports[]=indexable', $_GET ); // phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText
@@ -76,7 +76,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 4.5.1
 	 */
-	public function testWordPressReport() {
+	public function test_wordpress_report() {
 		global $wp_version;
 
 		$report = new \ElasticPress\StatusReport\WordPress();
@@ -144,7 +144,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 4.5.1
 	 */
-	public function testLastSyncReport() {
+	public function test_last_sync_report() {
 		$report = new \ElasticPress\StatusReport\LastSync();
 
 		// Test when no last sync information is available
@@ -202,7 +202,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 4.5.1
 	 */
-	public function testIndicesReport() {
+	public function test_indices_report() {
 		// Make sure the index exists
 		\ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
@@ -224,7 +224,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 4.5.1
 	 */
-	public function testIndexableContentReport() {
+	public function test_indexable_content_report() {
 		// set screen to status report
 		add_filter( 'ep_install_status', '__return_true' );
 		$_GET['page'] = 'elasticpress-status-report';
@@ -302,7 +302,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 4.5.1
 	 */
-	public function testFeatureReport() {
+	public function test_feature_report() {
 		// deactivate all feature.
 		Utils\delete_option( 'ep_feature_settings' );
 
@@ -323,7 +323,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 4.5.1
 	 */
-	public function testFailedQueriesReport() {
+	public function test_failed_queries_report() {
 		$time_stamp = time();
 		$random_no  = wp_rand( 1, 100 );
 
@@ -428,7 +428,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 4.5.1
 	 */
-	public function testElasticPressIoReport() {
+	public function test_elasticpress_io_report() {
 		add_filter( 'ep_instant_results_available', '__return_true' );
 
 		\ElasticPress\Features::factory()->activate_feature( 'autosuggest' );
@@ -450,7 +450,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 4.5.1
 	 */
-	public function testElasticPressReport() {
+	public function test_elasticpress_report() {
 		$report = new \ElasticPress\StatusReport\ElasticPress();
 		$groups = $report->get_groups();
 
@@ -509,7 +509,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 5.2.0
 	 */
-	public function testNoncenotValidAjaxReport() {
+	public function test_noncenot_valid_ajax_report() {
 		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
 
 		try {
@@ -527,7 +527,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 5.2.0
 	 */
-	public function testNotInstanceOfAjaxReport() {
+	public function test_not_instance_of_ajax_report() {
 		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
 
 		$_POST['ep-status-report-nonce'] = wp_create_nonce( 'ep-status-report-nonce' );
@@ -548,7 +548,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 5.2.0
 	 */
-	public function testReportNotFoundAjaxReport() {
+	public function test_report_not_found_ajax_report() {
 		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
 
 		$_POST['ep-status-report-nonce'] = wp_create_nonce( 'ep-status-report-nonce' );
@@ -569,7 +569,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @group statusReport
 	 * @since 5.2.0
 	 */
-	public function testValidReportAjaxReport() {
+	public function test_valid_report_ajax_report() {
 		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
 
 		$_POST['ep-status-report-nonce'] = wp_create_nonce( 'ep-status-report-nonce' );

@@ -54,15 +54,15 @@ class TestSynonyms extends BaseTestCase {
 	 *
 	 * @return Synonyms
 	 */
-	public function getFeature() {
+	public function get_feature() {
 		return new Synonyms();
 	}
 
 	/**
 	 * Test class constructor
 	 */
-	public function testConstructor() {
-		$instance = $this->getFeature();
+	public function test_constructor() {
+		$instance = $this->get_feature();
 
 		$this->assertSame( 'ep_synonyms_filter', $instance->filter_name );
 		$this->assertIsArray( $instance->affected_indices );
@@ -72,8 +72,8 @@ class TestSynonyms extends BaseTestCase {
 	/**
 	 * Test the `get_synonym_post_id` method.
 	 */
-	public function testGetSynonymPostId() {
-		$instance = $this->getFeature();
+	public function test_get_synonym_post_id() {
+		$instance = $this->get_feature();
 
 		$post_id = $instance->get_synonym_post_id();
 		$this->assertGreaterThan( 0, $post_id );
@@ -82,8 +82,8 @@ class TestSynonyms extends BaseTestCase {
 	/**
 	 * Test the `get_synonyms_raw` method.
 	 */
-	public function testGetSynonymsRaw() {
-		$instance = $this->getFeature();
+	public function test_get_synonyms_raw() {
+		$instance = $this->get_feature();
 
 		$synonyms = $instance->get_synonyms_raw();
 
@@ -93,8 +93,8 @@ class TestSynonyms extends BaseTestCase {
 	/**
 	 * Test the `get_synonyms` method.
 	 */
-	public function testGetSynonyms() {
-		$instance = $this->getFeature();
+	public function test_get_synonyms() {
+		$instance = $this->get_feature();
 
 		$synonyms = $instance->get_synonyms();
 
@@ -119,8 +119,8 @@ class TestSynonyms extends BaseTestCase {
 	/**
 	 * Test the `validate_synonym` method.
 	 */
-	public function testValidateSynonyms() {
-		$instance = $this->getFeature();
+	public function test_validate_synonyms() {
+		$instance = $this->get_feature();
 
 		$this->assertFalse( $instance->validate_synonym( '' ) );
 		$this->assertFalse( $instance->validate_synonym( '# Comments are not valid.' ) );
@@ -137,7 +137,7 @@ class TestSynonyms extends BaseTestCase {
 	 * @group skip-on-single-site
 	 */
 	public function test_synonyms_with_spaces() {
-		$instance = $this->getFeature();
+		$instance = $this->get_feature();
 
 		wp_insert_post(
 			[
@@ -171,7 +171,7 @@ class TestSynonyms extends BaseTestCase {
 	 * @group synonyms
 	 */
 	public function test_synonyms_case_insensitive() {
-		$instance = $this->getFeature();
+		$instance = $this->get_feature();
 
 		$this->ep_factory->post->create(
 			[

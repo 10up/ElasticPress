@@ -62,7 +62,7 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @group feature-activation
 	 * @since  2.2
 	 */
-	public function testNoActiveFeatures() {
+	public function test_no_active_features() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
 
@@ -79,7 +79,7 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @group feature-activation
 	 * @since  2.2
 	 */
-	public function testAutoActivated() {
+	public function test_auto_activated() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
 
@@ -105,7 +105,7 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @group feature-activation
 	 * @since  2.2
 	 */
-	public function testRequirementStatuses() {
+	public function test_requirement_statuses() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
 
@@ -126,7 +126,7 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @group feature-activation
 	 * @since  2.2
 	 */
-	public function testAutoActivateWithSimpleFeature() {
+	public function test_auto_activate_with_simple_feature() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
 
@@ -148,7 +148,7 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @group feature-activation
 	 * @since  2.2
 	 */
-	public function testAutoDeactivateWithFeature() {
+	public function test_auto_deactivate_with_feature() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
 
@@ -222,7 +222,7 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @group feature-activation
 	 * @since  2.2
 	 */
-	public function testReqChangeNothingWithFeature() {
+	public function test_req_change_nothing_with_feature() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
 
@@ -317,7 +317,7 @@ class TestFeatureActivation extends BaseTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	public function testGetSettings() {
+	public function test_get_settings() {
 		$feature = new FeatureTest();
 
 		$default_settings = [
@@ -351,7 +351,7 @@ class TestFeatureActivation extends BaseTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	public function testGetSetting() {
+	public function test_get_setting() {
 		$feature = new FeatureTest();
 
 		$feature->default_settings = [

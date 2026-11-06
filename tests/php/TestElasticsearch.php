@@ -22,7 +22,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * @since 0.1.0
 	 * @group elasticsearch
 	 */
-	public function testGetClusterStatus() {
+	public function test_get_cluster_status() {
 
 		$status_indexed = ElasticPress\Elasticsearch::factory()->get_cluster_status();
 
@@ -59,7 +59,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group elasticsearch
 	 */
-	public function testGetDocuments() {
+	public function test_get_documents() {
 
 		$post_ids   = array();
 		$post_ids[] = $this->ep_factory->post->create();
@@ -189,7 +189,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * @since 4.4.0
 	 * @group elasticsearch
 	 */
-	public function testUpdateIndexSettings() {
+	public function test_update_index_settings() {
 		$index_name = 'lorem-ipsum';
 		$settings   = [ 'test' ];
 
@@ -359,7 +359,7 @@ class TestElasticsearch extends BaseTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	public function testFormatRequestHeaders() {
+	public function test_format_request_headers() {
 		/**
 		 * Test the default behavior
 		 */
@@ -413,7 +413,7 @@ class TestElasticsearch extends BaseTestCase {
 	 *
 	 * @since 4.6.0
 	 */
-	public function testGetIndicesComparison() {
+	public function test_get_indices_comparison() {
 		ElasticPress\Features::factory()->activate_feature( 'terms' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -471,7 +471,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * @since 5.1.4
 	 * @group elasticsearch
 	 */
-	public function testEpDisableQueryLoggingFilter() {
+	public function test_ep_disable_query_logging_filter() {
 		$elasticsearch = new \ElasticPress\Elasticsearch();
 
 		$reflection = new \ReflectionClass( $elasticsearch );

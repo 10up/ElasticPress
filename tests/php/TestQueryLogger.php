@@ -39,7 +39,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @group queryLogger
 	 */
-	public function testLogQueryBeforeFirstSync() {
+	public function test_log_query_before_first_sync() {
 		$query_logger = $this->getMockBuilder( QueryLogger::class )
 			->setMethods( [ 'get_logs' ] )
 			->getMock();
@@ -58,7 +58,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @group queryLogger
 	 */
-	public function testLogQueryQueriesToKeepFilter() {
+	public function test_log_query_queries_to_keep_filter() {
 		$query_logger = $this->getMockBuilder( QueryLogger::class )
 			->setMethods( [ 'get_logs', 'should_log_query_type', 'format_log_entry', 'update_logs' ] )
 			->getMock();
@@ -93,7 +93,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @group queryLogger
 	 */
-	public function testLogQueryLoggedQueryAction() {
+	public function test_log_query_logged_query_action() {
 		$query_logger = $this->getMockBuilder( QueryLogger::class )
 			->setMethods( [ 'get_logs', 'should_log_query_type', 'format_log_entry', 'update_logs' ] )
 			->disableOriginalConstructor()
@@ -127,7 +127,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @group queryLogger
 	 */
-	public function testGetLogs() {
+	public function test_get_logs() {
 		$current_time = current_time( 'timestamp' );
 		$test_logs    = [
 			[ 'timestamp' => $current_time - DAY_IN_SECONDS - 5 ],
@@ -172,11 +172,11 @@ class TestQueryLogger extends BaseTestCase {
 	}
 
 	/**
-	 * Test the testUpdateLogs method
+	 * Test the test_update_logs method
 	 *
 	 * @group queryLogger
 	 */
-	public function testUpdateLogs() {
+	public function test_update_logs() {
 		$query_logger = new QueryLogger();
 
 		/**
@@ -202,7 +202,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @group queryLogger
 	 */
-	public function testClearLogs() {
+	public function test_clear_logs() {
 		$query_logger = new QueryLogger();
 		$query_logger->clear_logs();
 		$this->assertEquals( 1, did_action( 'ep_query_logger_cleared_logs' ) );
@@ -213,7 +213,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @group queryLogger
 	 */
-	public function testMaybeAddNotice() {
+	public function test_maybe_add_notice() {
 		/**
 		 * Initial setup
 		 */
@@ -308,7 +308,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @group queryLogger
 	 */
-	public function testFormatLogEntry() {
+	public function test_format_log_entry() {
 		$query_logger = new QueryLogger();
 
 		parse_str( 'query-string=test', $_GET );
@@ -381,7 +381,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @group queryLogger
 	 */
-	public function testShouldLogQueryType() {
+	public function test_should_log_query_type() {
 		$query_logger = new QueryLogger();
 
 		$class  = new \ReflectionClass( $query_logger );
@@ -435,7 +435,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @group queryLogger
 	 */
-	public function testIsBulkIndexError() {
+	public function test_is_bulk_index_error() {
 		$this->markTestIncomplete();
 	}
 
@@ -444,10 +444,10 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @param bool $expected    Expected maybe_log_delete_index return
 	 * @param int  $status_code HTTP Status Code
-	 * @dataProvider maybeDeleteIndexDataProvider
+	 * @dataProvider maybe_delete_index_data_provider
 	 * @group queryLogger
 	 */
-	public function testMaybeLogDeleteIndex( $expected, $status_code ) {
+	public function test_maybe_log_delete_index( $expected, $status_code ) {
 		$query_logger = new QueryLogger();
 
 		$class  = new \ReflectionClass( $query_logger );
@@ -470,7 +470,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @group queryLogger
 	 */
-	public function testIsQueryErrorWithWPError() {
+	public function test_is_query_error_with_wp_error() {
 		$query_logger = new QueryLogger();
 
 		$class  = new \ReflectionClass( $query_logger );
@@ -485,10 +485,10 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @param bool $expected    Expected maybe_log_delete_index return
 	 * @param int  $status_code HTTP Status Code
-	 * @dataProvider isQueryErrorWithStatusCodeDataProvider
+	 * @dataProvider is_query_error_with_status_code_data_provider
 	 * @group queryLogger
 	 */
-	public function testIsQueryErrorWithStatusCode( $expected, $status_code ) {
+	public function test_is_query_error_with_status_code( $expected, $status_code ) {
 		$query_logger = new QueryLogger();
 
 		$class  = new \ReflectionClass( $query_logger );
@@ -507,11 +507,11 @@ class TestQueryLogger extends BaseTestCase {
 	}
 
 	/**
-	 * Data provider for the testMaybeLogDeleteIndex method
+	 * Data provider for the test_maybe_log_delete_index method
 	 *
 	 * @return array
 	 */
-	public function maybeDeleteIndexDataProvider(): array {
+	public function maybe_delete_index_data_provider(): array {
 		return [
 			[ true, 199 ],
 			[ false, 200 ],
@@ -522,11 +522,11 @@ class TestQueryLogger extends BaseTestCase {
 	}
 
 	/**
-	 * Data provider for the testIsQueryErrorWithStatusCode method
+	 * Data provider for the test_is_query_error_with_status_code method
 	 *
 	 * @return array
 	 */
-	public function isQueryErrorWithStatusCodeDataProvider(): array {
+	public function is_query_error_with_status_code_data_provider(): array {
 		return [
 			[ true, 199 ],
 			[ false, 200 ],

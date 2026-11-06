@@ -48,7 +48,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testGetFilterName() {
+	public function test_get_filter_name() {
 		/**
 		 * Test default behavior
 		 */
@@ -69,7 +69,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testGetFilterType() {
+	public function test_get_filter_type() {
 		/**
 		 * Test default behavior
 		 */
@@ -90,7 +90,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testAddQueryFilters() {
+	public function test_add_query_filters() {
 		$allow_field = function ( $fields ) {
 			$fields[] = 'my_custom_field';
 			return $fields;
@@ -126,7 +126,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 	 * @since 4.5.1
 	 * @group facets
 	 */
-	public function testAddQueryFiltersWithNotAllowedParameters() {
+	public function test_add_query_filters_with_not_allowed_parameters() {
 		$allow_field = function ( $fields ) {
 			$fields[] = 'my_custom_field';
 			return $fields;
@@ -179,7 +179,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testSetWpQueryAggs() {
+	public function test_set_wp_query_aggs() {
 		$set_facet_meta_field = function () {
 			return [ 'new_meta_key_1', 'new_meta_key_2' ];
 		};
@@ -224,7 +224,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 	/**
 	 * Test the format_selected method.
 	 */
-	public function testFormatSelected() {
+	public function test_format_selected() {
 		$original_filters = [ 'custom_type' => [ 'facet' => [ 1, 2, 3 ] ] ];
 		$new_filters      = $this->facet_type->format_selected( 'my_meta_min', '5', $original_filters );
 		$expected_filters = array_merge(
@@ -257,7 +257,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 	/**
 	 * Test the add_query_params method.
 	 */
-	public function testAddQueryParams() {
+	public function test_add_query_params() {
 		$original_query_params = [ 'custom_name' => 'custom_value' ];
 		$selected_filters      = [
 			[
@@ -294,7 +294,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testGetFacetsMetaFields() {
+	public function test_get_facets_meta_fields() {
 		$this->markTestIncomplete();
 	}
 

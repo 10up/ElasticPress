@@ -60,7 +60,7 @@ class TestDocuments extends BaseTestCase {
 	 * @since 2.3
 	 * @group documents
 	 */
-	public function testSearchAllowedMimeType() {
+	public function test_search_allowed_mime_type() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->activate_feature( 'documents' );
 		ElasticPress\Features::factory()->setup_features();
@@ -99,7 +99,7 @@ class TestDocuments extends BaseTestCase {
 	 * @since 2.3
 	 * @group documents
 	 */
-	public function testSearchDisallowedMimeType() {
+	public function test_search_disallowed_mime_type() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->activate_feature( 'documents' );
 		ElasticPress\Features::factory()->setup_features();
@@ -142,7 +142,7 @@ class TestDocuments extends BaseTestCase {
 	 * @since 2.3
 	 * @group documents
 	 */
-	public function testSearchNormalPost() {
+	public function test_search_normal_post() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->activate_feature( 'documents' );
 		ElasticPress\Features::factory()->setup_features();
@@ -189,7 +189,7 @@ class TestDocuments extends BaseTestCase {
 	 *
 	 * @since 4.7.0
 	 */
-	public function testExcludeFromSearchQuery() {
+	public function test_exclude_from_search_query() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->activate_feature( 'documents' );
 		ElasticPress\Features::factory()->setup_features();
@@ -229,7 +229,7 @@ class TestDocuments extends BaseTestCase {
 	 * @since 5.1.0
 	 * @group documents
 	 */
-	public function testQueryForAttachments() {
+	public function test_query_for_attachments() {
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->activate_feature( 'documents' );

@@ -38,7 +38,7 @@ class TestSearchAlgorithm extends BaseTestCase {
 	 *
 	 * @group searchAlgorithms
 	 */
-	public function testFilters() {
+	public function test_filters() {
 		$test_filter = function () {
 			return [ 'changed' ];
 		};
@@ -58,7 +58,7 @@ class TestSearchAlgorithm extends BaseTestCase {
 	 * @expectedDeprecated ep_formatted_args_query
 	 * @group searchAlgorithms
 	 */
-	public function testLegacyFilters() {
+	public function test_legacy_filters() {
 		$test_filter = function () {
 			return [ 'changed' ];
 		};

@@ -80,7 +80,7 @@ class TestFacet extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testFacetTypeRegistration() {
+	public function test_facet_type_registration() {
 		$facet_type = $this->getMockForAbstractClass( '\ElasticPress\Feature\Facets\FacetType' );
 		$facet_type->expects( $this->exactly( 1 ) )->method( 'setup' );
 
@@ -108,16 +108,16 @@ class TestFacet extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group facets
 	 */
-	public function testGetSelected() {
+	public function test_get_selected() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 
 		parse_str( 'ep_filter_taxonomy=dolor', $_GET );
 		$selected = $facet_feature->get_selected();
-		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
+		$this->assert_selected_tax( [ 'dolor' => true ], 'taxonomy', $selected );
 
 		parse_str( 'ep_filter_taxonomy=dolor,sit', $_GET );
 		$selected = $facet_feature->get_selected();
-		$this->assertSelectedTax(
+		$this->assert_selected_tax(
 			[
 				'dolor' => true,
 				'sit'   => true,
@@ -145,13 +145,13 @@ class TestFacet extends BaseTestCase {
 
 		parse_str( 's=searchterm&ep_filter_taxonomy=dolor', $_GET );
 		$selected = $facet_feature->get_selected();
-		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
+		$this->assert_selected_tax( [ 'dolor' => true ], 'taxonomy', $selected );
 		$this->assertArrayHasKey( 's', $selected );
 		$this->assertSame( 'searchterm', $selected['s'] );
 
 		parse_str( 'post_type=posttype&ep_filter_taxonomy=dolor', $_GET );
 		$selected = $facet_feature->get_selected();
-		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
+		$this->assert_selected_tax( [ 'dolor' => true ], 'taxonomy', $selected );
 		$this->assertArrayHasKey( 'post_type', $selected );
 		$this->assertSame( 'posttype', $selected['post_type'] );
 
@@ -163,7 +163,7 @@ class TestFacet extends BaseTestCase {
 		);
 		parse_str( "post_type=posttype&ep_filter_taxonomy={$term->slug}", $_GET );
 		$selected = $facet_feature->get_selected();
-		$this->assertSelectedTax( array( $term->slug => true ), 'taxonomy', $selected );
+		$this->assert_selected_tax( array( $term->slug => true ), 'taxonomy', $selected );
 		$this->assertArrayHasKey( 'post_type', $selected );
 		$this->assertSame( 'posttype', $selected['post_type'] );
 
@@ -180,7 +180,7 @@ class TestFacet extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group facets
 	 */
-	public function testBuildQueryUrl() {
+	public function test_build_query_url() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 
 		$filters = [
@@ -251,7 +251,7 @@ class TestFacet extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testSetAggFilter() {
+	public function test_set_agg_filter() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 
 		$args = [
@@ -292,7 +292,7 @@ class TestFacet extends BaseTestCase {
 	 * @since 4.5.0
 	 * @group facets
 	 */
-	public function testSetAggFilterAddingAggFiltersFlag() {
+	public function test_set_agg_filter_adding_agg_filters_flag() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 
 		$query_args = [
@@ -320,7 +320,7 @@ class TestFacet extends BaseTestCase {
 	 * @since 4.4.0
 	 * @group facets
 	 */
-	public function testApplyFacetsFilters() {
+	public function test_apply_facets_filters() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 
 		$new_filters = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [] ) );
@@ -389,7 +389,7 @@ class TestFacet extends BaseTestCase {
 	 * @since 4.5.1
 	 * @group facets
 	 */
-	public function testGetAllowedQueryArgs() {
+	public function test_get_allowed_query_args() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 
 		$default_allowed_args = [
@@ -634,7 +634,7 @@ class TestFacet extends BaseTestCase {
 	}
 
 	/**
-	 * Utility function for the testGetSelected test.
+	 * Utility function for the test_get_selected test.
 	 *
 	 * Private as it is super specific and not likely to be extended.
 	 *
@@ -642,7 +642,7 @@ class TestFacet extends BaseTestCase {
 	 * @param string $taxonomy Taxonomy slug
 	 * @param array  $selected Array of selected terms.
 	 */
-	private function assertSelectedTax( $terms, $taxonomy, $selected ) {
+	private function assert_selected_tax( $terms, $taxonomy, $selected ) {
 		$this->assertIsArray( $selected );
 		$this->assertIsArray( $selected['taxonomies'] );
 		$this->assertCount( 1, $selected['taxonomies'] );

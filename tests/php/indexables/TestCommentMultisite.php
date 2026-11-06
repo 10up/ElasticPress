@@ -80,7 +80,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function testCommentQueryForAllSites() {
+	public function test_comment_query_for_all_sites() {
 
 		$sites = ElasticPress\Utils\get_sites();
 		if ( ! is_multisite() ) {
@@ -118,7 +118,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function testCommentQueryForSitesSubset() {
+	public function test_comment_query_for_sites_subset() {
 
 		$sites = ElasticPress\Utils\get_sites();
 		if ( ! is_multisite() ) {
@@ -155,7 +155,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function testCommentQueryForSitesExceptOne() {
+	public function test_comment_query_for_sites_except_one() {
 
 		$sites = ElasticPress\Utils\get_sites();
 		if ( ! is_multisite() ) {
@@ -192,7 +192,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function testCommentQuerySearchForAllSites() {
+	public function test_comment_query_search_for_all_sites() {
 
 		$sites = ElasticPress\Utils\get_sites();
 		if ( ! is_multisite() ) {
@@ -235,7 +235,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 * @since 4.4.0
 	 * @expectedDeprecated maybe_filter_query
 	 */
-	public function testCommentQueryWithDeprecatedSitesParam() {
+	public function test_comment_query_with_deprecated_sites_param() {
 
 		$sites = ElasticPress\Utils\get_sites();
 		if ( ! is_multisite() ) {
@@ -273,7 +273,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 * @since 4.4.1
 	 * @expectedDeprecated maybe_filter_query
 	 */
-	public function testCommentQueryWithDeprecatedSitesParamWithValueCurrent() {
+	public function test_comment_query_with_deprecated_sites_param_with_value_current() {
 
 		$sites = ElasticPress\Utils\get_sites();
 		if ( ! is_multisite() ) {
@@ -314,7 +314,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.1
 	 */
-	public function testCommentQueryWithSiteInParamWithValueCurrent() {
+	public function test_comment_query_with_site_in_param_with_value_current() {
 
 		$sites = ElasticPress\Utils\get_sites();
 		if ( ! is_multisite() ) {

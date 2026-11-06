@@ -19,7 +19,7 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 *
 	 * @group searchAlgorithms
 	 */
-	public function testGetSlug() {
+	public function test_get_slug() {
 		$basic = new Version_400();
 
 		$this->assertSame( '4.0', $basic->get_slug() );
@@ -30,7 +30,7 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 *
 	 * @group searchAlgorithms
 	 */
-	public function testGetQuery() {
+	public function test_get_query() {
 		$basic = new Version_400();
 
 		$search_term   = 'search_term';
@@ -38,7 +38,7 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $basic->get_query( 'indexable', $search_term, $search_fields, [] );
 
-		$model = $this->getModel( $search_term, $search_fields );
+		$model = $this->get_model( $search_term, $search_fields );
 
 		$this->assertEquals( $model, $query );
 	}
@@ -48,7 +48,7 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 *
 	 * @group searchAlgorithms
 	 */
-	public function testFilters() {
+	public function test_filters() {
 		$basic = new Version_400();
 
 		$search_term   = 'search_term';
@@ -105,7 +105,7 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @see https://github.com/10up/ElasticPress/issues/3033
 	 * @group searchAlgorithms
 	 */
-	public function testPostFilters() {
+	public function test_post_filters() {
 		$basic = new Version_400();
 
 		$search_term   = 'search_term';
@@ -163,7 +163,7 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @expectedDeprecated ep_match_cross_fields_boost
 	 * @group searchAlgorithms
 	 */
-	public function testLegacyFilters() {
+	public function test_legacy_filters() {
 		$basic = new Version_400();
 
 		$search_term   = 'search_term';
@@ -219,7 +219,7 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @param array  $search_fields Search fields
 	 * @return array
 	 */
-	protected function getModel( string $search_term, array $search_fields ): array {
+	protected function get_model( string $search_term, array $search_fields ): array {
 		return [
 			'bool' => [
 				'should' => [

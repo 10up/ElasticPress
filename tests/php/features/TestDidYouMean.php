@@ -41,7 +41,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Test Feature properties.
 	 */
-	public function testConstruct() {
+	public function test_construct() {
 		$instance = new ElasticPress\Feature\DidYouMean\DidYouMean();
 		$instance->set_i18n_strings();
 
@@ -56,7 +56,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Test Requirements status.
 	 */
-	public function testRequirementsStatus() {
+	public function test_requirements_status() {
 		$instance = new ElasticPress\Feature\DidYouMean\DidYouMean();
 		$status   = $instance->requirements_status();
 
@@ -67,7 +67,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Tests that ES returns a suggestion when search term has a typo.
 	 */
-	public function testEsSearchSuggestion() {
+	public function test_es_search_suggestion() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -85,7 +85,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Tests that ES returns a suggestion only for search queries.
 	 */
-	public function testEsSearchSuggestionOnlyIntegrateWithSearchQuery() {
+	public function test_es_search_suggestion_only_integrate_with_search_query() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -103,7 +103,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Tests the get_suggestion method.
 	 */
-	public function testGetSearchSuggestionMethod() {
+	public function test_get_search_suggestion_method() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -123,7 +123,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Tests that get_suggestion method returns suggestion only for main query.
 	 */
-	public function testGetSearchSuggestionMethodReturnsSuggestionForMainQuery() {
+	public function test_get_search_suggestion_method_returns_suggestion_for_main_query() {
 		global $wp_the_query, $wp_query;
 
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
@@ -150,7 +150,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Tests that get_suggestion method returns false if other than WP_Query is passed.
 	 */
-	public function testGetSearchSuggestionMethodReturnsFalseIfOtherThanWpQueryIsPassed() {
+	public function test_get_search_suggestion_method_returns_false_if_other_than_wp_query_is_passed() {
 		$query = new \stdClass();
 		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
 	}
@@ -158,7 +158,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Tests that get_suggestion method filter `ep_suggestion_html`.
 	 */
-	public function testGetSearchSuggestionMethodFilter() {
+	public function test_get_search_suggestion_method_filter() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -186,7 +186,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Test Mapping for ES version 7 and above.
 	 */
-	public function testMapping() {
+	public function test_mapping() {
 		add_filter(
 			'ep_elasticsearch_version',
 			function () {
@@ -209,7 +209,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Test Mapping for ES version lower than 7.
 	 */
-	public function testMappingForESVersionLowerThanSeven() {
+	public function test_mapping_for_es_version_lower_than_seven() {
 		add_filter(
 			'ep_elasticsearch_version',
 			function () {
@@ -232,7 +232,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Test `ep_search_suggestion_analyzer` filter.
 	 */
-	public function testSearchAnalyzerFilter() {
+	public function test_search_analyzer_filter() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -273,7 +273,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Test that function returns the original search term when no results are found.
 	 */
-	public function testGetOriginalSearchTerm() {
+	public function test_get_original_search_term() {
 		global $wp_the_query, $wp_query;
 
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
@@ -311,7 +311,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Test `ep_suggestions` action for main query.
 	 */
-	public function testEPSuggestionsAction() {
+	public function test_ep_suggestions_action() {
 		global $wp_the_query, $wp_query;
 
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
@@ -350,7 +350,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Test `ep_suggestions` action for other than main query.
 	 */
-	public function testEPSuggestionsActionOtherThanMainQuery() {
+	public function test_ep_suggestions_action_other_than_main_query() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -383,7 +383,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Test maybe_sanitize_suggestion method.
 	 */
-	public function testSuggestionRemovedFromListIfScoreIsLowerThanThreshold() {
+	public function test_suggestion_removed_from_list_if_score_is_lower_than_threshold() {
 		$this->ep_factory->post->create( [ 'post_content' => 'V Neck Tee Shirt' ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -410,7 +410,7 @@ class TestDidYouMean extends BaseTestCase {
 	/**
 	 * Test that `ep_suggestion_minimum_score` filter works.
 	 */
-	public function testEPSuggestionMinimumScoreFilter() {
+	public function test_ep_suggestion_minimum_score_filter() {
 		$this->ep_factory->post->create( [ 'post_content' => 'V Neck Tee Shirt' ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();

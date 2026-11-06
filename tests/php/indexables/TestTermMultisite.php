@@ -81,7 +81,7 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function testTermQueryForAllSites() {
+	public function test_term_query_for_all_sites() {
 
 		$sites = ElasticPress\Utils\get_sites();
 		if ( ! is_multisite() ) {
@@ -118,7 +118,7 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function testTermQueryForSitesSubset() {
+	public function test_term_query_for_sites_subset() {
 
 		$sites = ElasticPress\Utils\get_sites();
 		if ( ! is_multisite() ) {
@@ -155,7 +155,7 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function testTermQuerySearchForAllSites() {
+	public function test_term_query_search_for_all_sites() {
 
 		$sites = ElasticPress\Utils\get_sites();
 
@@ -199,7 +199,7 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function testTermQuerySearchForSitesSubset() {
+	public function test_term_query_search_for_sites_subset() {
 
 		$sites = ElasticPress\Utils\get_sites();
 
@@ -243,7 +243,7 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function testTermQueryForAllSitesExceptOne() {
+	public function test_term_query_for_all_sites_except_one() {
 
 		$sites = ElasticPress\Utils\get_sites();
 
@@ -281,7 +281,7 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function testTermQuerySearchForAllSitesExceptOne() {
+	public function test_term_query_search_for_all_sites_except_one() {
 
 		$sites = ElasticPress\Utils\get_sites();
 
@@ -326,7 +326,7 @@ class TestTermMultisite extends BaseTestCase {
 	 * @since 4.4.0
 	 * @expectedDeprecated maybe_filter_query
 	 */
-	public function testTermQuerySearchWithDeprecatedSitesParam() {
+	public function test_term_query_search_with_deprecated_sites_param() {
 
 		$sites = ElasticPress\Utils\get_sites();
 
@@ -377,7 +377,7 @@ class TestTermMultisite extends BaseTestCase {
 	 * @since 4.4.1
 	 * @expectedDeprecated maybe_filter_query
 	 */
-	public function testTermQuerySearchWithDeprecatedSitesParamAndValueCurrent() {
+	public function test_term_query_search_with_deprecated_sites_param_and_value_current() {
 
 		$sites = ElasticPress\Utils\get_sites();
 
@@ -420,7 +420,7 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.1
 	 */
-	public function testTermQuerySearchWithSiteInParamAndValueCurrent() {
+	public function test_term_query_search_with_site_in_param_and_value_current() {
 
 		$sites = ElasticPress\Utils\get_sites();
 

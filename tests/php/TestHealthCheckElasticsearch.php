@@ -21,7 +21,7 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test if the test is registered
 	 */
-	public function testIsRegistered() {
+	public function test_is_registered() {
 		$tests = WP_Site_Health::get_tests();
 
 		$this->assertArrayHasKey( 'elasticpress-health-check-elasticsearch', $tests['async'] );
@@ -30,7 +30,7 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test ajax output.
 	 */
-	public function testAjaxOutput() {
+	public function test_ajax_output() {
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_id );
 
@@ -53,7 +53,7 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test ajax output when host is not set.
 	 */
-	public function testAjaxOutPutWhenHostIsNotSet() {
+	public function test_ajax_output_when_host_is_not_set() {
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_id );
 
@@ -79,7 +79,7 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test ajax output when host is not valid.
 	 */
-	public function testAjaxOutPutWhenHostIsNotValid() {
+	public function test_ajax_output_when_host_is_not_valid() {
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_id );
 
@@ -105,7 +105,7 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test ajax output when elasticpress.io host is not valid.
 	 */
-	public function testAjaxOutPutWhenEpioHostIsNotValid() {
+	public function test_ajax_output_when_epio_host_is_not_valid() {
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_id );
 

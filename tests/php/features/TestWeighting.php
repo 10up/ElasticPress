@@ -187,7 +187,7 @@ class TestWeighting extends BaseTestCase {
 	 * @since 3.6.5
 	 * @group weighting
 	 */
-	public function testWeightingDefaultEnabledTaxonomies() {
+	public function test_weighting_default_enabled_taxonomies() {
 		// By default, `post_format` should not be enabled, only `category` and `post_tag`.
 		$post_default_config = $this->get_weighting_feature()->get_post_type_default_settings( 'post' );
 		$this->assertArrayNotHasKey( 'terms.post_format.name', $post_default_config );
@@ -218,7 +218,7 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Test the `get_weightable_fields_for_post_type` method
 	 */
-	public function testGetWeightableFieldsForPostType() {
+	public function test_get_weightable_fields_for_post_type() {
 		$fields = $this->get_weighting_feature()->get_weightable_fields_for_post_type( 'ep_test' );
 
 		$this->assertEquals( 3, count( $fields ) ); // attributes, taxonomies, and ep_metadata
@@ -230,7 +230,7 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Test the `add_weighting_submenu_page` method
 	 */
-	public function testAddWeightingSubmenuPage() {
+	public function test_add_weighting_submenu_page() {
 		$site_url = trailingslashit( get_option( 'siteurl' ) );
 
 		add_menu_page(
@@ -248,7 +248,7 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Test the `render_settings_page` method
 	 */
-	public function testRenderSettingsPage() {
+	public function test_render_settings_page() {
 		ob_start();
 		$this->get_weighting_feature()->render_settings_page();
 		$content = ob_get_clean();
@@ -272,7 +272,7 @@ class TestWeighting extends BaseTestCase {
 	 *
 	 * @group weighting
 	 */
-	public function testSaveWeightingConfigurationInvalidPostType() {
+	public function test_save_weighting_configuration_invalid_post_type() {
 		add_filter(
 			'ep_meta_mode',
 			function () {
@@ -309,7 +309,7 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Test the `recursively_inject_weights_to_fields` method
 	 */
-	public function testRecursivelyInjectWeightsToFieldsInvalidArgs() {
+	public function test_recursively_inject_weights_to_fields_invalid_args() {
 		$invalid_args = '';
 		$this->assertEquals( null, $this->get_weighting_feature()->recursively_inject_weights_to_fields( $invalid_args, $this->weighting_settings['post'] ) );
 	}
@@ -327,7 +327,7 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Test the `post_type_has_fields` method (with custom config)
 	 */
-	public function testPostTypeHasFieldsWithCustomConfig() {
+	public function test_post_type_has_fields_with_custom_config() {
 		// Test with configuration saved for post only, page will return false.
 		$weighting_settings = [
 			'post' => [
@@ -348,7 +348,7 @@ class TestWeighting extends BaseTestCase {
 	 *
 	 * @since 4.1.0
 	 */
-	public function testPostTypeHasFieldsWithCustomConfigViaFilter() {
+	public function test_post_type_has_fields_with_custom_config_via_filter() {
 		$function = function () {
 			return [
 				'page'   => [],
@@ -383,7 +383,7 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Test the `do_weighting` method (with `search_fields` parameter)
 	 */
-	public function testDoWeightingWithQueryContainsSearchFields() {
+	public function test_do_weighting_with_query_contains_search_fields() {
 		// Test search fields are set on the query.
 		$this->assertSame( [ 'do', 'nothing' ], $this->get_weighting_feature()->do_weighting( [ 'do', 'nothing' ], [ 'search_fields' => [ 'post_title' ] ] ) );
 	}
@@ -391,7 +391,7 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Test the `do_weighting` method in admin
 	 */
-	public function testDoWeightingInAdmin() {
+	public function test_do_weighting_in_admin() {
 		// Test if we're in admin area.
 		set_current_screen( 'edit-post' );
 		$this->assertSame( [ 'do', 'nothing' ], $this->get_weighting_feature()->do_weighting( [ 'do', 'nothing' ], [ 's' => 'blog' ] ) );
@@ -401,7 +401,7 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Test the `do_weighting` method (with an empty search query)
 	 */
-	public function testDoWeightingWithEmptySearchQuery() {
+	public function test_do_weighting_with_empty_search_query() {
 		// Test if search query is empty.
 		$this->assertSame( [ 'do', 'nothing' ], $this->get_weighting_feature()->do_weighting( [ 'do', 'nothing' ], [ 's' => '' ] ) );
 	}
@@ -409,8 +409,8 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Test the `do_weighting` method (with the default config)
 	 */
-	public function testDoWeightingWithDefaultConfig() {
-		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->getArgs() );
+	public function test_do_weighting_with_default_config() {
+		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->get_args() );
 
 		// We have 5 searchable post types.
 		$this->assertEquals( 5, count( $new_formatted_args['query']['function_score']['query']['bool']['should'] ) );
@@ -425,7 +425,7 @@ class TestWeighting extends BaseTestCase {
 	public function test_do_weighting_with_custom_config() {
 		$this->save_weighting_configuration( $this->weighting_settings );
 
-		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->getArgs() );
+		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->get_args() );
 
 		$this->assertEquals( 2, count( $new_formatted_args['query']['function_score']['query']['bool']['should'] ) );
 	}
@@ -433,7 +433,7 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Get formatted ES and query vars
 	 */
-	public function getArgs() {
+	public function get_args() {
 		$post = new \ElasticPress\Indexable\Post\Post();
 
 		$query      = new \WP_Query( [ 's' => 'blog' ] );
@@ -466,7 +466,7 @@ class TestWeighting extends BaseTestCase {
 	 *
 	 * @since 4.5.0
 	 */
-	public function testApplyFilterWhenWeightingConfigWasNotSaved() {
+	public function test_apply_filter_when_weighting_config_was_not_saved() {
 		delete_option( 'elasticpress_weighting' );
 
 		$add_post_content_filter = function ( $weight_config ) {
@@ -483,7 +483,7 @@ class TestWeighting extends BaseTestCase {
 		add_filter( 'ep_weighting_configuration_for_search', $add_post_content_filter );
 		add_filter( 'ep_query_post_type', $set_query_post_type );
 
-		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->getArgs() );
+		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->get_args() );
 
 		$query_multi_match = $new_formatted_args['query']['function_score']['query']
 			['bool']['should'][0]['bool']['must'][0]
