@@ -51,6 +51,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test activate-feature command can activate feature.
+	 *
+	 * @group commands
 	 */
 	public function test_activate_feature() {
 
@@ -62,6 +64,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test activate-feature throws warning when feature needs re-index.
+	 *
+	 * @group commands
 	 */
 	public function test_activate_feature_throw_warnings() {
 
@@ -73,6 +77,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test activate-feature command throws error when feature is already activated.
+	 *
+	 * @group commands
 	 */
 	public function test_activate_feature_when_feature_is_already_activated() {
 
@@ -83,6 +89,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test activate-feature command throws error when feature is not registered.
+	 *
+	 * @group commands
 	 */
 	public function test_activate_feature_for_invalid_feature() {
 
@@ -93,6 +101,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test activate-feature command throws error when requirement is not met.
+	 *
+	 * @group commands
 	 */
 	public function test_activate_feature_when_requirement_is_not_met() {
 
@@ -103,6 +113,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test deactivate-feature command can deactivate feature.
+	 *
+	 * @group commands
 	 */
 	public function test_deactivate_feature() {
 
@@ -115,6 +127,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test deactivate-feature command throws error when feature is already deactivated.
+	 *
+	 * @group commands
 	 */
 	public function test_deactivate_feature_when_feature_is_already_deactivated() {
 
@@ -125,6 +139,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test deactivate-feature command throws error when feature is not registered.
+	 *
+	 * @group commands
 	 */
 	public function test_deactivate_feature_for_invalid_feature() {
 
@@ -135,6 +151,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test list-features command can list all active features.
+	 *
+	 * @group commands
 	 */
 	public function test_list_feature() {
 
@@ -147,6 +165,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test list-features command can list all features.
+	 *
+	 * @group commands
 	 */
 	public function test_list_feature_all() {
 
@@ -159,6 +179,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test put-mapping command can put mapping for active features.
+	 *
+	 * @group commands
 	 */
 	public function test_put_mapping() {
 
@@ -171,6 +193,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test put-mapping command can put mapping for specific indexable.
+	 *
+	 * @group commands
 	 */
 	public function test_put_mapping_with_indexables_flag() {
 
@@ -218,6 +242,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test put-mapping command throws error if mapping failed.
+	 *
+	 * @group commands
 	 */
 	public function test_put_mapping_throw_error_if_mapping_failed() {
 
@@ -235,6 +261,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test put-mapping command throws error if mapping failed for network-wide.
+	 *
+	 * @group commands
 	 */
 	public function test_put_mapping_for_network_wide_throw_error_if_mapping_failed() {
 
@@ -252,6 +280,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test put-mapping command can put mapping for global indexables.
+	 *
+	 * @group commands
 	 */
 	public function test_put_mapping_for_global_indexables() {
 		ElasticPress\Features::factory()->activate_feature( 'global' );
@@ -267,6 +297,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-mapping command returns mapping.
+	 *
+	 * @group commands
 	 */
 	public function test_get_mapping() {
 
@@ -301,6 +333,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-cluster-indices command returns cluster indices.
+	 *
+	 * @group commands
 	 */
 	public function test_get_cluster_indices() {
 
@@ -321,6 +355,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-indices command returns indices information.
+	 *
+	 * @group commands
 	 */
 	public function test_get_indices() {
 
@@ -432,6 +468,7 @@ class TestCommands extends BaseTestCase {
 	 * Test sync command can create an index even without the --setup flag
 	 *
 	 * @since 4.5.0
+	 * @group commands
 	 */
 	public function test_sync_index_creation_without_setup_flag() {
 		Indexables::factory()->get( 'post' )->delete_index();
@@ -444,6 +481,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with setup flag.
+	 *
+	 * @group commands
 	 */
 	public function test_sync_with_setup_flag() {
 
@@ -475,6 +514,7 @@ class TestCommands extends BaseTestCase {
 	 * Test the sync command with the setup flag. It should delete unused indices.
 	 *
 	 * @since 4.5.0
+	 * @group commands
 	 */
 	public function test_sync_with_setup_flag_delete_unused_indices() {
 		// activate comments and users features
@@ -496,6 +536,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with indexables flag.
+	 *
+	 * @group commands
 	 */
 	public function test_sync_with_indexables_flag() {
 
@@ -550,6 +592,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with per-page flag.
+	 *
+	 * @group commands
 	 */
 	public function test_sync_with_per_page_flag() {
 
@@ -565,6 +609,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with post-type flag.
+	 *
+	 * @group commands
 	 */
 	public function test_sync_with_post_type_flag() {
 
@@ -580,6 +626,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with ep-prefix flag.
+	 *
+	 * @group commands
 	 */
 	public function test_sync_with_ep_prefix_flag() {
 
@@ -594,6 +642,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with ep-host flag.
+	 *
+	 * @group commands
 	 */
 	public function test_sync_with_ep_host_flag() {
 
@@ -604,6 +654,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command can ask for confirmation when setup flag is set
+	 *
+	 * @group commands
 	 */
 	public function test_sync_ask_for_confirmation_when_setup_is_passed() {
 		$this->expectExceptionMessage( 'Syncing with the --setup option will delete your existing index in Elasticsearch. Are you sure you want to delete your Elasticsearch index' );
@@ -613,6 +665,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command throws error if mapping failed.
+	 *
+	 * @group commands
 	 */
 	public function test_sync_throws_error_if_mapping_failed() {
 
@@ -639,6 +693,7 @@ class TestCommands extends BaseTestCase {
 	 * Test sync command with the force flag.
 	 *
 	 * @since 4.6.0
+	 * @group commands
 	 */
 	public function test_sync_with_force_flag() {
 		// mock indexing
@@ -660,6 +715,7 @@ class TestCommands extends BaseTestCase {
 	 * Test sync command can ask for confirmation when force flag is set
 	 *
 	 * @since 4.6.0
+	 * @group commands
 	 */
 	public function test_sync_ask_for_confirmation_when_force_is_passed() {
 		$this->expectExceptionMessage( 'Are you sure you want to stop any other ongoing sync?' );
@@ -669,6 +725,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test status command returns status information.
+	 *
+	 * @group commands
 	 */
 	public function test_status() {
 
@@ -682,6 +740,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test delete-index command ask for confirmation.
+	 *
+	 * @group commands
 	 */
 	public function test_delete_index_ask_for_confirmation() {
 
@@ -692,6 +752,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test delete-index command can delete index.
+	 *
+	 * @group commands
 	 */
 	public function test_delete_index() {
 
@@ -723,6 +785,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test delete-index command also delete global index.
+	 *
+	 * @group commands
 	 */
 	public function test_delete_index_global() {
 
@@ -775,6 +839,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-ongoing-sync-status command returns ongoing sync status.
+	 *
+	 * @group commands
 	 */
 	public function test_get_ongoing_sync_status() {
 
@@ -786,6 +852,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-last-sync command returns last sync information.
+	 *
+	 * @group commands
 	 */
 	public function test_get_last_sync() {
 
@@ -797,6 +865,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-last-cli-sync command returns last cli sync information.
+	 *
+	 * @group commands
 	 */
 	public function test_get_last_cli_sync() {
 
@@ -814,6 +884,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test stop-sync command can stop indexing.
+	 *
+	 * @group commands
 	 */
 	public function test_stop_sync() {
 
@@ -834,6 +906,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test set-search-algorithm-version command can set search algorithm version.
+	 *
+	 * @group commands
 	 */
 	public function test_set_search_algorithm_version() {
 
@@ -856,6 +930,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test set-search-algorithm-version command throws an error if no version is provided.
+	 *
+	 * @group commands
 	 */
 	public function test_set_search_algorithm_version_without_version() {
 
@@ -866,6 +942,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-search-algorithm-version returns the algorithm version.
+	 *
+	 * @group commands
 	 */
 	public function test_get_search_algorithm_version() {
 
@@ -889,6 +967,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test request command can make a request to Elasticsearch.
+	 *
+	 * @group commands
 	 */
 	public function test_request() {
 
@@ -931,6 +1011,7 @@ class TestCommands extends BaseTestCase {
 	 * Expect an error message that stops the sync instead of a warning.
 	 *
 	 * @since 4.7.0
+	 * @group commands
 	 */
 	public function test_sync_stop_on_error() {
 		add_filter(
@@ -977,6 +1058,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test request command throws an error if request fails.
+	 *
+	 * @group commands
 	 */
 	public function test_request_throws_error() {
 
@@ -997,6 +1080,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test settings-reset command delete all settings.
+	 *
+	 * @group commands
 	 */
 	public function test_settings_reset() {
 
@@ -1008,6 +1093,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test settings-reset command ask for confirmation.
+	 *
+	 * @group commands
 	 */
 	public function test_settings_reset_ask_for_confirmation() {
 
@@ -1018,6 +1105,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test stats command.
+	 *
+	 * @group commands
 	 */
 	public function test_stats() {
 
@@ -1029,6 +1118,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test epio-set-autosuggest command.
+	 *
+	 * @group commands
 	 */
 	public function test_epio_set_autosuggest() {
 
@@ -1042,6 +1133,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test epio-set-autosuggest command throws an error if autosuggest is not enabled.
+	 *
+	 * @group commands
 	 */
 	public function test_epio_set_autosuggest_throws_error() {
 
@@ -1052,6 +1145,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test `should_interrupt_sync` method.
+	 *
+	 * @group commands
 	 */
 	public function test_should_interrupt_sync() {
 
@@ -1066,6 +1161,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test commands throws an error when host is not set.
+	 *
+	 * @group commands
 	 */
 	public function test_throws_error_when_host_is_not_set() {
 
@@ -1081,6 +1178,7 @@ class TestCommands extends BaseTestCase {
 	 * Test get-index-settings command returns an index settings.
 	 *
 	 * @since 4.7.0
+	 * @group commands
 	 */
 	public function test_get_index_settings() {
 		$this->command->get_index_settings( [ 'exampleorg-post-1' ], [] );
@@ -1169,6 +1267,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test commands throws an error if indexing is already happening.
+	 *
+	 * @group commands
 	 */
 	public function test_throws_error_if_indexing_is_already_happening() {
 
@@ -1222,6 +1322,8 @@ class TestCommands extends BaseTestCase {
 	 * Test commands throws deprecated warning.
 	 *
 	 *  @expectedDeprecated get-indexes
+	 *
+	 * @group commands
 	 */
 	public function test_get_indexes_throws_deprecated_warning() {
 
@@ -1235,6 +1337,8 @@ class TestCommands extends BaseTestCase {
 	 * Test commands throws deprecated warning.
 	 *
 	 *  @expectedDeprecated get-cluster-indexes
+	 *
+	 * @group commands
 	 */
 	public function test_get_cluster_indexes_throws_deprecated_warning() {
 
@@ -1248,6 +1352,8 @@ class TestCommands extends BaseTestCase {
 	 * Test commands throws deprecated warning.
 	 *
 	 *  @expectedDeprecated index
+	 *
+	 * @group commands
 	 */
 	public function test_index_throws_deprecated_warning() {
 
@@ -1271,6 +1377,8 @@ class TestCommands extends BaseTestCase {
 	 * Test commands throws deprecated warning.
 	 *
 	 *  @expectedDeprecated clear-index
+	 *
+	 * @group commands
 	 */
 	public function test_clear_index_throws_deprecated_warning() {
 
@@ -1284,6 +1392,8 @@ class TestCommands extends BaseTestCase {
 	 * Test commands throws deprecated warning.
 	 *
 	 *  @expectedDeprecated get-indexing-status
+	 *
+	 * @group commands
 	 */
 	public function test_get_indexing_status_throws_deprecated_warning() {
 
@@ -1297,6 +1407,8 @@ class TestCommands extends BaseTestCase {
 	 * Test commands throws deprecated warning.
 	 *
 	 *  @expectedDeprecated get-last-cli-index
+	 *
+	 * @group commands
 	 */
 	public function test_get_last_cli_index_throws_deprecated_warning() {
 
@@ -1310,6 +1422,8 @@ class TestCommands extends BaseTestCase {
 	 * Test commands throws deprecated warning.
 	 *
 	 *  @expectedDeprecated stop-indexing
+	 *
+	 * @group commands
 	 */
 	public function test_stop_indexing_throws_deprecated_warning() {
 

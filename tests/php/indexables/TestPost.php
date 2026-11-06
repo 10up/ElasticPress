@@ -3647,6 +3647,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Test meta queries with multiple keys
+	 *
+	 * @group post
 	 */
 	public function test_meta_query_multiple_array() {
 		$this->ep_factory->post->create(
@@ -5057,6 +5059,7 @@ class TestPost extends BaseTestCase {
 	 * Test post_mime_type query
 	 *
 	 * @since 2.3
+	 * @group post
 	 */
 	public function test_post_mime_type_query() {
 		$attachment_id_1_jpeg = $this->ep_factory->post->create(
@@ -8276,6 +8279,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Test integration with Post Queries.
+	 *
+	 * @group post
 	 */
 	public function test_integrate_search_queries() {
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
@@ -8316,6 +8321,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Test if inserting a post and deleting another one in the thread works as expected.
+	 *
+	 * @group post
 	 */
 	public function test_insert_post_and_delete_another() {
 		$post_to_be_deleted = $this->ep_factory->post->create( [ 'post_title' => 'To be deleted' ] );
@@ -8585,6 +8592,7 @@ class TestPost extends BaseTestCase {
 	 * Tests post without meta value.
 	 *
 	 * @return void
+	 * @group post
 	 */
 	public function test_meta_without_value() {
 
@@ -8635,6 +8643,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Test the get_search_algorithm implementation
+	 *
+	 * @group post
 	 */
 	public function test_get_search_algorithm() {
 		/**
@@ -8797,6 +8807,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Tests search term wrapped in html tags.
+	 *
+	 * @group post
 	 */
 	public function test_highlight_tags() {
 
@@ -8838,6 +8850,7 @@ class TestPost extends BaseTestCase {
 	 * Tests the `ep_bypass_exclusion_from_search` filter
 	 *
 	 * @expectedDeprecated ep_bypass_exclusion_from_search
+	 * @group post
 	 */
 	public function test_exclude_from_search_query_bypass_filter() {
 		$this->ep_factory->post->create_many(
@@ -8883,6 +8896,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Tests query doesn't return the post in if `ep_exclude_from_search` meta is set.
+	 *
+	 * @group post
 	 */
 	public function test_exclude_from_search_query() {
 		$this->ep_factory->post->create_many(
@@ -9012,6 +9027,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Tests search term is wrapped in html tag with custom class
+	 *
+	 * @group post
 	 */
 	public function test_highlight_tags_with_custom_class() {
 
@@ -9050,6 +9067,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Tests search term is wrapped in html tag only for tite.
+	 *
+	 * @group post
 	 */
 	public function test_highlight_tags_only_for_title() {
 
@@ -9088,6 +9107,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Test get_the_excerpt() has HTML tags when highlight_excerpt is enabled.
+	 *
+	 * @group post
 	 */
 	public function test_excerpt_has_highlight_html_tags() {
 
@@ -9132,6 +9153,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Tests highlight parameters are not added to the query when search term is empty.
+	 *
+	 * @group post
 	 */
 	public function test_highlight_tags_not_set_when_search_is_empty() {
 
@@ -9169,6 +9192,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Tests exclude from search only works on the search query.
+	 *
+	 * @group post
 	 */
 	public function test_exclude_from_search_only_run_on_search_query() {
 
@@ -9201,6 +9226,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Test exclude from search when meta query is set.
+	 *
+	 * @group post
 	 */
 	public function test_exclude_from_search_query_with_meta_query() {
 
@@ -9245,6 +9272,7 @@ class TestPost extends BaseTestCase {
 	 * Test exclude from search filter doesn't apply for admin queries.
 	 *
 	 * @since 4.4.0
+	 * @group post
 	 */
 	public function test_exclude_from_search_filter_does_not_apply_for_admin_queries() {
 
@@ -9489,6 +9517,7 @@ class TestPost extends BaseTestCase {
 	 * Tests put_mapping method.
 	 *
 	 * @since 4.4.1
+	 * @group post
 	 */
 	public function test_put_mapping_throws_error() {
 
@@ -9547,6 +9576,7 @@ class TestPost extends BaseTestCase {
 	 * Tests that deleting a thumbnail updates the meta value of all the linked indexable posts
 	 *
 	 * @since 4.5.0
+	 * @group post
 	 */
 	public function test_deleting_thumbnail_update_related_indexable_post() {
 		$product_id = $this->ep_factory->post->create(
@@ -9584,6 +9614,7 @@ class TestPost extends BaseTestCase {
 	 * Tests that deleting a thumbnail does not update the meta value of all the linked non-indexable posts
 	 *
 	 * @since 4.5.0
+	 * @group post
 	 */
 	public function test_deleting_thumbnail_should_not_update_related_non_indexable_post() {
 		$product_id = $this->ep_factory->post->create(
@@ -9723,6 +9754,7 @@ class TestPost extends BaseTestCase {
 	 * Test that query with unsupported orderby does not use EP.
 	 *
 	 * @since 4.5.0
+	 * @group post
 	 */
 	public function test_query_with_unsupported_order_by_does_not_use_ep() {
 		// test for post__in

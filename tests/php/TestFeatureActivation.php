@@ -316,6 +316,7 @@ class TestFeatureActivation extends BaseTestCase {
 	 * Test the `get_settings` method
 	 *
 	 * @since 4.5.0
+	 * @group feature-activation
 	 */
 	public function test_get_settings() {
 		$feature = new FeatureTest();
@@ -350,6 +351,7 @@ class TestFeatureActivation extends BaseTestCase {
 	 * Test the `get_setting` method
 	 *
 	 * @since 4.5.0
+	 * @group feature-activation
 	 */
 	public function test_get_setting() {
 		$feature = new FeatureTest();

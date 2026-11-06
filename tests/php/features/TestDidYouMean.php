@@ -40,6 +40,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Test Feature properties.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_construct() {
 		$instance = new ElasticPress\Feature\DidYouMean\DidYouMean();
@@ -55,6 +57,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Test Requirements status.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_requirements_status() {
 		$instance = new ElasticPress\Feature\DidYouMean\DidYouMean();
@@ -66,6 +70,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Tests that ES returns a suggestion when search term has a typo.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_es_search_suggestion() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
@@ -84,6 +90,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Tests that ES returns a suggestion only for search queries.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_es_search_suggestion_only_integrate_with_search_query() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
@@ -102,6 +110,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Tests the get_suggestion method.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_get_search_suggestion_method() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
@@ -122,6 +132,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Tests that get_suggestion method returns suggestion only for main query.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_get_search_suggestion_method_returns_suggestion_for_main_query() {
 		global $wp_the_query, $wp_query;
@@ -149,6 +161,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Tests that get_suggestion method returns false if other than WP_Query is passed.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_get_search_suggestion_method_returns_false_if_other_than_wp_query_is_passed() {
 		$query = new \stdClass();
@@ -157,6 +171,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Tests that get_suggestion method filter `ep_suggestion_html`.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_get_search_suggestion_method_filter() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
@@ -185,6 +201,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Test Mapping for ES version 7 and above.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_mapping() {
 		add_filter(
@@ -208,6 +226,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Test Mapping for ES version lower than 7.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_mapping_for_es_version_lower_than_seven() {
 		add_filter(
@@ -231,6 +251,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Test `ep_search_suggestion_analyzer` filter.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_search_analyzer_filter() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
@@ -272,6 +294,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Test that function returns the original search term when no results are found.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_get_original_search_term() {
 		global $wp_the_query, $wp_query;
@@ -310,6 +334,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Test `ep_suggestions` action for main query.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_ep_suggestions_action() {
 		global $wp_the_query, $wp_query;
@@ -349,6 +375,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Test `ep_suggestions` action for other than main query.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_ep_suggestions_action_other_than_main_query() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
@@ -382,6 +410,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Test maybe_sanitize_suggestion method.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_suggestion_removed_from_list_if_score_is_lower_than_threshold() {
 		$this->ep_factory->post->create( [ 'post_content' => 'V Neck Tee Shirt' ] );
@@ -409,6 +439,8 @@ class TestDidYouMean extends BaseTestCase {
 
 	/**
 	 * Test that `ep_suggestion_minimum_score` filter works.
+	 *
+	 * @group did-you-mean
 	 */
 	public function test_ep_suggestion_minimum_score_filter() {
 		$this->ep_factory->post->create( [ 'post_content' => 'V Neck Tee Shirt' ] );

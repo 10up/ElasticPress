@@ -1827,6 +1827,8 @@ class TestTerm extends BaseTestCase {
 
 	/**
 	 * Test integration with Term Queries.
+	 *
+	 * @group term
 	 */
 	public function test_integrate_search_queries() {
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
@@ -1869,6 +1871,7 @@ class TestTerm extends BaseTestCase {
 	 * Tests terms without meta value.
 	 *
 	 * @return void
+	 * @group term
 	 */
 	public function test_meta_without_value() {
 
@@ -1916,6 +1919,7 @@ class TestTerm extends BaseTestCase {
 	 * Test term query for non-public taxonomies.
 	 *
 	 * @return void
+	 * @group term
 	 */
 	public function test_query_for_non_public_taxonomies() {
 		register_taxonomy(

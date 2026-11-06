@@ -80,6 +80,7 @@ class TestTermMultisite extends BaseTestCase {
 	 * Test WP Term Query returns the data from all the sites.
 	 *
 	 * @since 4.4.0
+	 * @group term
 	 */
 	public function test_term_query_for_all_sites() {
 
@@ -117,6 +118,7 @@ class TestTermMultisite extends BaseTestCase {
 	 * Test WP Term Query returns the data from the selected sites.
 	 *
 	 * @since 4.4.0
+	 * @group term
 	 */
 	public function test_term_query_for_sites_subset() {
 
@@ -154,6 +156,7 @@ class TestTermMultisite extends BaseTestCase {
 	 * Test WP Term Query returns the search data from all the sites.
 	 *
 	 * @since 4.4.0
+	 * @group term
 	 */
 	public function test_term_query_search_for_all_sites() {
 
@@ -198,6 +201,7 @@ class TestTermMultisite extends BaseTestCase {
 	 * Test WP Term Query returns the search data from the selected sites.
 	 *
 	 * @since 4.4.0
+	 * @group term
 	 */
 	public function test_term_query_search_for_sites_subset() {
 
@@ -242,6 +246,7 @@ class TestTermMultisite extends BaseTestCase {
 	 * Test WP Term Query returns the data from all the sites except one.
 	 *
 	 * @since 4.4.0
+	 * @group term
 	 */
 	public function test_term_query_for_all_sites_except_one() {
 
@@ -280,6 +285,7 @@ class TestTermMultisite extends BaseTestCase {
 	 * Test WP Term Query returns the search data from all the sites except one.
 	 *
 	 * @since 4.4.0
+	 * @group term
 	 */
 	public function test_term_query_search_for_all_sites_except_one() {
 
@@ -325,6 +331,7 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 * @expectedDeprecated maybe_filter_query
+	 * @group term
 	 */
 	public function test_term_query_search_with_deprecated_sites_param() {
 
@@ -376,6 +383,7 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.1
 	 * @expectedDeprecated maybe_filter_query
+	 * @group term
 	 */
 	public function test_term_query_search_with_deprecated_sites_param_and_value_current() {
 
@@ -419,6 +427,7 @@ class TestTermMultisite extends BaseTestCase {
 	 * Test WP Term Query with the `site__in` param and with value `current`
 	 *
 	 * @since 4.4.1
+	 * @group term
 	 */
 	public function test_term_query_search_with_site_in_param_and_value_current() {
 

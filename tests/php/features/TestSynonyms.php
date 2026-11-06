@@ -60,6 +60,8 @@ class TestSynonyms extends BaseTestCase {
 
 	/**
 	 * Test class constructor
+	 *
+	 * @group synonyms
 	 */
 	public function test_constructor() {
 		$instance = $this->get_feature();
@@ -71,6 +73,8 @@ class TestSynonyms extends BaseTestCase {
 
 	/**
 	 * Test the `get_synonym_post_id` method.
+	 *
+	 * @group synonyms
 	 */
 	public function test_get_synonym_post_id() {
 		$instance = $this->get_feature();
@@ -81,6 +85,8 @@ class TestSynonyms extends BaseTestCase {
 
 	/**
 	 * Test the `get_synonyms_raw` method.
+	 *
+	 * @group synonyms
 	 */
 	public function test_get_synonyms_raw() {
 		$instance = $this->get_feature();
@@ -92,6 +98,8 @@ class TestSynonyms extends BaseTestCase {
 
 	/**
 	 * Test the `get_synonyms` method.
+	 *
+	 * @group synonyms
 	 */
 	public function test_get_synonyms() {
 		$instance = $this->get_feature();
@@ -118,6 +126,8 @@ class TestSynonyms extends BaseTestCase {
 
 	/**
 	 * Test the `validate_synonym` method.
+	 *
+	 * @group synonyms
 	 */
 	public function test_validate_synonyms() {
 		$instance = $this->get_feature();

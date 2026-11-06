@@ -646,6 +646,8 @@ class TestAdminNotices extends BaseTestCase {
 
 	/**
 	 * Tests notice is show when number of posts linked with term is greater than number of items per cycle.
+	 *
+	 * @group admin-notices
 	 */
 	public function test_number_of_posts_bigger_than_item_per_cycle() {
 		global $pagenow, $tax;

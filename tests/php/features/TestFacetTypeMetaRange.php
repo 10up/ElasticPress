@@ -223,6 +223,8 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 
 	/**
 	 * Test the format_selected method.
+	 *
+	 * @group facets
 	 */
 	public function test_format_selected() {
 		$original_filters = [ 'custom_type' => [ 'facet' => [ 1, 2, 3 ] ] ];
@@ -256,6 +258,8 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 
 	/**
 	 * Test the add_query_params method.
+	 *
+	 * @group facets
 	 */
 	public function test_add_query_params() {
 		$original_query_params = [ 'custom_name' => 'custom_value' ];

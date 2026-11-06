@@ -358,6 +358,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * Test the format_request_headers method
 	 *
 	 * @since 4.5.0
+	 * @group elasticsearch
 	 */
 	public function test_format_request_headers() {
 		/**
@@ -412,6 +413,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * Test the get_indices_comparison method
 	 *
 	 * @since 4.6.0
+	 * @group elasticsearch
 	 */
 	public function test_get_indices_comparison() {
 		ElasticPress\Features::factory()->activate_feature( 'terms' );

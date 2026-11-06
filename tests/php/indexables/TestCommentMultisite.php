@@ -79,6 +79,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 * Test Comment Query return comments from all sites.
 	 *
 	 * @since 4.4.0
+	 * @group comment
 	 */
 	public function test_comment_query_for_all_sites() {
 
@@ -117,6 +118,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 * Test Comment Query returns comments from sites subset.
 	 *
 	 * @since 4.4.0
+	 * @group comment
 	 */
 	public function test_comment_query_for_sites_subset() {
 
@@ -154,6 +156,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 * Test Comment Query return comments from all sites except one.
 	 *
 	 * @since 4.4.0
+	 * @group comment
 	 */
 	public function test_comment_query_for_sites_except_one() {
 
@@ -191,6 +194,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 * Test Comment Query search returns result from all sites.
 	 *
 	 * @since 4.4.0
+	 * @group comment
 	 */
 	public function test_comment_query_search_for_all_sites() {
 
@@ -234,6 +238,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 * @expectedDeprecated maybe_filter_query
+	 * @group comment
 	 */
 	public function test_comment_query_with_deprecated_sites_param() {
 
@@ -272,6 +277,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.1
 	 * @expectedDeprecated maybe_filter_query
+	 * @group comment
 	 */
 	public function test_comment_query_with_deprecated_sites_param_with_value_current() {
 
@@ -313,6 +319,7 @@ class TestCommentMultisite extends BaseTestCase {
 	 * Test Comment Query with the `site__in` param and with value `current`
 	 *
 	 * @since 4.4.1
+	 * @group comment
 	 */
 	public function test_comment_query_with_site_in_param_with_value_current() {
 

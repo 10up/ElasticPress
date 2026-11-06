@@ -65,6 +65,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the class constructor
+	 *
+	 * @group autosuggest
 	 */
 	public function test_construct() {
 		$instance = new ElasticPress\Feature\Autosuggest\Autosuggest();
@@ -76,6 +78,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the mapping change in ES 5 method
+	 *
+	 * @group autosuggest
 	 */
 	public function test_mapping_es5() {
 		$change_es_version = function () {
@@ -98,6 +102,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the mapping change in ES 7 method
+	 *
+	 * @group autosuggest
 	 */
 	public function test_mapping_es7() {
 		$change_es_version = function () {
@@ -120,6 +126,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the `set_fuzziness` method
+	 *
+	 * @group autosuggest
 	 */
 	public function test_set_fuzziness() {
 		set_current_screen( 'edit.php' );
@@ -131,6 +139,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the `filter_term_suggest` method
+	 *
+	 * @group autosuggest
 	 */
 	public function test_filter_term_suggest() {
 		$post_args = [];
@@ -154,6 +164,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the `enqueue_scripts` method
+	 *
+	 * @group autosuggest
 	 */
 	public function test_enqueue_scripts() {
 		$this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
@@ -177,6 +189,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the `generate_search_query` method
+	 *
+	 * @group autosuggest
 	 */
 	public function test_generate_search_query() {
 		$query = $this->get_feature()->generate_search_query();
@@ -188,6 +202,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the filters in the `generate_search_query` method
+	 *
+	 * @group autosuggest
 	 */
 	public function test_generate_search_query_filters() {
 		/**
@@ -241,6 +257,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the filters in the `return_empty_posts` method
+	 *
+	 * @group autosuggest
 	 */
 	public function test_return_empty_posts() {
 		$this->assertEmpty( $this->get_feature()->return_empty_posts() );
@@ -248,6 +266,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the filters in the `apply_autosuggest_weighting` method
+	 *
+	 * @group autosuggest
 	 */
 	public function test_apply_autosuggest_weighting() {
 		$filter = function () {
@@ -264,6 +284,8 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the filters in the `requirements_status` method
+	 *
+	 * @group autosuggest
 	 */
 	public function test_requirements_status() {
 		$status = $this->get_feature()->requirements_status();

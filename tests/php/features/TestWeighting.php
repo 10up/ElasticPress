@@ -217,6 +217,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test the `get_weightable_fields_for_post_type` method
+	 *
+	 * @group weighting
 	 */
 	public function test_get_weightable_fields_for_post_type() {
 		$fields = $this->get_weighting_feature()->get_weightable_fields_for_post_type( 'ep_test' );
@@ -229,6 +231,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test the `add_weighting_submenu_page` method
+	 *
+	 * @group weighting
 	 */
 	public function test_add_weighting_submenu_page() {
 		$site_url = trailingslashit( get_option( 'siteurl' ) );
@@ -247,6 +251,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test the `render_settings_page` method
+	 *
+	 * @group weighting
 	 */
 	public function test_render_settings_page() {
 		ob_start();
@@ -308,6 +314,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test the `recursively_inject_weights_to_fields` method
+	 *
+	 * @group weighting
 	 */
 	public function test_recursively_inject_weights_to_fields_invalid_args() {
 		$invalid_args = '';
@@ -326,6 +334,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test the `post_type_has_fields` method (with custom config)
+	 *
+	 * @group weighting
 	 */
 	public function test_post_type_has_fields_with_custom_config() {
 		// Test with configuration saved for post only, page will return false.
@@ -347,6 +357,7 @@ class TestWeighting extends BaseTestCase {
 	 * Check if `post_type_has_fields()` behaves correctly when using the `ep_weighting_configuration_for_search` filter.
 	 *
 	 * @since 4.1.0
+	 * @group weighting
 	 */
 	public function test_post_type_has_fields_with_custom_config_via_filter() {
 		$function = function () {
@@ -382,6 +393,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test the `do_weighting` method (with `search_fields` parameter)
+	 *
+	 * @group weighting
 	 */
 	public function test_do_weighting_with_query_contains_search_fields() {
 		// Test search fields are set on the query.
@@ -390,6 +403,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test the `do_weighting` method in admin
+	 *
+	 * @group weighting
 	 */
 	public function test_do_weighting_in_admin() {
 		// Test if we're in admin area.
@@ -400,6 +415,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test the `do_weighting` method (with an empty search query)
+	 *
+	 * @group weighting
 	 */
 	public function test_do_weighting_with_empty_search_query() {
 		// Test if search query is empty.
@@ -408,6 +425,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test the `do_weighting` method (with the default config)
+	 *
+	 * @group weighting
 	 */
 	public function test_do_weighting_with_default_config() {
 		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->get_args() );
@@ -465,6 +484,7 @@ class TestWeighting extends BaseTestCase {
 	 * Test if ep_weighting_configuration_for_search is applied even when the config was not saved yet.
 	 *
 	 * @since 4.5.0
+	 * @group weighting
 	 */
 	public function test_apply_filter_when_weighting_config_was_not_saved() {
 		delete_option( 'elasticpress_weighting' );

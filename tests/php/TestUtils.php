@@ -127,6 +127,7 @@ class TestUtils extends BaseTestCase {
 	 * Tests the sanitize_credentials utils function.
 	 *
 	 * @return void
+	 * @group utils
 	 */
 	public function test_sanitize_credentials() {
 
@@ -187,6 +188,7 @@ class TestUtils extends BaseTestCase {
 	 * Tests the is_indexing function.
 	 *
 	 * @return void
+	 * @group utils
 	 */
 	public function test_is_indexing() {
 
@@ -211,6 +213,7 @@ class TestUtils extends BaseTestCase {
 	 * Test the get_sync_url method
 	 *
 	 * @since 4.4.0
+	 * @group utils
 	 */
 	public function test_get_sync_url() {
 		/**
@@ -239,6 +242,7 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_request_id_base` function
 	 *
 	 * @since 4.5.0
+	 * @group utils
 	 */
 	public function test_get_request_id_base() {
 		/**
@@ -264,6 +268,7 @@ class TestUtils extends BaseTestCase {
 	 * Test the `generate_request_id` function
 	 *
 	 * @since 4.5.0
+	 * @group utils
 	 */
 	public function test_generate_request_id() {
 		$this->assertMatchesRegularExpression( '/[0-9a-f]{32}/', Utils\generate_request_id() );
@@ -292,6 +297,7 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_capability` function
 	 *
 	 * @since 4.5.0
+	 * @group utils
 	 */
 	public function test_get_capability() {
 		$this->assertSame( 'manage_elasticpress', Utils\get_capability() );
@@ -313,6 +319,7 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_network_capability` function
 	 *
 	 * @since 4.5.0
+	 * @group utils
 	 */
 	public function test_get_network_capability() {
 		$this->assertSame( 'manage_network_elasticpress', Utils\get_network_capability() );
@@ -334,6 +341,7 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_post_map_capabilities` function
 	 *
 	 * @since 4.5.0
+	 * @group utils
 	 */
 	public function test_get_post_map_capabilities() {
 		$expected = [
@@ -353,6 +361,7 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_post_map_capabilities` function passing context
 	 *
 	 * @since 5.1.0
+	 * @group utils
 	 */
 	public function test_get_post_map_capabilities_with_context() {
 		$change_cap_name = function ( $cap, $context ) {
@@ -379,6 +388,7 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_elasticsearch_error_reason` function
 	 *
 	 * @since 4.6.0
+	 * @group utils
 	 */
 	public function test_get_elasticsearch_error_reason() {
 		// Strings should be returned without any change

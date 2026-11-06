@@ -2075,6 +2075,8 @@ class TestPostMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 * group testMultipleTests
+	 *
+	 * @group post
 	 */
 	public function test_wp_query_search_content_for_all_site_except_one() {
 

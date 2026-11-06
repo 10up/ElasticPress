@@ -188,6 +188,7 @@ class TestDocuments extends BaseTestCase {
 	 * Tests query doesn't return the post if `ep_exclude_from_search` meta is set.
 	 *
 	 * @since 4.7.0
+	 * @group documents
 	 */
 	public function test_exclude_from_search_query() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
