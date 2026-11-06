@@ -26,6 +26,15 @@
       <exclude-pattern>/tests/*.php</exclude-pattern>
   </rule>
 
+  <!-- PHPUnit tests: snake_case method names, a method-level @group on every test, kebab-case group names. -->
+  <rule ref="./tests/phpcs/ElasticPressTests" />
+  <rule ref="ElasticPressTests.Tests.MethodName">
+      <include-pattern>/tests/php/*</include-pattern>
+  </rule>
+  <rule ref="ElasticPressTests.Tests.Group">
+      <include-pattern>/tests/php/*</include-pattern>
+  </rule>
+
     <!--
     Prevent errors caused by WordPress Coding Standards not supporting PHP 8.0+.
     See https://github.com/WordPress/WordPress-Coding-Standards/issues/2035
