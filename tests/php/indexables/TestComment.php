@@ -78,7 +78,7 @@ class TestComment extends BaseTestCase {
 	 * @param bool $has_child Create child comment
 	 * @return array
 	 * @since 3.6.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function create_comments( $number = 4, $has_child = false ) {
 		$parent_comment_id = 0;
@@ -128,7 +128,7 @@ class TestComment extends BaseTestCase {
 	 * Test a comment sync
 	 *
 	 * @since 3.6.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_comment_sync() {
 		add_action(
@@ -2507,7 +2507,7 @@ class TestComment extends BaseTestCase {
 	 * Check if a not allowed comment type is not indexed
 	 *
 	 * @since 3.6.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_comment_sync_order_note() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -2544,7 +2544,7 @@ class TestComment extends BaseTestCase {
 	 * when meta is updated.
 	 *
 	 * @since 3.6.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_comment_sync_order_note_with_meta() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -2583,7 +2583,7 @@ class TestComment extends BaseTestCase {
 	 * When the Protected Content is enabled unapproved comments will be indexed.
 	 *
 	 * @since 3.6.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_comment_indexing_with_protected_content_enabled() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
@@ -2626,7 +2626,7 @@ class TestComment extends BaseTestCase {
 	 * Test if the mapping applies the ep_stop filter correctly
 	 *
 	 * @since 4.7.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_mapping_ep_stop_filter() {
 		$indexable      = ElasticPress\Indexables::factory()->get( 'comment' );

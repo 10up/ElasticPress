@@ -20,7 +20,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test the default behavior of the get_reports method
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 */
 	public function test_get_reports() {
 		$status_report = new StatusReport();
@@ -35,7 +35,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test the `ep_status_report_reports` filter in the get_reports method
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 */
 	public function test_get_reports_filter() {
 		$status_report = new StatusReport();
@@ -56,7 +56,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test skipping tests in the get_reports method via GET parameter
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 */
 	public function test_get_reports_skipped() {
 		$status_report = new StatusReport();
@@ -73,7 +73,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests the WordPress report.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 4.5.1
 	 */
 	public function test_wordpress_report() {
@@ -141,7 +141,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests the Last Sync report.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 4.5.1
 	 */
 	public function test_last_sync_report() {
@@ -199,7 +199,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests the Indices report.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 4.5.1
 	 */
 	public function test_indices_report() {
@@ -221,7 +221,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests the Indexable Content report.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 4.5.1
 	 */
 	public function test_indexable_content_report() {
@@ -299,7 +299,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests the Feature report.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 4.5.1
 	 */
 	public function test_feature_report() {
@@ -320,7 +320,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests the Failed Queries report.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 4.5.1
 	 */
 	public function test_failed_queries_report() {
@@ -425,7 +425,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests ElasticPress.io report.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 4.5.1
 	 */
 	public function test_elasticpress_io_report() {
@@ -447,7 +447,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests ElasticPress report.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 4.5.1
 	 */
 	public function test_elasticpress_report() {
@@ -506,7 +506,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test ajax report handler with nonce not present.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 5.2.0
 	 */
 	public function test_noncenot_valid_ajax_report() {
@@ -524,7 +524,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test report not instance of ajax report.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 5.2.0
 	 */
 	public function test_not_instance_of_ajax_report() {
@@ -545,7 +545,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test ajax report handler with report not found.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 5.2.0
 	 */
 	public function test_report_not_found_ajax_report() {
@@ -566,7 +566,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test ajax report handler with valid report.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 5.2.0
 	 */
 	public function test_valid_report_ajax_report() {

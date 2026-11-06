@@ -18,7 +18,7 @@ class TestRelatedPosts extends BaseTestCase {
 	 * Setup each test.
 	 *
 	 * @since 2.1
-	 * @group related_posts
+	 * @group related-posts
 	 */
 	public function set_up() {
 		global $wpdb;
@@ -60,7 +60,7 @@ class TestRelatedPosts extends BaseTestCase {
 	/**
 	 * Test for related post args filter
 	 *
-	 * @group related_posts
+	 * @group related-posts
 	 */
 	public function test_find_related_post_filter() {
 		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
@@ -96,7 +96,7 @@ class TestRelatedPosts extends BaseTestCase {
 	/**
 	 * Test for related posts query
 	 *
-	 * @group related_posts
+	 * @group related-posts
 	 */
 	public function test_get_related_query() {
 		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );

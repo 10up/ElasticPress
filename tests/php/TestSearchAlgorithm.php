@@ -36,7 +36,7 @@ class TestSearchAlgorithm extends BaseTestCase {
 	/**
 	 * Test filters
 	 *
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
 	public function test_filters() {
 		$test_filter = function () {
@@ -56,7 +56,7 @@ class TestSearchAlgorithm extends BaseTestCase {
 	 * Test deprecated/legacy filters
 	 *
 	 * @expectedDeprecated ep_formatted_args_query
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
 	public function test_legacy_filters() {
 		$test_filter = function () {

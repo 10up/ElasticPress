@@ -131,7 +131,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test the get_sites() function.
 	 *
 	 * @since 0.9
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_get_sites() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -149,7 +149,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post sync
 	 *
 	 * @since 0.9
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_post_sync() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -184,7 +184,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post content search
 	 *
 	 * @since 0.9
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_search_content() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -255,7 +255,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post content search on a subset of network sites
 	 *
 	 * @since 0.9.2
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_search_content_site_subset() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -295,7 +295,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test to ensure that if we pass an invalid blog_id to the 'site__in' parameter that it doesn't break the search
 	 *
 	 * @since 0.9.2
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_invalid_subsites() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -336,7 +336,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post content search on a single site on the network
 	 *
 	 * @since 0.9.2
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_search_content_single_site() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -376,7 +376,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test that post data is setup correctly after switch_to_blog()
 	 *
 	 * @since 0.9.2
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_post_data_setup() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -435,7 +435,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post title search
 	 *
 	 * @since 0.9
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_search_title() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -475,7 +475,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post excerpt search
 	 *
 	 * @since 0.9
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_search_excerpt() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -521,7 +521,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a tax query search
 	 *
 	 * @since 1.0
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_tax_query() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -590,7 +590,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a post type query search for pages
 	 *
 	 * @since 1.3
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_post_type_search_query_page() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -642,7 +642,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a post type query search for posts
 	 *
 	 * @since 1.3
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_post_type_search_query_post() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -694,7 +694,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a post type query search where no post type is specified
 	 *
 	 * @since 1.3
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_no_post_type_search_query() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -745,7 +745,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a post type query non-search where no post type is specified. Defaults to `post` post type
 	 *
 	 * @since 1.3
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_no_post_type_no_search_query() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -796,7 +796,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test an author ID query
 	 *
 	 * @since 1.0
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_author_id_query() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -855,7 +855,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test an author name query
 	 *
 	 * @since 1.0
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_author_name_query() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -918,7 +918,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on meta
 	 *
 	 * @since 1.0
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_search_meta_query() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -990,7 +990,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a search with a filter on meta
 	 *
 	 * @since 1.3
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_filter_meta_query() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1070,7 +1070,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on taxonomy terms
 	 *
 	 * @since 1.0
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_search_tax_query() {
 
@@ -1130,7 +1130,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on author names
 	 *
 	 * @since 1.0
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_search_author_query() {
 
@@ -1197,7 +1197,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on taxonomy terms
 	 *
 	 * @since 1.0
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_advanced_query() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1283,7 +1283,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test pagination
 	 *
 	 * @since 0.9
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_pagination() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1346,7 +1346,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test query restoration after wp_reset_postdata
 	 *
 	 * @since 0.9.2
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_query_restoration_reset_post_data() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1408,7 +1408,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test query restoration after wp_reset_query
 	 *
 	 * @since 0.9.2
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_query_restoration_reset_query() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1473,7 +1473,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test query stack with nested queries
 	 *
 	 * @since 1.2
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_query_stack() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1554,7 +1554,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test filter for skipping query integration
 	 *
 	 * @since 1.2
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_query_integration_skip() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1609,7 +1609,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test post object data
 	 *
 	 * @since 1.4
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_post_object() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1679,7 +1679,7 @@ class TestPostMultisite extends BaseTestCase {
 	/**
 	 * Test index_exists helper function
 	 *
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_index_exists() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1703,7 +1703,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Tests deletion of index when a blog is deleted
 	 *
 	 * @link https://github.com/10up/ElasticPress/issues/392
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_deactivate_site() {
 		$index_count = Functions\count_indexes();
@@ -1730,7 +1730,7 @@ class TestPostMultisite extends BaseTestCase {
 	/**
 	 * Tests deletion of index when a blog is marked as spam
 	 *
-	 * @group testMultipleTests
+	 * @group post
 	 * @link https://github.com/10up/ElasticPress/issues/392
 	 */
 	public function test_spam_site() {
@@ -1757,7 +1757,7 @@ class TestPostMultisite extends BaseTestCase {
 	/**
 	 * Tests deletion of index when a blog is marked as archived
 	 *
-	 * @group testMultipleTests
+	 * @group post
 	 * @link https://github.com/10up/ElasticPress/issues/392
 	 */
 	public function test_archived_site() {
@@ -1785,7 +1785,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Tests WP Query returns the result of only those sites which are defined in `site__in` when both `site__in` and `site__not_in` are defined
 	 *
 	 * @since 4.4.0
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_with_site_in_and_not_site_in_param() {
 
@@ -1828,7 +1828,7 @@ class TestPostMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 * @expectedDeprecated get_es_posts
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_search_content_site_subset_with_deprecated_sites_param() {
 
@@ -1870,7 +1870,7 @@ class TestPostMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 * @expectedDeprecated get_es_posts
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_search_content_with_deprecated_sites_param() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1943,7 +1943,7 @@ class TestPostMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.1
 	 * @expectedDeprecated get_es_posts
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_search_content_with_deprecated_sites_param_with_value_current() {
 
@@ -1990,7 +1990,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post content search with `site__in` parameter and with value `current`.
 	 *
 	 * @since 4.4.1
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_search_content_with_deprecated_site_in_param_with_value_current() {
 
@@ -2037,7 +2037,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Tests WP Query returns the data from all sites except one.
 	 *
 	 * @since 4.4.0
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_wp_query_for_all_site_except_one() {
 
@@ -2115,7 +2115,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Tests cache_results is disabled when the `site__in` parameter is used.
 	 *
 	 * @since 5.3.4
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_cache_results_set_to_false_when_site__in_argument() {
 
@@ -2141,7 +2141,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Tests cache_results is disabled when the `site__not_in` parameter is used.
 	 *
 	 * @since 5.3.4
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_cache_results_set_to_false_when_site__not_in_argument() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -2166,7 +2166,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Tests cache_results is disabled when the scope is set to all.
 	 *
 	 * @since 5.3.4
-	 * @group testMultipleTests
+	 * @group post
 	 */
 	public function test_cache_results_set_to_false_when_scope_is_all() {
 		$sites = ElasticPress\Utils\get_sites();

@@ -8703,7 +8703,7 @@ class TestPost extends BaseTestCase {
 	 * Tests is_meta_allowed
 	 *
 	 * @return void
-	 * @group  is_meta_allowed
+	 * @group is-meta-allowed
 	 */
 	public function test_is_meta_allowed() {
 		$meta_not_protected          = 'meta';

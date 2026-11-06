@@ -69,7 +69,7 @@ class TestComments extends BaseTestCase {
 	 * Test Comment Feature slug and title
 	 *
 	 * @since  3.6.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_construct() {
 		$instance = new ElasticPress\Feature\Comments\Comments();
@@ -83,7 +83,7 @@ class TestComments extends BaseTestCase {
 	 * Test enable integration
 	 *
 	 * @since  3.6.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_integrate_search_queries() {
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
@@ -126,7 +126,7 @@ class TestComments extends BaseTestCase {
 	 * Test Comment Feature status
 	 *
 	 * @since  3.6.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_requirements_status() {
 		$status = $this->get_feature()->requirements_status();
@@ -138,7 +138,7 @@ class TestComments extends BaseTestCase {
 	 * Test the `is_visible` method
 	 *
 	 * @since 4.5.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_is_visible() {
 		$this->assertFalse( $this->get_feature()->is_visible() );
@@ -158,7 +158,7 @@ class TestComments extends BaseTestCase {
 	 * Test the `is_available` method
 	 *
 	 * @since 4.5.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_is_available() {
 		$this->assertFalse( $this->get_feature()->is_available() );

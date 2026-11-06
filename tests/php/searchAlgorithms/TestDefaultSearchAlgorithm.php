@@ -17,7 +17,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	/**
 	 * Test get_slug
 	 *
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
 	public function test_get_slug() {
 		$default = new DefaultAlgorithm();
@@ -28,7 +28,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	/**
 	 * Test default query
 	 *
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
 	public function test_get_query() {
 		$default = new DefaultAlgorithm();
@@ -46,7 +46,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	/**
 	 * Test filters
 	 *
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
 	public function test_filters() {
 		$default = new DefaultAlgorithm();
@@ -93,7 +93,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * As posts also apply the legacy filters, these tests assure code honors the value of the newer filters
 	 *
 	 * @see https://github.com/10up/ElasticPress/issues/3033
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
 	public function test_post_filters() {
 		$default = new DefaultAlgorithm();
@@ -140,7 +140,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @expectedDeprecated ep_match_phrase_boost
 	 * @expectedDeprecated ep_match_boost
 	 * @expectedDeprecated ep_fuzziness_arg
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
 	public function test_legacy_filters() {
 		$default = new DefaultAlgorithm();

@@ -17,7 +17,7 @@ class TestIndexHelper extends BaseTestCase {
 	 * Test if the ep_sync_args filter is applied in the full_index method
 	 *
 	 * @since 4.5.0
-	 * @group indexHelper
+	 * @group index-helper
 	 */
 	public function test_full_index_ep_sync_args_filter() {
 		$index_helper = \ElasticPress\IndexHelper::factory();
@@ -42,7 +42,7 @@ class TestIndexHelper extends BaseTestCase {
 	/**
 	 * Test get_index_default_per_page
 	 *
-	 * @group indexHelper
+	 * @group index-helper
 	 */
 	public function test_get_index_default_per_page() {
 		$index_helper = \ElasticPress\IndexHelper::factory();
