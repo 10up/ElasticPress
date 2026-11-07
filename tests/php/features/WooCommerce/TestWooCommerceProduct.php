@@ -40,7 +40,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testProductsPostTypeQueryOn() {
+	public function test_products_post_type_query_on() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -70,7 +70,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testProductsPostTypeQueryProductCatTax() {
+	public function test_products_post_type_query_product_cat_tax() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -102,7 +102,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testProductsPostTypeQueryProductCatTaxWhenEPIntegrateSetTrue() {
+	public function test_products_post_type_query_product_cat_tax_when_ep_integrate_set_true() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -123,7 +123,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testProductsPostTypeQueryProductCatTaxWhenMainQuery() {
+	public function test_products_post_type_query_product_cat_tax_when_main_query() {
 		global $wp_the_query;
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -145,7 +145,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testProductsPostTypeQueryProductWhenMainQuery() {
+	public function test_products_post_type_query_product_when_main_query() {
 		global $wp_the_query;
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -162,7 +162,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testSearchOnAllFrontEnd() {
+	public function test_search_on_all_front_end() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -191,7 +191,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testProductVisibilityTaxDoesNotForceProductIntegrationOnSearch() {
+	public function test_product_visibility_tax_does_not_force_product_integration_on_search() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -237,7 +237,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testWoocommerceAttributeTaxonomiesAreSync() {
+	public function test_woocommerce_attribute_taxonomies_are_sync() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -252,11 +252,11 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	}
 
 	/**
-	 * Data provider for the testProductQueryOrder method.
+	 * Data provider for the test_product_query_order method.
 	 *
 	 * @return array
 	 */
-	public function productQueryOrderDataProvider(): array {
+	public function product_query_order_data_provider(): array {
 		return [
 			[
 				'total_sales',
@@ -381,11 +381,11 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @param array  $expected           Value expected
 	 * @param string $order              Order
 	 * @param bool   $force_type_archive Whether this should or should not be considered an archive
-	 * @dataProvider productQueryOrderDataProvider
+	 * @dataProvider product_query_order_data_provider
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testProductQueryOrder( $product_arg_key, $query_args, $query_string, $expected, $order = '', $force_type_archive = false ) {
+	public function test_product_query_order( $product_arg_key, $query_args, $query_string, $expected, $order = '', $force_type_archive = false ) {
 		global $wp_the_query;
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -451,7 +451,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testQueryShouldNotUseElasticsearchIfPreview() {
+	public function test_query_should_not_use_elasticsearch_if_preview() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -472,7 +472,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testProductListInAdminUseElasticSearch() {
+	public function test_product_list_in_admin_use_elasticsearch() {
 		global $typenow, $wc_list_table;
 
 		set_current_screen( 'edit.php' );
@@ -519,7 +519,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testProductListSearchInAdminUseElasticSearch() {
+	public function test_product_list_search_in_admin_use_elasticsearch() {
 		global $typenow, $wc_list_table;
 
 		set_current_screen( 'edit.php' );
@@ -571,7 +571,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testPriceFilter() {
+	public function test_price_filter() {
 		global $wp_the_query, $wp_query;
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -641,7 +641,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testPriceFilterWithSearchQuery() {
+	public function test_price_filter_with_search_query() {
 		global $wp_the_query, $wp_query;
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -707,7 +707,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testPriceFilterWithTax() {
+	public function test_price_filter_with_tax() {
 		global $wpdb, $wp_the_query, $wp_query;
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -830,7 +830,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testAttributesFilterUseES() {
+	public function test_attributes_filter_use_es() {
 		global $wp_the_query;
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -899,7 +899,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testGetPosts() {
+	public function test_get_posts() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -923,7 +923,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testGetPostQueryDoesNotUseElasticSearchByDefault() {
+	public function test_get_post_query_does_not_use_elasticsearch_by_default() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -946,7 +946,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 *
 	 * @group woocommerce
 	 */
-	public function testSkuOptionAddInWeightDashboard() {
+	public function test_sku_option_add_in_weight_dashboard() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -969,7 +969,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testAddVariationsSkusMeta() {
+	public function test_add_variations_skus_meta() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -1007,7 +1007,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testTranslateArgsAdminProductsList() {
+	public function test_translate_args_admin_products_list() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
@@ -1049,7 +1049,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testEPWoocommerceAdminProductsListSearchFields() {
+	public function test_ep_woocommerce_admin_products_list_search_fields() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
@@ -1078,15 +1078,15 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	/**
 	 * Test if decaying is disabled on products.
 	 *
-	 * @dataProvider decayingDisabledOnProductsProvider
+	 * @dataProvider decaying_disabled_on_products_provider
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 *
 	 * @param string       $setting   Value for `decaying_enabled`
 	 * @param array|string $post_type Post types to be queried
-	 * @param string       $assert    Assert method name (`assertDecayDisabled` or `assertDecayEnabled`)
+	 * @param string       $assert    Assert method name (`assert_decay_disabled` or `assert_decay_enabled`)
 	 */
-	public function testDecayingDisabledOnProducts( $setting, $post_type, $assert ) {
+	public function test_decaying_disabled_on_products( $setting, $post_type, $assert ) {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -1110,46 +1110,46 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	}
 
 	/**
-	 * Data provider for the testDecayingDisabledOnProducts method.
+	 * Data provider for the test_decaying_disabled_on_products method.
 	 *
 	 * @return array
 	 */
-	public function decayingDisabledOnProductsProvider(): array {
+	public function decaying_disabled_on_products_provider(): array {
 		return [
 			[
 				'disabled_only_products',
 				'product',
-				'assertDecayDisabled',
+				'assert_decay_disabled',
 			],
 			[
 				'disabled_only_products',
 				[ 'product' ],
-				'assertDecayDisabled',
+				'assert_decay_disabled',
 			],
 			[
 				'disabled_only_products',
 				[ 'product', 'post' ],
-				'assertDecayEnabled',
+				'assert_decay_enabled',
 			],
 			[
 				'disabled_includes_products',
 				'product',
-				'assertDecayDisabled',
+				'assert_decay_disabled',
 			],
 			[
 				'disabled_includes_products',
 				[ 'product' ],
-				'assertDecayDisabled',
+				'assert_decay_disabled',
 			],
 			[
 				'disabled_includes_products',
 				[ 'product', 'post' ],
-				'assertDecayDisabled',
+				'assert_decay_disabled',
 			],
 			[
 				'disabled_includes_products',
 				[ 'post', 'page' ],
-				'assertDecayEnabled',
+				'assert_decay_enabled',
 			],
 		];
 	}
@@ -1160,7 +1160,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testGetSupportedPostTypes() {
+	public function test_get_supported_post_types() {
 		$query = new \WP_Query( [] );
 
 		$default_supported = $this->products->get_supported_post_types( $query );
@@ -1195,7 +1195,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testGetSupportedTaxonomies() {
+	public function test_get_supported_taxonomies() {
 		$default_supported = $this->products->get_supported_taxonomies();
 		$expected          = [
 			'product_cat',
@@ -1222,23 +1222,23 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	/**
 	 * Test the `get_orderby_meta_mapping` method
 	 *
-	 * @dataProvider orderbyMetaMappingDataProvider
+	 * @dataProvider orderby_meta_mapping_data_provider
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 *
 	 * @param string $meta_key   Original meta key value
 	 * @param string $translated Expected translated version
 	 */
-	public function testOrderbyMetaMapping( $meta_key, $translated ) {
+	public function test_orderby_meta_mapping( $meta_key, $translated ) {
 		$this->assertSame( $this->products->get_orderby_meta_mapping( $meta_key ), $translated );
 	}
 
 	/**
-	 * Data provider for the testOrderbyMetaMapping method.
+	 * Data provider for the test_orderby_meta_mapping method.
 	 *
 	 * @return array
 	 */
-	public function orderbyMetaMappingDataProvider() {
+	public function orderby_meta_mapping_data_provider() {
 		return [
 			[ 'ID', 'ID' ],
 			[ 'title', 'title date' ],
@@ -1260,7 +1260,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testOrderbyMetaMappingFilter() {
+	public function test_orderby_meta_mapping_filter() {
 		$add_value = function ( $mapping ) {
 			$mapping['custom_parameter'] = 'meta.custom_parameter.long';
 			return $mapping;
