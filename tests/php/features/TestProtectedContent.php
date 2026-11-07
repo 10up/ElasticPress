@@ -57,7 +57,7 @@ class TestProtectedContent extends BaseTestCase {
 	 * @since 2.1
 	 * @group protected-content
 	 */
-	public function testAdminNotOn() {
+	public function test_admin_not_on() {
 		set_current_screen( 'edit.php' );
 
 		ElasticPress\Features::factory()->setup_features();
@@ -83,7 +83,7 @@ class TestProtectedContent extends BaseTestCase {
 	 * @since 2.1
 	 * @group protected-content
 	 */
-	public function testAdminOn() {
+	public function test_admin_on() {
 		set_current_screen( 'edit.php' );
 
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
@@ -110,7 +110,7 @@ class TestProtectedContent extends BaseTestCase {
 	 * @since 2.1
 	 * @group protected-content
 	 */
-	public function testAdminOnDraft() {
+	public function test_admin_on_draft() {
 		set_current_screen( 'edit.php' );
 
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
@@ -144,7 +144,7 @@ class TestProtectedContent extends BaseTestCase {
 	 * @since 2.1
 	 * @group protected-content
 	 */
-	public function testAdminOnDraftUpdated() {
+	public function test_admin_on_draft_updated() {
 		set_current_screen( 'edit.php' );
 
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
@@ -186,7 +186,7 @@ class TestProtectedContent extends BaseTestCase {
 	 *
 	 * @group protected-content
 	 */
-	public function testAdminCategories() {
+	public function test_admin_categories() {
 		set_current_screen( 'edit.php' );
 
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
@@ -250,7 +250,7 @@ class TestProtectedContent extends BaseTestCase {
 	 * @since 4.0.0
 	 * @group protected-content
 	 */
-	public function testSyncPasswordedPost() {
+	public function test_sync_passworded_post() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -306,7 +306,7 @@ class TestProtectedContent extends BaseTestCase {
 	 * @since 4.0.0
 	 * @group protected-content
 	 */
-	public function testAdminPasswordedPost() {
+	public function test_admin_passworded_post() {
 		set_current_screen( 'edit.php' );
 
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
@@ -356,7 +356,7 @@ class TestProtectedContent extends BaseTestCase {
 	 * @since 4.0.0
 	 * @group protected-content
 	 */
-	public function testFrontEndSearchPasswordedPost() {
+	public function test_front_end_search_passworded_post() {
 		set_current_screen( 'front' );
 
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
@@ -406,7 +406,7 @@ class TestProtectedContent extends BaseTestCase {
 	 * @since 4.4.1
 	 * @group protected-content
 	 */
-	public function testAdminCommentQuery() {
+	public function test_admin_comment_query() {
 		set_current_screen( 'edit-comments.php' );
 		$this->assertTrue( is_admin() );
 
