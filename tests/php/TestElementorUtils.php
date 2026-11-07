@@ -27,7 +27,7 @@ class TestElementorUtils extends BaseTestCase {
 	/**
 	 * Test the `regenerate_cache` method.
 	 *
-	 * @group elementor_utils
+	 * @group elementor-utils
 	 */
 	public function test_regenerate_cache() {
 		$elementor_utils = new ElementorUtils();
@@ -41,7 +41,7 @@ class TestElementorUtils extends BaseTestCase {
 	/**
 	 * Test the `get_all_widgets_in_all_templates` method.
 	 *
-	 * @group elementor_utils
+	 * @group elementor-utils
 	 */
 	public function test_get_all_widgets_in_all_templates() {
 		$elementor_utils = new ElementorUtils();
@@ -61,7 +61,7 @@ class TestElementorUtils extends BaseTestCase {
 	/**
 	 * Test the `get_specific_widget_in_all_templates` method
 	 *
-	 * @group elementor_utils
+	 * @group elementor-utils
 	 */
 	public function test_get_specific_widget_in_all_templates() {
 		$elementor_utils = new ElementorUtils();

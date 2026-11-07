@@ -68,7 +68,7 @@ class TestStats extends BaseTestCase {
 	 * @since 3.2
 	 * @group stats
 	 */
-	public function testTotals() {
+	public function test_totals() {
 		$this->ep_factory->post->create();
 		Elasticsearch::factory()->refresh_indices();
 
@@ -91,7 +91,7 @@ class TestStats extends BaseTestCase {
 	 * @since 3.2
 	 * @group stats
 	 */
-	public function testHealth() {
+	public function test_health() {
 		$this->ep_factory->post->create();
 		Elasticsearch::factory()->refresh_indices();
 
