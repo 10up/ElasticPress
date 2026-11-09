@@ -1435,7 +1435,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testTaxonomyQueryVarSingleSlug() {
+	public function test_taxonomy_query_var_single_slug() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -1460,7 +1460,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testTaxonomyQueryVarCommaSeparatedSlugs() {
+	public function test_taxonomy_query_var_comma_separated_slugs() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -1487,7 +1487,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testTaxonomyQueryVarCommaSeparatedSlugsWithWhitespace() {
+	public function test_taxonomy_query_var_comma_separated_slugs_with_whitespace() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -1515,7 +1515,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testTaxonomyQueryVarPlusSeparatedSlugs() {
+	public function test_taxonomy_query_var_plus_separated_slugs() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -1574,7 +1574,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testTaxonomyQueryVarArray() {
+	public function test_taxonomy_query_var_array() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -1602,7 +1602,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testTaxonomyQueryVarWithExistingTaxQuery() {
+	public function test_taxonomy_query_var_with_existing_tax_query() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -1640,7 +1640,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testOtherTaxonomyQueryVarSingleSlug() {
+	public function test_other_taxonomy_query_var_single_slug() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
