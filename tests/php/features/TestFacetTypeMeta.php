@@ -38,7 +38,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testGetFilterName() {
+	public function test_get_filter_name() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
@@ -63,7 +63,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testGetFilterType() {
+	public function test_get_filter_type() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
@@ -88,7 +88,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testSetWpQueryAggs() {
+	public function test_set_wp_query_aggs() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
@@ -145,7 +145,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testGetMetaValues() {
+	public function test_get_meta_values() {
 		add_filter(
 			'ep_prepare_meta_allowed_keys',
 			function ( $allowed_metakeys ) {
@@ -215,7 +215,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @since 4.4.0
 	 * @group facets
 	 */
-	public function testAddQueryFilters() {
+	public function test_add_query_filters() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
@@ -267,7 +267,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @since 4.5.1
 	 * @group facets
 	 */
-	public function testAddQueryFiltersWithNotAllowedParameters() {
+	public function test_add_query_filters_with_not_allowed_parameters() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
@@ -323,7 +323,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testGetFacetsMetaFields() {
+	public function test_get_facets_meta_fields() {
 		$this->markTestIncomplete();
 	}
 
@@ -333,7 +333,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testInvalidateMetaValuesCache() {
+	public function test_invalidate_meta_values_cache() {
 		$this->markTestIncomplete();
 	}
 
@@ -343,7 +343,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testInvalidateMetaValuesCacheAfterBulk() {
+	public function test_invalidate_meta_values_cache_after_bulk() {
 		$this->markTestIncomplete();
 	}
 
@@ -353,7 +353,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @since 4.4.0
 	 * @group facets
 	 */
-	public function testGetSanitizeCallback() {
+	public function test_get_sanitize_callback() {
 
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$test_meta     = 'This is a test meta';

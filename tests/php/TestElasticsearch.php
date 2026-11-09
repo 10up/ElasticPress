@@ -22,7 +22,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * @since 0.1.0
 	 * @group elasticsearch
 	 */
-	public function testGetClusterStatus() {
+	public function test_get_cluster_status() {
 
 		$status_indexed = ElasticPress\Elasticsearch::factory()->get_cluster_status();
 
@@ -59,7 +59,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group elasticsearch
 	 */
-	public function testGetDocuments() {
+	public function test_get_documents() {
 
 		$post_ids   = array();
 		$post_ids[] = $this->ep_factory->post->create();
@@ -100,7 +100,7 @@ class TestElasticsearch extends BaseTestCase {
 	/**
 	 * Test get documents returning only some source fields
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group elasticsearch
 	 */
 	public function test_get_documents_source_includes() {
@@ -141,7 +141,7 @@ class TestElasticsearch extends BaseTestCase {
 	/**
 	 * Test that get documents sends the source fields in the request path, after the path filter
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group elasticsearch
 	 */
 	public function test_get_documents_source_includes_request_path() {
@@ -189,7 +189,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * @since 4.4.0
 	 * @group elasticsearch
 	 */
-	public function testUpdateIndexSettings() {
+	public function test_update_index_settings() {
 		$index_name = 'lorem-ipsum';
 		$settings   = [ 'test' ];
 
@@ -358,8 +358,9 @@ class TestElasticsearch extends BaseTestCase {
 	 * Test the format_request_headers method
 	 *
 	 * @since 4.5.0
+	 * @group elasticsearch
 	 */
-	public function testFormatRequestHeaders() {
+	public function test_format_request_headers() {
 		/**
 		 * Test the default behavior
 		 */
@@ -412,8 +413,9 @@ class TestElasticsearch extends BaseTestCase {
 	 * Test the get_indices_comparison method
 	 *
 	 * @since 4.6.0
+	 * @group elasticsearch
 	 */
-	public function testGetIndicesComparison() {
+	public function test_get_indices_comparison() {
 		ElasticPress\Features::factory()->activate_feature( 'terms' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -471,7 +473,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * @since 5.1.4
 	 * @group elasticsearch
 	 */
-	public function testEpDisableQueryLoggingFilter() {
+	public function test_ep_disable_query_logging_filter() {
 		$elasticsearch = new \ElasticPress\Elasticsearch();
 
 		$reflection = new \ReflectionClass( $elasticsearch );
@@ -562,7 +564,7 @@ class TestElasticsearch extends BaseTestCase {
 	/**
 	 * Test get_total_hits_from_query() with and without `hits.total`
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group elasticsearch
 	 */
 	public function test_get_total_hits_from_query() {
@@ -586,7 +588,7 @@ class TestElasticsearch extends BaseTestCase {
 	/**
 	 * Test get_total_hits_from_query() when `track_total_hits` is false and `hits.total` is omitted
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.6
 	 * @group elasticsearch
 	 */
 	public function test_get_total_hits_from_query_without_total() {

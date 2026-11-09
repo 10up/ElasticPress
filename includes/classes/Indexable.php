@@ -289,6 +289,7 @@ abstract class Indexable {
 	 * @param  int     $object_id Object to index.
 	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  3.0
+	 * @since  5.3.6 Returns an object with an `error` property when preparing the document fails.
 	 * @return object|boolean
 	 */
 	public function index( $object_id, $blocking = false ) {
@@ -299,7 +300,7 @@ abstract class Indexable {
 		 * instead of one request per object in `prepare_document()`.
 		 *
 		 * @hook ep_pre_prepare_documents
-		 * @since 5.4.0
+		 * @since 5.3.6
 		 * @param {array}  $object_ids IDs of the objects about to be prepared
 		 * @param {string} $slug       Indexable slug
 		 */
@@ -308,9 +309,10 @@ abstract class Indexable {
 		try {
 			$document = $this->prepare_document( $object_id );
 		} catch ( \Throwable $th ) {
-			// The error is not returned here, but it is still written to the PHP error log when WP_DEBUG and WP_DEBUG_LOG are on.
-			$this->handle_prepare_document_error( $th, $object_id );
-			return false;
+			// Same shape as an Elasticsearch error response, so syncs count the object as failed.
+			return (object) [
+				'error' => (object) $this->handle_prepare_document_error( $th, $object_id ),
+			];
 		}
 
 		if ( false === $document ) {

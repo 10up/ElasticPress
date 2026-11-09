@@ -17,7 +17,7 @@ class TestBlockTemplateUtils extends BaseTestCase {
 	/**
 	 * Test the `regenerate_cache` method
 	 *
-	 * @group block_template_utils
+	 * @group block-template-utils
 	 */
 	public function test_regenerate_cache() {
 		$block_template_utils = new BlockTemplateUtils();
@@ -31,7 +31,7 @@ class TestBlockTemplateUtils extends BaseTestCase {
 	/**
 	 * Test the `get_specific_block_in_all_templates` method
 	 *
-	 * @group block_template_utils
+	 * @group block-template-utils
 	 */
 	public function test_get_specific_block_in_all_templates() {
 		$block_template_utils = new BlockTemplateUtils();
@@ -73,7 +73,7 @@ class TestBlockTemplateUtils extends BaseTestCase {
 	/**
 	 * Test the `get_all_blocks_in_all_templates` method
 	 *
-	 * @group block_template_utils
+	 * @group block-template-utils
 	 */
 	public function test_get_all_blocks_in_all_templates() {
 		$this->markTestIncomplete( 'This test should also test the real returns from get_block_templates(), etc.' );
@@ -82,7 +82,7 @@ class TestBlockTemplateUtils extends BaseTestCase {
 	/**
 	 * Test the `ep_blocks_pre_all_blocks` filter
 	 *
-	 * @group block_template_utils
+	 * @group block-template-utils
 	 */
 	public function test_get_all_blocks_in_all_templates_ep_blocks_pre_all_blocks() {
 		$block_template_utils = new BlockTemplateUtils();
@@ -104,7 +104,7 @@ class TestBlockTemplateUtils extends BaseTestCase {
 	/**
 	 * Test the `get_all_blocks_in_all_templates` transient
 	 *
-	 * @group block_template_utils
+	 * @group block-template-utils
 	 */
 	public function test_get_all_blocks_in_all_templates_transient() {
 		$block_template_utils = new BlockTemplateUtils();

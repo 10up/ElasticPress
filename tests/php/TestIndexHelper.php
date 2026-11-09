@@ -17,7 +17,7 @@ class TestIndexHelper extends BaseTestCase {
 	 * Test that error data keeps a stack trace when messages share an error key.
 	 *
 	 * @since 5.3.6
-	 * @group indexHelper
+	 * @group index-helper
 	 */
 	public function test_build_message_errors_data_keeps_stack_trace_for_shared_key() {
 		// Both messages map to the "no such index [???]" key.
@@ -43,9 +43,9 @@ class TestIndexHelper extends BaseTestCase {
 	 * Test if the ep_sync_args filter is applied in the full_index method
 	 *
 	 * @since 4.5.0
-	 * @group indexHelper
+	 * @group index-helper
 	 */
-	public function testFullIndexEpSyncArgsFilter() {
+	public function test_full_index_ep_sync_args_filter() {
 		$index_helper = \ElasticPress\IndexHelper::factory();
 
 		$args = [
@@ -68,9 +68,9 @@ class TestIndexHelper extends BaseTestCase {
 	/**
 	 * Test get_index_default_per_page
 	 *
-	 * @group indexHelper
+	 * @group index-helper
 	 */
-	public function testGetIndexDefaultPerPage() {
+	public function test_get_index_default_per_page() {
 		$index_helper = \ElasticPress\IndexHelper::factory();
 
 		/**

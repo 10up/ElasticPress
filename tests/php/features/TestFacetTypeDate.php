@@ -41,7 +41,7 @@ class TestFacetTypeDate extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testGetFilterName() {
+	public function test_get_filter_name() {
 		/**
 		 * Test default behavior
 		 */
@@ -62,7 +62,7 @@ class TestFacetTypeDate extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testGetFilterType() {
+	public function test_get_filter_type() {
 		/**
 		 * Test default behavior
 		 */
@@ -83,7 +83,7 @@ class TestFacetTypeDate extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testAddQueryFilters() {
+	public function test_add_query_filters() {
 		parse_str( 'ep_date_filter=2023-01-01,2023-10-01', $_GET );
 
 		$expected = [
@@ -110,7 +110,7 @@ class TestFacetTypeDate extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testAddQueryFiltersWithOnlyStartDate() {
+	public function test_add_query_filters_with_only_start_date() {
 		parse_str( 'ep_date_filter=2023-01-01,', $_GET );
 
 		$expected = [
@@ -130,7 +130,7 @@ class TestFacetTypeDate extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testAddQueryFiltersWithOnlyEndDate() {
+	public function test_add_query_filters_with_only_end_date() {
 		parse_str( 'ep_date_filter=,2023-10-01', $_GET );
 
 		$expected = [
@@ -150,7 +150,7 @@ class TestFacetTypeDate extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testFormatSelected() {
+	public function test_format_selected() {
 		$facet = 'test_facet';
 
 		$filters = [];
@@ -194,7 +194,7 @@ class TestFacetTypeDate extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testAddQueryParams() {
+	public function test_add_query_params() {
 		$new_filters = [
 			'ep_date' => [
 				'terms' => [
@@ -217,7 +217,7 @@ class TestFacetTypeDate extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testGetFacetOptions() {
+	public function test_get_facet_options() {
 		$expected_result = [
 			[
 				'label'     => 'Last 3 months',
@@ -263,11 +263,11 @@ class TestFacetTypeDate extends BaseTestCase {
 	}
 
 	/**
-	 * Data provider for the parseDateDataProvider method
+	 * Data provider for the parse_date_data_provider method
 	 *
 	 * @return array
 	 */
-	public function parseDateDataProvider(): array {
+	public function parse_date_data_provider(): array {
 		return [
 			[
 				[ '-1 week', '-1 month', '-1 year' ],
@@ -306,10 +306,10 @@ class TestFacetTypeDate extends BaseTestCase {
 	 * @param array $dates Array of dates to parse.
 	 * @param array $expected Expected result.
 	 *
-	 * @dataProvider parseDateDataProvider
+	 * @dataProvider parse_date_data_provider
 	 * @group facets
 	 */
-	public function testParseDates( $dates, $expected ) {
+	public function test_parse_dates( $dates, $expected ) {
 		$this->assertSame( $expected, $this->facet_type->parse_dates( $dates ) );
 	}
 
@@ -318,7 +318,7 @@ class TestFacetTypeDate extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testQueryPost() {
+	public function test_query_post() {
 		$this->ep_factory->post->create( [ 'post_date' => '2021-12-31 23:59:59' ] );
 		$this->ep_factory->post->create( [ 'post_date' => '2022-01-01 00:00:00' ] );
 		$this->ep_factory->post->create( [ 'post_date' => '2022-12-31 23:59:59' ] );
