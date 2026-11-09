@@ -1397,7 +1397,8 @@ class TestCommands extends BaseTestCase {
 		add_filter(
 			'http_response',
 			function ( $response, $parsed_args, $url ) use ( $post_id ) {
-				if ( 'POST' !== $parsed_args['method'] || ! str_ends_with( $url, '/_doc/' . $post_id ) ) {
+				// Elasticsearch 7+ uses `/_doc/<id>` and older versions `/post/<id>`.
+				if ( 'POST' !== $parsed_args['method'] || ! str_ends_with( $url, '/' . $post_id ) ) {
 					return $response;
 				}
 
@@ -1427,6 +1428,12 @@ class TestCommands extends BaseTestCase {
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( $post_id . ' (Post): [my dummy error type] my dummy error reason', $output );
+
+		if ( $this->is_network_activate() ) {
+			$this->assertStringContainsString( 'Number of posts index errors on site 1: 1', $output );
+		} else {
+			$this->assertStringContainsString( 'Number of posts index errors: 1', $output );
+		}
 	}
 
 	/**
