@@ -709,7 +709,8 @@ class IndexHelper {
 
 				$this->queue_message( $wp_error_messages, 'warning' );
 			} elseif ( count( $failed_objects ) ) {
-				$errors_output = $this->output_index_errors( $failed_objects );
+				$stack_traces  = [];
+				$errors_output = $this->output_index_errors( $failed_objects, $stack_traces );
 
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items ) - count( $failed_objects );
 
@@ -722,7 +723,7 @@ class IndexHelper {
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
 				$error_type                                       = ! empty( $this->args['stop_on_error'] ) ? 'error' : 'warning';
 
-				$this->queue_message( $errors_output, $error_type, '', $this->get_index_error_stack_traces( $failed_objects, $errors_output ) );
+				$this->queue_message( $errors_output, $error_type, '', $stack_traces );
 			} else {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
@@ -1085,40 +1086,25 @@ class IndexHelper {
 	 * Output index errors of failed objects.
 	 *
 	 * @since 4.0.0
+	 * @since 5.3.6 Added `$stack_traces`
 	 * @param array $failed_objects Failed objects
+	 * @param array $stack_traces   Optional. Filled with the stack traces of the errors that have one, keyed by error message.
 	 */
-	protected function output_index_errors( $failed_objects ) {
+	protected function output_index_errors( $failed_objects, array &$stack_traces = [] ) {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
 		$error_text = [];
 
 		foreach ( $failed_objects as $object ) {
-			$error_text[] = ! empty( $object['index'] ) ? $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] : (string) $object;
-		}
+			$message      = ! empty( $object['index'] ) ? $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] : (string) $object;
+			$error_text[] = $message;
 
-		return $error_text;
-	}
-
-	/**
-	 * Get the stack traces of failed objects, keyed by their error message.
-	 *
-	 * Only errors thrown while preparing a document have a stack trace.
-	 *
-	 * @since 5.3.6
-	 * @param array $failed_objects Failed objects
-	 * @param array $error_messages Error messages from output_index_errors(), in the same order
-	 * @return array Stack traces keyed by error message
-	 */
-	protected function get_index_error_stack_traces( array $failed_objects, array $error_messages ): array {
-		$stack_traces = [];
-
-		foreach ( array_values( $failed_objects ) as $i => $object ) {
-			if ( ! empty( $object['index']['error']['stack_trace'] ) && isset( $error_messages[ $i ] ) ) {
-				$stack_traces[ $error_messages[ $i ] ] = $object['index']['error']['stack_trace'];
+			if ( ! empty( $object['index']['error']['stack_trace'] ) ) {
+				$stack_traces[ $message ] = $object['index']['error']['stack_trace'];
 			}
 		}
 
-		return $stack_traces;
+		return $error_text;
 	}
 
 	/**
