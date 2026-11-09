@@ -263,6 +263,7 @@ abstract class Indexable {
 	 * @param  int     $object_id Object to index.
 	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  3.0
+	 * @since  5.3.6 Returns an object with an `error` property when preparing the document fails.
 	 * @return object|boolean
 	 */
 	public function index( $object_id, $blocking = false ) {
@@ -282,7 +283,13 @@ abstract class Indexable {
 		try {
 			$document = $this->prepare_document( $object_id );
 		} catch ( \Throwable $th ) {
-			return false;
+			// Same shape as an Elasticsearch error response, so syncs count the object as failed.
+			return (object) [
+				'error' => (object) [
+					'type'   => 'prepare_document_error',
+					'reason' => $th->getMessage(),
+				],
+			];
 		}
 
 		if ( false === $document ) {
