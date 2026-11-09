@@ -20,7 +20,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testGetFilterName() {
+	public function test_get_filter_name() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
@@ -45,7 +45,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testGetFilterType() {
+	public function test_get_filter_type() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
@@ -70,7 +70,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testGetFacetableTaxonomies() {
+	public function test_get_facetable_taxonomies() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
@@ -110,7 +110,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testSetWpQueryAggs() {
+	public function test_set_wp_query_aggs() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
@@ -162,7 +162,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 * @since 4.4.0
 	 * @group facets
 	 */
-	public function testAddQueryFilters() {
+	public function test_add_query_filters() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
@@ -208,7 +208,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 * @since 4.4.0
 	 * @group facets
 	 */
-	public function testGetSanitizeCallback() {
+	public function test_get_sanitize_callback() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$test_taxonomy = 'This is a test taxonomy';
 
@@ -241,8 +241,9 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 *
 	 * @todo Move this to a mock, as it is just inherited now
 	 * @since 4.5.0
+	 * @group facets
 	 */
-	public function testFormatSelected() {
+	public function test_format_selected() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
@@ -285,8 +286,9 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 *
 	 * @todo Move this to a mock, as it is just inherited now
 	 * @since 4.5.0
+	 * @group facets
 	 */
-	public function testAddQueryParams() {
+	public function test_add_query_params() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
@@ -328,6 +330,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 *
 	 * @since 4.7.0
 	 * @return void
+	 * @group facets
 	 */
 	public function test_ep_facet_special_slug_taxonomies_filter() {
 		add_filter(

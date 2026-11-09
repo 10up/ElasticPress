@@ -76,7 +76,7 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since 3.0
 	 */
-	public function testDetermineScreenNotEP() {
+	public function test_determine_screen_not_ep() {
 		$_GET['page'] = '';
 
 		ElasticPress\Installer::factory()->calculate_install_status();
@@ -103,7 +103,7 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since  3.0
 	 */
-	public function testDetermineScreenSettingsInstallTrue() {
+	public function test_determine_screen_settings_install_true() {
 		$set_install_status = function () {
 			return true;
 		};
@@ -124,7 +124,7 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since  3.0
 	 */
-	public function testDetermineScreenSettingsInstall1() {
+	public function test_determine_screen_settings_install1() {
 		$set_install_status = function () {
 			return 1;
 		};
@@ -145,7 +145,7 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since  3.0
 	 */
-	public function testDetermineScreenSettingsInstall2() {
+	public function test_determine_screen_settings_install2() {
 		$set_install_status = function () {
 			return 2;
 		};
@@ -166,7 +166,7 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since  3.0
 	 */
-	public function testDetermineScreenDashboardInstallTrue() {
+	public function test_determine_screen_dashboard_install_true() {
 		$set_install_status = function () {
 			return true;
 		};
@@ -187,7 +187,7 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since  3.0
 	 */
-	public function testDetermineScreenDashboardInstall1() {
+	public function test_determine_screen_dashboard_install1() {
 		$set_install_status = function () {
 			return 1;
 		};
@@ -208,7 +208,7 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since  3.0
 	 */
-	public function testDetermineScreenDashboardInstall2() {
+	public function test_determine_screen_dashboard_install2() {
 		$set_install_status = function () {
 			return 1;
 		};
@@ -229,7 +229,7 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since  3.0
 	 */
-	public function testDetermineScreenDashboardInstallComplete() {
+	public function test_determine_screen_dashboard_install_complete() {
 		$set_install_status = function () {
 			return true;
 		};
@@ -251,7 +251,7 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since  3.0
 	 */
-	public function testDetermineScreenDashboardInstall3DoSync() {
+	public function test_determine_screen_dashboard_install3_do_sync() {
 		$set_install_status = function () {
 			return 3;
 		};
