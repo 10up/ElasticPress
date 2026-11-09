@@ -709,7 +709,8 @@ class IndexHelper {
 
 				$this->queue_message( $wp_error_messages, 'warning' );
 			} elseif ( count( $failed_objects ) ) {
-				$errors_output = $this->output_index_errors( $failed_objects );
+				$stack_traces  = [];
+				$errors_output = $this->output_index_errors( $failed_objects, $stack_traces );
 
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items ) - count( $failed_objects );
 
@@ -722,7 +723,7 @@ class IndexHelper {
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
 				$error_type                                       = ! empty( $this->args['stop_on_error'] ) ? 'error' : 'warning';
 
-				$this->queue_message( $errors_output, $error_type );
+				$this->queue_message( $errors_output, $error_type, '', $stack_traces );
 			} else {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
@@ -1028,12 +1029,14 @@ class IndexHelper {
 	 * Output a message.
 	 *
 	 * @since 4.0.0
+	 * @since 5.3.6 Added `$stack_traces`
 	 * @param string|array $message_text Message to be outputted
 	 * @param string       $type         Type of message
 	 * @param string       $context      Context of the output
+	 * @param array        $stack_traces Optional. Stack traces keyed by error message. Default empty array.
 	 * @return void
 	 */
-	protected function output( $message_text, $type = 'info', $context = '' ) {
+	protected function output( $message_text, $type = 'info', $context = '', array $stack_traces = [] ) {
 		if ( $this->index_meta ) {
 			Utils\update_option( 'ep_index_meta', $this->index_meta );
 		} else {
@@ -1049,7 +1052,7 @@ class IndexHelper {
 		];
 
 		if ( in_array( $type, [ 'warning', 'error' ], true ) ) {
-			$message['errors'] = $this->build_message_errors_data( $message_text );
+			$message['errors'] = $this->build_message_errors_data( $message_text, $stack_traces );
 		}
 
 		if ( is_callable( $this->args['output_method'] ) ) {
@@ -1083,15 +1086,22 @@ class IndexHelper {
 	 * Output index errors of failed objects.
 	 *
 	 * @since 4.0.0
+	 * @since 5.3.6 Added `$stack_traces`
 	 * @param array $failed_objects Failed objects
+	 * @param array $stack_traces   Optional. Filled with the stack traces of the errors that have one, keyed by error message.
 	 */
-	protected function output_index_errors( $failed_objects ) {
+	protected function output_index_errors( $failed_objects, array &$stack_traces = [] ) {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
 		$error_text = [];
 
 		foreach ( $failed_objects as $object ) {
-			$error_text[] = ! empty( $object['index'] ) ? $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] : (string) $object;
+			$message      = ! empty( $object['index'] ) ? $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] : (string) $object;
+			$error_text[] = $message;
+
+			if ( ! empty( $object['index']['error']['stack_trace'] ) ) {
+				$stack_traces[ $message ] = $object['index']['error']['stack_trace'];
+			}
 		}
 
 		return $error_text;
@@ -1460,15 +1470,18 @@ class IndexHelper {
 	 * Add a message to the queue
 	 *
 	 * @since 4.7.0
+	 * @since 5.3.6 Added `$stack_traces`
 	 * @param string|array $message_text Message to be outputted
 	 * @param string       $type         Type of message
 	 * @param string       $context      Context of the output
+	 * @param array        $stack_traces Optional. Stack traces keyed by error message. Default empty array.
 	 */
-	protected function queue_message( $message_text, string $type, string $context = '' ) {
+	protected function queue_message( $message_text, string $type, string $context = '', array $stack_traces = [] ) {
 		$this->index_meta['messages_queue'][] = [
-			'text'    => $message_text,
-			'type'    => $type,
-			'context' => $context,
+			'text'         => $message_text,
+			'type'         => $type,
+			'context'      => $context,
+			'stack_traces' => $stack_traces,
 		];
 	}
 
@@ -1493,7 +1506,7 @@ class IndexHelper {
 
 		for ( $i = 0; $i < $messages_count; $i++ ) {
 			$next_message = array_shift( $this->index_meta['messages_queue'] );
-			$this->output( $next_message['text'], $next_message['type'], $next_message['context'] );
+			$this->output( $next_message['text'], $next_message['type'], $next_message['context'], $next_message['stack_traces'] ?? [] );
 		}
 	}
 
@@ -1501,10 +1514,12 @@ class IndexHelper {
 	 * Get data for a given error message(s)
 	 *
 	 * @since 5.0.0
-	 * @param string|array $messages Messages
+	 * @since 5.3.6 Added `$stack_traces`
+	 * @param string|array $messages     Messages
+	 * @param array        $stack_traces Optional. Stack traces keyed by error message. Default empty array.
 	 * @return array
 	 */
-	protected function build_message_errors_data( $messages ): array {
+	protected function build_message_errors_data( $messages, array $stack_traces = [] ): array {
 		$messages          = (array) $messages;
 		$error_interpreter = new \ElasticPress\ElasticsearchErrorInterpreter();
 
@@ -1519,6 +1534,11 @@ class IndexHelper {
 				];
 			} else {
 				++$errors_list[ $error['error'] ]['count'];
+			}
+
+			// Messages can share a key, so keep the first stack trace even if an earlier message had none.
+			if ( empty( $errors_list[ $error['error'] ]['stack_trace'] ) && ! empty( $stack_traces[ $message ] ) ) {
+				$errors_list[ $error['error'] ]['stack_trace'] = $stack_traces[ $message ];
 			}
 		}
 		return $errors_list;
