@@ -97,8 +97,6 @@ class Search extends Feature {
 	 * @since 2.2
 	 */
 	public function setup() {
-		Indexables::factory()->activate( 'post' );
-
 		add_action( 'init', [ $this, 'search_setup' ] );
 
 		// Set up weighting sub-module
