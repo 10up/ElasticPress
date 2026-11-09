@@ -10611,7 +10611,9 @@ class TestPost extends BaseTestCase {
 
 		$result = $post_indexable->index( $this->post_with_exception, true );
 		$this->assertSame( 'prepare_document_error', $result->error->type );
-		$this->assertSame( 'Something went wrong.', $result->error->reason );
+		$this->assertStringStartsWith( 'Something went wrong. in ', $result->error->reason );
+		$this->assertStringContainsString( 'TestPost.php:', $result->error->reason );
+		$this->assertStringContainsString( 'throw_exception', $result->error->stack_trace );
 		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
 	}
 
@@ -10655,19 +10657,9 @@ class TestPost extends BaseTestCase {
 		$result = $post_indexable->bulk_index( $posts );
 		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
 
-		$error_item = [
-			'index' => [
-				'_id'   => $post_id_1,
-				'error' => [
-					'type'   => 'prepare_document_error',
-					'reason' => 'Something went wrong.',
-				],
-			],
-		];
-
 		$this->assertIsArray( $result );
 		$this->assertTrue( $result['errors'] );
-		$this->assertContains( $error_item, $result['items'] );
+		$this->assert_prepare_document_error( $post_id_1, $result['items'] );
 	}
 
 	/**
@@ -10712,19 +10704,9 @@ class TestPost extends BaseTestCase {
 		$results = $post_indexable->bulk_index_dynamically( $posts );
 		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
 
-		$error_item = [
-			'index' => [
-				'_id'   => $post_id_1,
-				'error' => [
-					'type'   => 'prepare_document_error',
-					'reason' => 'Something went wrong.',
-				],
-			],
-		];
-
 		$this->assertIsArray( $results );
 		$this->assertTrue( $results[0]['errors'] );
-		$this->assertContains( $error_item, $results[0]['items'] );
+		$this->assert_prepare_document_error( $post_id_1, $results[0]['items'] );
 	}
 
 	/**
@@ -10787,6 +10769,25 @@ class TestPost extends BaseTestCase {
 
 		$this->assertSame( [ [ $expected_ids, 'post' ] ], $calls );
 		$this->assertSame( array_fill( 0, count( $expected_ids ), 1 ), $calls_at_prepare );
+	}
+
+	/**
+	 * Assert that bulk index items contain the error thrown by `throw_exception()`,
+	 * including where it was thrown and its stack trace.
+	 *
+	 * @since 5.3.6
+	 * @param int   $post_id ID of the post that failed.
+	 * @param array $items   Items returned by the bulk index methods.
+	 */
+	protected function assert_prepare_document_error( int $post_id, array $items ) {
+		$errors = wp_list_filter( wp_list_pluck( $items, 'index' ), [ '_id' => $post_id ] );
+		$this->assertCount( 1, $errors );
+
+		$error = reset( $errors )['error'];
+		$this->assertSame( 'prepare_document_error', $error['type'] );
+		$this->assertStringStartsWith( 'Something went wrong. in ', $error['reason'] );
+		$this->assertStringContainsString( 'TestPost.php:', $error['reason'] );
+		$this->assertStringContainsString( 'throw_exception', $error['stack_trace'] );
 	}
 
 	/**
