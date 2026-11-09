@@ -640,9 +640,15 @@ class IndexHelper {
 
 					if ( is_object( $return ) && ! empty( $return->error ) ) {
 						if ( ! empty( $return->error->reason ) ) {
-							$failed_objects[ $object->ID ] = (array) $return->error;
+							// Same shape as a bulk response item, which output_index_errors() expects.
+							$failed_objects[ $object_id ] = [
+								'index' => [
+									'_id'   => $object_id,
+									'error' => (array) $return->error,
+								],
+							];
 						} else {
-							$failed_objects[ $object->ID ] = null;
+							$failed_objects[ $object_id ] = null;
 						}
 					}
 

@@ -10608,7 +10608,10 @@ class TestPost extends BaseTestCase {
 
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
 		$this->post_with_exception = $this->ep_factory->post->create();
-		$this->assertFalse( $post_indexable->index( $this->post_with_exception, true ) );
+
+		$result = $post_indexable->index( $this->post_with_exception, true );
+		$this->assertSame( 'prepare_document_error', $result->error->type );
+		$this->assertSame( 'Something went wrong.', $result->error->reason );
 		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
 	}
 
