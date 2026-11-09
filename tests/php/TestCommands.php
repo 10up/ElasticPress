@@ -1319,6 +1319,124 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `sync` command with `--nobulk` when an exception is thrown
+	 *
+	 * @since 5.3.6
+	 * @group commands
+	 */
+	public function test_nobulk_sync_reports_exception_as_error() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+
+		$throw_exception = function ( $args ) use ( $post_id_1 ) {
+			if ( $args['post_id'] === $post_id_1 ) {
+				throw new \Exception( 'Something went wrong.' );
+			}
+			return $args;
+		};
+		add_filter( 'ep_post_sync_args_post_prepare_meta', $throw_exception );
+
+		$this->command->sync(
+			[],
+			[
+				'nobulk'      => true,
+				'show-errors' => true,
+			]
+		);
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( $post_id_1 . ' (Post): [prepare_document_error] Something went wrong.', $output );
+
+		if ( $this->is_network_activate() ) {
+			$this->assertStringContainsString( 'Number of posts index errors on site 1: 1', $output );
+			$this->assertStringContainsString( 'Number of posts indexed on site 1: 1', $output );
+		} else {
+			$this->assertStringContainsString( 'Number of posts index errors: 1', $output );
+			$this->assertStringContainsString( 'Number of posts indexed: 1', $output );
+		}
+
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', $throw_exception );
+	}
+
+	/**
+	 * Test the `sync` command with `--nobulk` and `--stop-on-error` when an exception is thrown
+	 *
+	 * @since 5.3.6
+	 * @group commands
+	 */
+	public function test_nobulk_sync_stops_on_exception() {
+		$post_id = $this->ep_factory->post->create();
+
+		add_filter(
+			'ep_post_sync_args_post_prepare_meta',
+			function () {
+				throw new \Exception( 'Something went wrong.' );
+			}
+		);
+
+		$this->expectExceptionMessage( $post_id . ' (Post): [prepare_document_error] Something went wrong.' );
+
+		$this->command->sync(
+			[],
+			[
+				'nobulk'        => true,
+				'stop-on-error' => true,
+			]
+		);
+	}
+
+	/**
+	 * Test the `sync` command with `--nobulk` when Elasticsearch returns an error for a document
+	 *
+	 * @since 5.3.6
+	 * @group commands
+	 */
+	public function test_nobulk_sync_reports_elasticsearch_error() {
+		$post_id = $this->ep_factory->post->create();
+
+		add_filter(
+			'http_response',
+			function ( $response, $parsed_args, $url ) use ( $post_id ) {
+				// Elasticsearch 7+ uses `/_doc/<id>` and older versions `/post/<id>`.
+				if ( 'POST' !== $parsed_args['method'] || ! str_ends_with( $url, '/' . $post_id ) ) {
+					return $response;
+				}
+
+				$response['body'] = wp_json_encode(
+					[
+						'error'  => [
+							'type'   => 'my dummy error type',
+							'reason' => 'my dummy error reason',
+						],
+						'status' => 400,
+					]
+				);
+
+				return $response;
+			},
+			10,
+			3
+		);
+
+		$this->command->sync(
+			[],
+			[
+				'nobulk'      => true,
+				'show-errors' => true,
+			]
+		);
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( $post_id . ' (Post): [my dummy error type] my dummy error reason', $output );
+
+		if ( $this->is_network_activate() ) {
+			$this->assertStringContainsString( 'Number of posts index errors on site 1: 1', $output );
+		} else {
+			$this->assertStringContainsString( 'Number of posts index errors: 1', $output );
+		}
+	}
+
+	/**
 	 * Test commands throws deprecated warning.
 	 *
 	 *  @expectedDeprecated get-indexes
