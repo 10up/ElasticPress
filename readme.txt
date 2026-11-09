@@ -89,6 +89,7 @@ __Added:__
 * Feature settings field groups can be collapsible (`collapsible`, `initialOpen`) and show a status badge (`badge`). Props [@felipeelia](https://github.com/felipeelia).
 * `combobox` field type for feature settings. Props [@felipeelia](https://github.com/felipeelia).
 * `ep.Features.Control` JS filter to render custom feature settings fields, and `ep_settings_field_types` filter with `ElasticPress\Utils\get_settings_field_types()` to check the available field types. Props [@felipeelia](https://github.com/felipeelia).
+* File, line, and stack trace of errors thrown while preparing documents, shown by `wp elasticpress sync --show-errors` and in the Sync page Errors tab, and written to the PHP error log when `WP_DEBUG` and `WP_DEBUG_LOG` are on. Props [@anjulahettige](https://github.com/anjulahettige).
 
 __Fixed:__
 
@@ -97,6 +98,7 @@ __Fixed:__
 * Memory exhaustion when editing a term attached to a large number of posts, by fetching its object IDs in chunks. Props [@rebeccahum](https://github.com/rebeccahum).
 * Posts of child terms not being reindexed when editing a parent term, on sites where term IDs and term taxonomy IDs differ. Props [@rebeccahum](https://github.com/rebeccahum).
 * `wp elasticpress sync --nobulk` reports objects that fail to prepare as errors instead of counting them as indexed. Props [@anjulahettige](https://github.com/anjulahettige).
+* WooCommerce taxonomy query vars with comma-separated terms (e.g. `product_cat=a,b`) treated as a single slug. Props [@yograj-vijay-yadav](https://github.com/yograj-vijay-yadav).
 
 __Security:__
 

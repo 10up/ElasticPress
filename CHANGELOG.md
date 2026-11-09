@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Feature settings field groups can be collapsible (`collapsible`, `initialOpen`) and show a status badge (`badge`). Props [@felipeelia](https://github.com/felipeelia) via [#4380](https://github.com/10up/ElasticPress/pull/4380).
 * `combobox` field type for feature settings. Props [@felipeelia](https://github.com/felipeelia) via [#4381](https://github.com/10up/ElasticPress/pull/4381).
 * `ep.Features.Control` JS filter to render custom feature settings fields, and `ep_settings_field_types` filter with `ElasticPress\Utils\get_settings_field_types()` to check the available field types. Props [@felipeelia](https://github.com/felipeelia) via [#4381](https://github.com/10up/ElasticPress/pull/4381).
+* File, line, and stack trace of errors thrown while preparing documents, shown by `wp elasticpress sync --show-errors` and in the Sync page Errors tab, and written to the PHP error log when `WP_DEBUG` and `WP_DEBUG_LOG` are on. Props [@anjulahettige](https://github.com/anjulahettige) via [#4392](https://github.com/10up/ElasticPress/pull/4392).
 
 ### Fixed
 * Memory exhaustion when preparing term documents for terms with a large number of objects, by fetching object IDs in chunks (filterable with the new `ep_term_object_ids_chunk_size` filter). Props [@rebeccahum](https://github.com/rebeccahum) via [#4373](https://github.com/10up/ElasticPress/pull/4373).
@@ -30,6 +31,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Memory exhaustion when editing a term attached to a large number of posts, by fetching its object IDs in chunks. Props [@rebeccahum](https://github.com/rebeccahum) via [#4394](https://github.com/10up/ElasticPress/pull/4394).
 * Posts of child terms not being reindexed when editing a parent term, on sites where term IDs and term taxonomy IDs differ. Props [@rebeccahum](https://github.com/rebeccahum) via [#4394](https://github.com/10up/ElasticPress/pull/4394).
 * `wp elasticpress sync --nobulk` reports objects that fail to prepare as errors instead of counting them as indexed. Props [@anjulahettige](https://github.com/anjulahettige) via [#4405](https://github.com/10up/ElasticPress/pull/4405).
+* WooCommerce taxonomy query vars with comma-separated terms (e.g. `product_cat=a,b`) treated as a single slug. Props [@yograj-vijay-yadav](https://github.com/yograj-vijay-yadav) via [#4401](https://github.com/10up/ElasticPress/pull/4401).
 
 ### Security
 * Updated Node.js to v26.11.0 and the npm packages to their latest versions. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4374](https://github.com/10up/ElasticPress/pull/4374).
