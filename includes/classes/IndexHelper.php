@@ -434,7 +434,13 @@ class IndexHelper {
 			}
 		}
 
-		if ( $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) {
+		/*
+		 * An empty batch means there is nothing left to index, even if the offset did not reach the
+		 * total, e.g., because objects were created or deleted while the sync was running.
+		 */
+		$has_objects = ! empty( $this->current_query['objects'] );
+
+		if ( $has_objects && $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) {
 			$this->index_next_batch();
 		} else {
 			$this->index_cleanup();
