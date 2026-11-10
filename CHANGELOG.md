@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Posts of child terms not being reindexed when editing a parent term, on sites where term IDs and term taxonomy IDs differ. Props [@rebeccahum](https://github.com/rebeccahum) via [#4394](https://github.com/10up/ElasticPress/pull/4394).
 * `wp elasticpress sync --nobulk` reports objects that fail to prepare as errors instead of counting them as indexed. Props [@anjulahettige](https://github.com/anjulahettige) via [#4405](https://github.com/10up/ElasticPress/pull/4405).
 * WooCommerce taxonomy query vars with comma-separated terms (e.g. `product_cat=a,b`) treated as a single slug. Props [@yograj-vijay-yadav](https://github.com/yograj-vijay-yadav) via [#4401](https://github.com/10up/ElasticPress/pull/4401).
+* Sync starting over, or never ending, when a batch comes back empty before the offset reaches the total. Props [@rebeccahum](https://github.com/rebeccahum) via [#4408](https://github.com/10up/ElasticPress/pull/4408).
 
 ### Security
 * Updated Node.js to v26.11.0 and the npm packages to their latest versions. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4374](https://github.com/10up/ElasticPress/pull/4374).

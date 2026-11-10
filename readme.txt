@@ -99,6 +99,7 @@ __Fixed:__
 * Posts of child terms not being reindexed when editing a parent term, on sites where term IDs and term taxonomy IDs differ. Props [@rebeccahum](https://github.com/rebeccahum).
 * `wp elasticpress sync --nobulk` reports objects that fail to prepare as errors instead of counting them as indexed. Props [@anjulahettige](https://github.com/anjulahettige).
 * WooCommerce taxonomy query vars with comma-separated terms (e.g. `product_cat=a,b`) treated as a single slug. Props [@yograj-vijay-yadav](https://github.com/yograj-vijay-yadav).
+* Sync starting over, or never ending, when a batch comes back empty before the offset reaches the total. Props [@rebeccahum](https://github.com/rebeccahum).
 
 __Security:__
 
