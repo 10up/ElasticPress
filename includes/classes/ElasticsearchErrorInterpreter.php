@@ -42,7 +42,7 @@ class ElasticsearchErrorInterpreter {
 				'solution' => sprintf(
 					/* translators: 1. Index name; 2. Sync Page URL */
 					__( 'It seems the %1$s index is missing. <a href="%2$s">Delete all data and sync</a> to fix the issue.', 'elasticpress' ),
-					'<code>' . $matches[1] . '</code>',
+					'<code>' . esc_html( $matches[1] ) . '</code>',
 					$sync_url
 				),
 			];
@@ -54,7 +54,7 @@ class ElasticsearchErrorInterpreter {
 				'solution' => sprintf(
 					/* translators: 1. Index name; 2. Sync Page URL */
 					__( 'The field %1$s was not found. Make sure it is added to the list of indexed fields and run <a href="%2$s">a new sync</a> to fix the issue.', 'elasticpress' ),
-					'<code>' . $matches[1] . '</code>',
+					'<code>' . esc_html( $matches[1] ) . '</code>',
 					$sync_url
 				),
 			];
@@ -66,21 +66,21 @@ class ElasticsearchErrorInterpreter {
 		if ( preg_match( '/Fielddata is disabled on text fields by default. Set fielddata=true on \[(.*?)\]/', $error, $matches ) ) {
 			return [
 				'error'    => 'Fielddata is disabled on text fields by default. Set fielddata=true on [???]',
-				'solution' => sprintf( $field_type_solution, $matches[1], $sync_url ),
+				'solution' => sprintf( $field_type_solution, esc_html( $matches[1] ), $sync_url ),
 			];
 		}
 
 		if ( preg_match( '/field \[(.*?)\] is of type \[(.*?)\], but only numeric types are supported./', $error, $matches ) ) {
 			return [
 				'error'    => 'field [???] is of type [???], but only numeric types are supported.',
-				'solution' => sprintf( $field_type_solution, $matches[1], $sync_url ),
+				'solution' => sprintf( $field_type_solution, esc_html( $matches[1] ), $sync_url ),
 			];
 		}
 
 		if ( preg_match( '/Alternatively, set fielddata=true on \[(.*?)\] in order to load field data by uninverting the inverted index./', $error, $matches ) ) {
 			return [
 				'error'    => 'Alternatively, set fielddata=true on [???] in order to load field data by uninverting the inverted index.',
-				'solution' => sprintf( $field_type_solution, $matches[1], $sync_url ),
+				'solution' => sprintf( $field_type_solution, esc_html( $matches[1] ), $sync_url ),
 			];
 		}
 
