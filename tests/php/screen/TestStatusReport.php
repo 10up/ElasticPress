@@ -425,7 +425,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tests that the Failed Queries report escapes user-controllable values.
 	 *
-	 * @group statusReport
+	 * @group status-report
 	 * @since 5.3.6
 	 */
 	public function test_failed_queries_report_escapes_values() {
