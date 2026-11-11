@@ -191,12 +191,39 @@ jobs:
     - name: Install dependencies
       run: npm ci --include=dev
 
+    - name: Get Playwright version
+      id: playwright-version
+      run: echo "version=$(npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+    # Browser binaries are tied to the Playwright version, so key on it.
+    - name: Restore Playwright browser cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+
     # Playwright's own Chromium, not the runner's Google Chrome: the runner
     # ships whatever Chrome is current, and versions past the one this
     # Playwright release pins hang the click actionability check. ffmpeg is
-    # for video (retain-on-failure).
+    # for video (retain-on-failure). Downloads come from Playwright's CDN, not
+    # apt, and are a no-op when the cache above was restored.
     - name: Install Playwright browser
-      run: npx playwright install --with-deps chromium ffmpeg
+      run: npx playwright install chromium ffmpeg
+
+    # System libraries come from the Ubuntu apt mirrors, which occasionally
+    # stop resolving on hosted runners. ubuntu-latest already ships nearly all
+    # of them (it has Google Chrome installed), so a mirror outage should not
+    # fail the job: warn and carry on. If something were genuinely missing,
+    # Chromium would fail to launch and the tests would say so.
+    - name: Install Playwright system dependencies
+      id: playwright-deps
+      run: npx playwright install-deps chromium
+      continue-on-error: true
+      timeout-minutes: 5
+
+    - name: Warn about missing Playwright system dependencies
+      if: steps.playwright-deps.outcome == 'failure'
+      run: echo "::warning::npx playwright install-deps failed (apt mirrors unreachable?). Continuing with the libraries already on the runner."
 
     - name: Set up WP environment with Elasticsearch
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start

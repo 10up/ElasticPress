@@ -123,6 +123,7 @@ __Developer:__
 * Stage `elasticpress-playwright-utils` releases from CI, to be approved before they are published to npm. Props [@felipeelia](https://github.com/felipeelia).
 * The e2e WP-CLI wrapper no longer loads the wp-env config, and calls api.wordpress.org, on every command. Props [@felipeelia](https://github.com/felipeelia).
 * Test methods renamed to snake_case, a `@group` on every test, and PHPCS sniffs to keep it that way. Props [@felipeelia](https://github.com/felipeelia).
+* E2e workflows cache the Playwright browser and no longer fail when the Ubuntu apt mirrors are unreachable while installing its system dependencies. Props [@felipeelia](https://github.com/felipeelia).
 * Bumped `phpunit/phpunit` from 9.6.22 to 9.6.33, `composer/composer` from 2.10.1 to 2.11.1, `league/flysystem` from 3.29.1 to 3.36.0, `phpcsstandards/phpcsutils` from 1.1.3 to 1.2.3, `squizlabs/php_codesniffer` from 3.13.5 to 3.13.6, and `wp-coding-standards/wpcs` from 3.1.0 to 3.4.1. Props [@dependabot](https://github.com/dependabot).
 
 = 5.3.5 - 2026-09-10 =
