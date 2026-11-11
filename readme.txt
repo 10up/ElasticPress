@@ -81,6 +81,10 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 = 5.3.6 - 2026-XX-XX =
 
+**This release includes a security fix:**
+
+* **Status Report:** An unauthenticated visitor could store a script, through the `orderby` parameter, that ran when an administrator opened the Failed Queries report.
+
 __Added:__
 
 * `$source_includes` parameter to `Elasticsearch::get_documents()`, to fetch only some fields of each document. Props [@felipeelia](https://github.com/felipeelia).
@@ -100,9 +104,12 @@ __Fixed:__
 * `wp elasticpress sync --nobulk` reports objects that fail to prepare as errors instead of counting them as indexed. Props [@anjulahettige](https://github.com/anjulahettige).
 * WooCommerce taxonomy query vars with comma-separated terms (e.g. `product_cat=a,b`) treated as a single slug. Props [@yograj-vijay-yadav](https://github.com/yograj-vijay-yadav).
 * Sync starting over, or never ending, when a batch comes back empty before the offset reaches the total. Props [@rebeccahum](https://github.com/rebeccahum).
+* Instant Results search template not saved after a sync started from the dashboard on single sites. Props [@burhandodhy](https://github.com/burhandodhy).
+* HTML markup in the `aria-label` of Filter by Post Type and Filter by Metadata links when term counts are displayed. Props [@burhandodhy](https://github.com/burhandodhy).
 
 __Security:__
 
+* Escape Elasticsearch errors and query log values in the Failed Queries report of the Status Report, preventing stored cross-site scripting via the `orderby` parameter. Props [@felipeelia](https://github.com/felipeelia) and [@jeffpaul](https://github.com/jeffpaul).
 * Updated Node.js to v26.11.0 and the npm packages to their latest versions. Props [@ZacharyRener](https://github.com/ZacharyRener).
 * Bumped `fast-uri` from 3.1.7 to 3.1.8 (CVE-2026-86472). Props [@ZacharyRener](https://github.com/ZacharyRener).
 * Bumped `compression` from 1.8.1 to 1.8.2, `follow-redirects` from 1.16.0 to 1.16.3, `http-cache-semantics` from 4.2.0 to 4.3.0, `proxy-addr` from 2.0.7 to 2.0.8, `shell-quote` from 1.10.0 to 1.12.0, `simple-git` from 3.36.0 to 4.0.2, and `source-map-js` from 1.2.1 to 1.2.2. Props [@dependabot](https://github.com/dependabot).

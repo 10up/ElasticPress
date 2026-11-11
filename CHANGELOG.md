@@ -16,6 +16,10 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [5.3.6] - 2026-XX-XX
 
+**This release includes a security fix:**
+
+* **Status Report:** An unauthenticated visitor could store a script, through the `orderby` parameter, that ran when an administrator opened the Failed Queries report.
+
 ### Added
 * `$source_includes` parameter to `Elasticsearch::get_documents()`, to fetch only some fields of each document. Props [@felipeelia](https://github.com/felipeelia) via [#4376](https://github.com/10up/ElasticPress/pull/4376).
 * `ep_pre_prepare_documents` action, fired once before a batch of documents is prepared to be indexed. Props [@felipeelia](https://github.com/felipeelia) via [#4378](https://github.com/10up/ElasticPress/pull/4378).
@@ -33,8 +37,11 @@ All notable changes to this project will be documented in this file, per [the Ke
 * `wp elasticpress sync --nobulk` reports objects that fail to prepare as errors instead of counting them as indexed. Props [@anjulahettige](https://github.com/anjulahettige) via [#4405](https://github.com/10up/ElasticPress/pull/4405).
 * WooCommerce taxonomy query vars with comma-separated terms (e.g. `product_cat=a,b`) treated as a single slug. Props [@yograj-vijay-yadav](https://github.com/yograj-vijay-yadav) via [#4401](https://github.com/10up/ElasticPress/pull/4401).
 * Sync starting over, or never ending, when a batch comes back empty before the offset reaches the total. Props [@rebeccahum](https://github.com/rebeccahum) via [#4408](https://github.com/10up/ElasticPress/pull/4408).
+* Instant Results search template not saved after a sync started from the dashboard on single sites. Props [@burhandodhy](https://github.com/burhandodhy) via [#4411](https://github.com/10up/ElasticPress/pull/4411).
+* HTML markup in the `aria-label` of Filter by Post Type and Filter by Metadata links when term counts are displayed. Props [@burhandodhy](https://github.com/burhandodhy) via [#4410](https://github.com/10up/ElasticPress/pull/4410).
 
 ### Security
+* Escape Elasticsearch errors and query log values in the Failed Queries report of the Status Report, preventing stored cross-site scripting via the `orderby` parameter. Props [@felipeelia](https://github.com/felipeelia) and [@jeffpaul](https://github.com/jeffpaul) via [GHSA-6hx4-m9fj-4m2q](https://github.com/10up/ElasticPress/security/advisories/GHSA-6hx4-m9fj-4m2q).
 * Updated Node.js to v26.11.0 and the npm packages to their latest versions. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4374](https://github.com/10up/ElasticPress/pull/4374).
 * Bumped `fast-uri` from 3.1.7 to 3.1.8 (CVE-2026-86472). Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4375](https://github.com/10up/ElasticPress/pull/4375).
 * Bumped `compression` from 1.8.1 to 1.8.2, `follow-redirects` from 1.16.0 to 1.16.3, `http-cache-semantics` from 4.2.0 to 4.3.0, `proxy-addr` from 2.0.7 to 2.0.8, `shell-quote` from 1.10.0 to 1.12.0, `simple-git` from 3.36.0 to 4.0.2, and `source-map-js` from 1.2.1 to 1.2.2. Props [@dependabot](https://github.com/dependabot) via [#4391](https://github.com/10up/ElasticPress/pull/4391) and [#4406](https://github.com/10up/ElasticPress/pull/4406).
