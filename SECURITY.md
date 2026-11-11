@@ -38,7 +38,7 @@ Past security advisories, if any, are listed below.
 
 | Advisory Number | Type               | Versions affected | Reported by           | Additional Information      |
 |-----------------|--------------------|:-----------------:|-----------------------|-----------------------------|
-| GHSA-6hx4-m9fj-4m2q | Stored Cross-Site Scripting | n/a - 5.3.5 | — | [GHSA link](https://github.com/10up/ElasticPress/security/advisories/GHSA-6hx4-m9fj-4m2q) |
+| GHSA-6hx4-m9fj-4m2q | Stored Cross-Site Scripting | n/a - 5.3.5 | Duc Manh | [GHSA link](https://github.com/10up/ElasticPress/security/advisories/GHSA-6hx4-m9fj-4m2q) |
 | GHSA-hg8f-cr8r-jg6m | Authorization Bypass | n/a - 5.3.4 | Zyy0530, lzhou1110, Str1ckl4nd, mauriceng98, 7thParkk | [GHSA link](https://github.com/10up/ElasticPress/security/advisories/GHSA-hg8f-cr8r-jg6m) |
 | — | Sensitive Data Exposure | 5.0.0 - 5.3.4 | mrglwglwgl | CVE pending |
 | CVE-2024-35684 | CSRF | n/a - 5.1.1 | Patchstack Team | [CVE link](https://www.cve.org/CVERecord?id=CVE-2024-35684) |

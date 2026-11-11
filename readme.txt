@@ -109,7 +109,7 @@ __Fixed:__
 
 __Security:__
 
-* Escape Elasticsearch errors and query log values in the Failed Queries report of the Status Report, preventing stored cross-site scripting via the `orderby` parameter. Props [@felipeelia](https://github.com/felipeelia) and [@jeffpaul](https://github.com/jeffpaul).
+* Escape Elasticsearch errors and query log values in the Failed Queries report of the Status Report, preventing stored cross-site scripting via the `orderby` parameter. Props Duc Manh, [@felipeelia](https://github.com/felipeelia), and [@jeffpaul](https://github.com/jeffpaul).
 * Updated Node.js to v26.11.0 and the npm packages to their latest versions. Props [@ZacharyRener](https://github.com/ZacharyRener).
 * Bumped `fast-uri` from 3.1.7 to 3.1.8 (CVE-2026-86472). Props [@ZacharyRener](https://github.com/ZacharyRener).
 * Bumped `compression` from 1.8.1 to 1.8.2, `follow-redirects` from 1.16.0 to 1.16.3, `http-cache-semantics` from 4.2.0 to 4.3.0, `proxy-addr` from 2.0.7 to 2.0.8, `shell-quote` from 1.10.0 to 1.12.0, `simple-git` from 3.36.0 to 4.0.2, and `source-map-js` from 1.2.1 to 1.2.2. Props [@dependabot](https://github.com/dependabot).
