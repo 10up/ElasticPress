@@ -42,14 +42,17 @@ export default defineConfig({
 		/* Base URL to use in actions like `await page.goto('/')`. */
 		baseURL: 'http://localhost:8889',
 
-		/* Collect a trace on failure, including the first attempt. */
-		trace: 'retain-on-failure',
+		/* Recording a trace or video slows every test down, even when the
+		 * recording is thrown away because the test passed. On CI, where failed
+		 * tests are retried, record only the first retry: a test that fails
+		 * every attempt still leaves a trace and a video. Locally there are no
+		 * retries, so keep the recording of any failed test. */
+		trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
 
 		// Capture screenshot after each test failure.
 		screenshot: 'only-on-failure',
 
-		// Record video on failure.
-		video: 'retain-on-failure',
+		video: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
 	},
 
 	/* Configure projects for major browsers */
