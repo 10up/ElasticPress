@@ -137,25 +137,16 @@ jobs:
     # Playwright's own Chromium, not the runner's Google Chrome: the runner
     # ships whatever Chrome is current, and versions past the one this
     # Playwright release pins hang the click actionability check. ffmpeg is
-    # for video (retain-on-failure). Downloads come from Playwright's CDN, not
-    # apt, and are a no-op when the cache above was restored.
+    # for video (retain-on-failure). Downloads come from Playwright's CDN and
+    # are a no-op when the cache above was restored.
+    #
+    # No --with-deps / install-deps: ubuntu-latest already has every library
+    # Chromium needs (it ships Google Chrome), so apt would only add fonts the
+    # tests don't use, and an apt mirror outage would fail every job. If a
+    # future image drops a library, Chromium fails to launch with "Host system
+    # is missing dependencies", listing what to install.
     - name: Install Playwright browser
       run: npx playwright install chromium ffmpeg
-
-    # System libraries come from the Ubuntu apt mirrors, which occasionally
-    # stop resolving on hosted runners. ubuntu-latest already ships nearly all
-    # of them (it has Google Chrome installed), so a mirror outage should not
-    # fail the job: warn and carry on. If something were genuinely missing,
-    # Chromium would fail to launch and the tests would say so.
-    - name: Install Playwright system dependencies
-      id: playwright-deps
-      run: npx playwright install-deps chromium
-      continue-on-error: true
-      timeout-minutes: 5
-
-    - name: Warn about missing Playwright system dependencies
-      if: steps.playwright-deps.outcome == 'failure'
-      run: echo "::warning::npx playwright install-deps failed (apt mirrors unreachable?). Continuing with the libraries already on the runner."
 
     - name: Set up WP environment with Elasticsearch
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
