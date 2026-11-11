@@ -1,7 +1,10 @@
 name: Build and Tag
 
+permissions:
+  contents: read
+
 env:
-  NODE_VERSION: "24"
+  NODE_VERSION: "26.11.0"
 
 on:
   push:
@@ -11,6 +14,8 @@ on:
 jobs:
   wordpress:
     name: Release
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code

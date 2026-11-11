@@ -855,11 +855,32 @@ class Products {
 		foreach ( $supported_taxonomies as $taxonomy ) {
 			$term = $query->get( $taxonomy, false );
 
-			if ( ! empty( $term ) ) {
-				$tax_query[] = array(
-					'taxonomy' => $taxonomy,
-					'field'    => 'slug',
-					'terms'    => (array) $term,
+			if ( empty( $term ) ) {
+				continue;
+			}
+
+			$tax_query_defaults = [
+				'taxonomy' => $taxonomy,
+				'field'    => 'slug',
+			];
+
+			$terms_per_clause = [ (array) $term ];
+
+			if ( is_string( $term ) ) {
+				$tax_object = get_taxonomy( $taxonomy );
+				if ( $tax_object && ! empty( $tax_object->rewrite['hierarchical'] ) ) {
+					$term = wp_basename( $term );
+				}
+
+				$terms_per_clause = str_contains( $term, '+' )
+					? array_chunk( array_map( 'trim', preg_split( '/[+]+/', $term ) ), 1 )
+					: [ array_map( 'trim', preg_split( '/[,]+/', $term ) ) ];
+			}
+
+			foreach ( $terms_per_clause as $terms ) {
+				$tax_query[] = array_merge(
+					$tax_query_defaults,
+					[ 'terms' => $terms ]
 				);
 			}
 		}

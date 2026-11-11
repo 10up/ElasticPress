@@ -36,7 +36,7 @@ class TestFacetTypePostType extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testGetFilterName() {
+	public function test_get_filter_name() {
 		/**
 		 * Test default behavior
 		 */
@@ -57,7 +57,7 @@ class TestFacetTypePostType extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testGetFilterType() {
+	public function test_get_filter_type() {
 		/**
 		 * Test default behavior
 		 */
@@ -78,7 +78,7 @@ class TestFacetTypePostType extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testSetWpQueryAggs() {
+	public function test_set_wp_query_aggs() {
 		$initial_aggs = [ 'initial' ];
 
 		add_filter( 'ep_facetable_post_types', '__return_empty_array' );
@@ -116,7 +116,7 @@ class TestFacetTypePostType extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testAddQueryFilters123() {
+	public function test_add_query_filters123() {
 		parse_str( 'ep_post_type_filter=test1,test2', $_GET );
 
 		$expected = [
@@ -134,7 +134,7 @@ class TestFacetTypePostType extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testGetFacetablePostTypes() {
+	public function test_get_facetable_post_types() {
 		$searchable_post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
 
 		$this->assertSame( $searchable_post_types, $this->facet_type->get_facetable_post_types() );
@@ -155,7 +155,7 @@ class TestFacetTypePostType extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testFormatSelected() {
+	public function test_format_selected() {
 		$filters  = $this->facet_type->format_selected( '', 'test1,test2', [] );
 		$expected = [
 			'ep_post_type' => [
@@ -174,7 +174,7 @@ class TestFacetTypePostType extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testAddQueryParams() {
+	public function test_add_query_params() {
 		$new_filters = [
 			'ep_post_type' => [
 				'terms' => [

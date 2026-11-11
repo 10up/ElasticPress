@@ -59,7 +59,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders-autosuggest
 	 */
-	public function testFilterTermSuggest() {
+	public function test_filter_term_suggest() {
 		$order = [
 			'ID'        => 123,
 			'post_type' => 'shop_order',
@@ -113,7 +113,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders-autosuggest
 	 */
-	public function testFilterTermSuggestWithCustomOrderId() {
+	public function test_filter_term_suggest_with_custom_order_id() {
 		$shop_order_1 = new \WC_Order();
 		$shop_order_1->set_billing_email( 'test@domain.com' );
 		$shop_order_1->set_billing_first_name( 'John' );
@@ -157,7 +157,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders-autosuggest
 	 */
-	public function testMappingEs7() {
+	public function test_mapping_es7() {
 		$original_mapping = [
 			'mappings' => [
 				'properties' => [
@@ -203,7 +203,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders-autosuggest
 	 */
-	public function testMappingEs5() {
+	public function test_mapping_es5() {
 		$change_es_version = function () {
 			return '5.6';
 		};
@@ -259,7 +259,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders-autosuggest
 	 */
-	public function testSetSearchFields() {
+	public function test_set_search_fields() {
 		$original_search_fields = [ 'old_search_field' ];
 
 		$wp_query = new \WP_Query(

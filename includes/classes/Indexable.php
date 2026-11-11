@@ -258,18 +258,61 @@ abstract class Indexable {
 	}
 
 	/**
+	 * Log an error thrown while preparing a document and build its sync error.
+	 *
+	 * PHP no longer reports caught errors, so this logs the full error when WP_DEBUG and WP_DEBUG_LOG are on and keeps its file, line, and stack trace.
+	 *
+	 * @since 5.3.6
+	 * @param \Throwable $th        Error thrown while preparing the document.
+	 * @param int        $object_id ID of the object being prepared.
+	 * @return array Sync error with the type, the reason (message with file and line), and the stack trace.
+	 */
+	protected function handle_prepare_document_error( \Throwable $th, $object_id ): array {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( sprintf( 'ElasticPress: could not prepare %s %d for indexing. %s', $this->slug, $object_id, $th ) );
+		}
+
+		// Absolute paths are long and expose the server layout in the sync log.
+		$abspaths = [ ABSPATH, wp_normalize_path( ABSPATH ) ];
+
+		return [
+			'type'        => 'prepare_document_error',
+			'reason'      => sprintf( '%s in %s:%d', $th->getMessage(), str_replace( $abspaths, '', $th->getFile() ), $th->getLine() ),
+			'stack_trace' => str_replace( $abspaths, '', $th->getTraceAsString() ),
+		];
+	}
+
+	/**
 	 * Index an object within the indexable. This calls prepare_document
 	 *
 	 * @param  int     $object_id Object to index.
 	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  3.0
+	 * @since  5.3.6 Returns an object with an `error` property when preparing the document fails.
 	 * @return object|boolean
 	 */
 	public function index( $object_id, $blocking = false ) {
+		/**
+		 * Fires before documents are prepared to be indexed, in single and bulk indexing.
+		 *
+		 * Lets code that adds data to documents load what it needs for all objects at once,
+		 * instead of one request per object in `prepare_document()`.
+		 *
+		 * @hook ep_pre_prepare_documents
+		 * @since 5.3.6
+		 * @param {array}  $object_ids IDs of the objects about to be prepared
+		 * @param {string} $slug       Indexable slug
+		 */
+		do_action( 'ep_pre_prepare_documents', [ $object_id ], $this->slug );
+
 		try {
 			$document = $this->prepare_document( $object_id );
 		} catch ( \Throwable $th ) {
-			return false;
+			// Same shape as an Elasticsearch error response, so syncs count the object as failed.
+			return (object) [
+				'error' => (object) $this->handle_prepare_document_error( $th, $object_id ),
+			];
 		}
 
 		if ( false === $document ) {
@@ -347,6 +390,9 @@ abstract class Indexable {
 	 * @return WP_Error|array
 	 */
 	public function bulk_index( $object_ids ) {
+		/** This action is documented in includes/classes/Indexable.php */
+		do_action( 'ep_pre_prepare_documents', $object_ids, $this->slug );
+
 		$body = '';
 
 		$non_es_errors = [];
@@ -364,10 +410,7 @@ abstract class Indexable {
 				$non_es_errors[] = [
 					'index' => [
 						'_id'   => absint( $object_id ),
-						'error' => [
-							'type'   => 'prepare_document_error',
-							'reason' => $th->getMessage(),
-						],
+						'error' => $this->handle_prepare_document_error( $th, $object_id ),
 					],
 				];
 				continue;
@@ -416,6 +459,9 @@ abstract class Indexable {
 	 * @return array[WP_Error|array] The return of each request made.
 	 */
 	public function bulk_index_dynamically( $object_ids ) {
+		/** This action is documented in includes/classes/Indexable.php */
+		do_action( 'ep_pre_prepare_documents', $object_ids, $this->slug );
+
 		$documents = [];
 
 		$non_es_errors = [];
@@ -433,10 +479,7 @@ abstract class Indexable {
 				$non_es_errors[] = [
 					'index' => [
 						'_id'   => absint( $object_id ),
-						'error' => [
-							'type'   => 'prepare_document_error',
-							'reason' => $th->getMessage(),
-						],
+						'error' => $this->handle_prepare_document_error( $th, $object_id ),
 					],
 				];
 				continue;

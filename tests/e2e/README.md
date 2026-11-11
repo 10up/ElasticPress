@@ -7,7 +7,7 @@ This directory serves two purposes. It holds the ElasticPress test suite, and it
 ## Requirements
 
 * docker
-* node >= 20 and npm >= 9
+* node >= 26.11 and npm >= 11.16
 
 ## The environment under test
 

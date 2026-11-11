@@ -60,7 +60,7 @@ class TestTerm extends BaseTestCase {
 	 *
 	 * @since 3.3
 	 */
-	public function createAndIndexTerms() {
+	public function create_and_index_terms() {
 
 		$this->ep_factory->term->create(
 			array(
@@ -105,7 +105,7 @@ class TestTerm extends BaseTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		$this->deleteAllTerms();
+		$this->delete_all_terms();
 
 		$this->fired_actions = array();
 	}
@@ -115,7 +115,7 @@ class TestTerm extends BaseTestCase {
 	 *
 	 * @return void
 	 */
-	public function deleteAllTerms() {
+	public function delete_all_terms() {
 
 		$terms = get_terms(
 			[
@@ -136,7 +136,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermSync() {
+	public function test_term_sync() {
 		add_action(
 			'ep_sync_term_on_transition',
 			function () {
@@ -167,7 +167,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermSyncMeta() {
+	public function test_term_sync_meta() {
 		$term = wp_insert_term( 'term name', 'category' );
 
 		update_term_meta( $term['term_id'], 'new_meta', 'test' );
@@ -187,7 +187,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermSyncOnMetaUpdate() {
+	public function test_term_sync_on_meta_update() {
 		$term = wp_insert_term( 'term name', 'category' );
 
 		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->reset_sync_queue();
@@ -205,7 +205,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermSyncKill() {
+	public function test_term_sync_kill() {
 		$term            = wp_insert_term( 'term name', 'category' );
 		$created_term_id = $term['term_id'];
 
@@ -240,8 +240,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testBasicTermQuery() {
-		$this->createAndIndexTerms();
+	public function test_basic_term_query() {
+		$this->create_and_index_terms();
 
 		// First try without ES and make sure everything is right.
 		$term_query = new \WP_Term_Query(
@@ -299,8 +299,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermQueryNumber() {
-		$this->createAndIndexTerms();
+	public function test_term_query_number() {
+		$this->create_and_index_terms();
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -322,8 +322,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermQueryGet() {
-		$this->createAndIndexTerms();
+	public function test_term_query_get() {
+		$this->create_and_index_terms();
 
 		$apple = get_term_by( 'slug', 'apple', 'post_tag' );
 
@@ -373,8 +373,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermQueryObjectIds() {
-		$this->createAndIndexTerms();
+	public function test_term_query_object_ids() {
+		$this->create_and_index_terms();
 
 		$post = wp_insert_post(
 			[
@@ -412,8 +412,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermQueryOrderName() {
-		$this->createAndIndexTerms();
+	public function test_term_query_order_name() {
+		$this->create_and_index_terms();
 
 		$term_id = $this->ep_factory->term->create( array( 'name' => 'aaa' ) );
 
@@ -457,8 +457,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermQueryOrderSlug() {
-		$this->createAndIndexTerms();
+	public function test_term_query_order_slug() {
+		$this->create_and_index_terms();
 
 		$term_id = $this->ep_factory->term->create( array( 'name' => 'aaa' ) );
 
@@ -504,8 +504,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermQueryOrderDescription() {
-		$this->createAndIndexTerms();
+	public function test_term_query_order_description() {
+		$this->create_and_index_terms();
 
 		$term_id_1 = $this->ep_factory->term->create( array( 'description' => 'aaa' ) );
 		$term_id_2 = $this->ep_factory->term->create( array( 'description' => 'bbb' ) );
@@ -573,8 +573,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermQueryOrderTermId() {
-		$this->createAndIndexTerms();
+	public function test_term_query_order_term_id() {
+		$this->create_and_index_terms();
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -612,8 +612,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermQueryOrderId() {
-		$this->createAndIndexTerms();
+	public function test_term_query_order_id() {
+		$this->create_and_index_terms();
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -651,8 +651,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermQueryOrderParent() {
-		$this->createAndIndexTerms();
+	public function test_term_query_order_parent() {
+		$this->create_and_index_terms();
 
 		$apple  = get_term_by( 'slug', 'apple', 'post_tag' );
 		$orange = get_term_by( 'slug', 'orange', 'post_tag' );
@@ -729,7 +729,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.6.3
 	 * @group term
 	 */
-	public function testTermQueryParent() {
+	public function test_term_query_parent() {
 		$parent_term_id = $this->ep_factory->category->create();
 		$child_term_id  = $this->ep_factory->category->create( [ 'parent' => $parent_term_id ] );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -767,8 +767,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.3
 	 * @group term
 	 */
-	public function testTermQueryHideEmpty() {
-		$this->createAndIndexTerms();
+	public function test_term_query_hide_empty() {
+		$this->create_and_index_terms();
 
 		$post = wp_insert_post(
 			[
@@ -805,11 +805,96 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testPrepareDocument() {
+	public function test_prepare_document() {
 
 		$results = ElasticPress\Indexables::factory()->get( 'term' )->prepare_document( 0 );
 
 		$this->assertFalse( $results );
+	}
+
+	/**
+	 * Tests prepare_object_ids() returns the same object IDs as get_objects_in_term(), whatever the chunk size.
+	 *
+	 * @param int $chunk_size       Number of object IDs fetched per query
+	 * @param int $expected_queries Number of queries expected to fetch the object IDs
+	 * @dataProvider prepare_object_ids_chunk_size_data_provider
+	 * @since 5.3.6
+	 * @group term
+	 */
+	public function test_prepare_object_ids( $chunk_size, $expected_queries ) {
+		$term       = $this->factory->term->create_and_get( [ 'taxonomy' => 'post_tag' ] );
+		$other_term = $this->factory->term->create_and_get( [ 'taxonomy' => 'post_tag' ] );
+
+		$object_ids_in_term   = $this->factory->post->create_many( 4 );
+		$object_ids_in_term[] = $this->factory->post->create( [ 'post_status' => 'draft' ] );
+
+		// Term relationships are not limited to posts (links, users, custom objects), so add an object ID no post uses.
+		$object_ids_in_term[] = max( $object_ids_in_term ) + 100;
+
+		// Relate the highest IDs first, so the expected order does not depend on insertion order.
+		foreach ( array_reverse( $object_ids_in_term ) as $object_id ) {
+			wp_set_object_terms( $object_id, $term->term_id, 'post_tag' );
+		}
+
+		wp_set_object_terms( $this->factory->post->create(), $other_term->term_id, 'post_tag' );
+
+		add_filter(
+			'ep_term_object_ids_chunk_size',
+			function () use ( $chunk_size ) {
+				return $chunk_size;
+			}
+		);
+
+		// Count only the paginated object ID queries, which page with "tr.object_id >".
+		$queries = 0;
+		add_filter(
+			'query',
+			function ( $query ) use ( &$queries ) {
+				if ( false !== strpos( $query, 'SELECT tr.object_id' ) && false !== strpos( $query, 'tr.object_id >' ) ) {
+					++$queries;
+				}
+				return $query;
+			}
+		);
+
+		$object_ids = ElasticPress\Indexables::factory()->get( 'term' )->prepare_object_ids( $term->term_id, 'post_tag' );
+
+		$this->assertSame( $expected_queries, $queries );
+
+		sort( $object_ids_in_term );
+
+		$this->assertSame( $object_ids_in_term, $object_ids['value'] );
+		$this->assertSame( array_map( 'absint', get_objects_in_term( $term->term_id, 'post_tag' ) ), $object_ids['value'] );
+	}
+
+	/**
+	 * Data provider for the test_prepare_object_ids method.
+	 *
+	 * @return array
+	 */
+	public function prepare_object_ids_chunk_size_data_provider(): array {
+		// 6 object IDs (5 posts and 1 non-post object). When the last chunk is full, one more (empty) query confirms there are no more IDs.
+		return [
+			'one per query'          => [ 1, 7 ],
+			'exact multiple'         => [ 2, 4 ],
+			'last chunk not full'    => [ 4, 2 ],
+			'all in the first query' => [ 10000, 1 ],
+		];
+	}
+
+	/**
+	 * Tests prepare_object_ids() for terms without objects and terms that do not exist.
+	 *
+	 * @since 5.3.6
+	 * @group term
+	 */
+	public function test_prepare_object_ids_without_objects() {
+		$term_id   = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
+		$indexable = ElasticPress\Indexables::factory()->get( 'term' );
+
+		$this->assertSame( [ 'value' => 0 ], $indexable->prepare_object_ids( $term_id, 'post_tag' ) );
+		$this->assertSame( [ 'value' => 0 ], $indexable->prepare_object_ids( 0, 'post_tag' ) );
+		$this->assertSame( [ 'value' => 0 ], $indexable->prepare_object_ids( $term_id, 'category' ) );
 	}
 
 	/**
@@ -818,7 +903,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testFormatArgsIncludeExclude() {
+	public function test_format_args_include_exclude() {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
@@ -854,7 +939,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testFormatArgsNameSlug() {
+	public function test_format_args_name_slug() {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
@@ -881,7 +966,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testFormatArgsTermTaxIdHierarchical() {
+	public function test_format_args_term_tax_id_hierarchical() {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
@@ -921,9 +1006,9 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testHierarchicalTerms() {
+	public function test_hierarchical_terms() {
 
-		// testFormatArgsTermTaxIdHierarchical checks for the correct
+		// test_format_args_term_tax_id_hierarchical checks for the correct
 		// formatting of the hierarchical args. Now we will validate
 		// we're only getting terms that have non-empty children.
 		// This term is childless and assigned to the post.
@@ -1082,7 +1167,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testFormatArgsSearch() {
+	public function test_format_args_search() {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
@@ -1161,7 +1246,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testFormatArgsChildParent() {
+	public function test_format_args_child_parent() {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
@@ -1198,7 +1283,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testFormatArgsMeta() {
+	public function test_format_args_meta() {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
@@ -1242,7 +1327,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testFormatArgsFields() {
+	public function test_format_args_fields() {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
@@ -1304,7 +1389,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testParseOrder() {
+	public function test_parse_order() {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
@@ -1392,7 +1477,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testPrepareMetaProtectedKeys() {
+	public function test_prepare_meta_protected_keys() {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
@@ -1419,7 +1504,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testRemapTerms() {
+	public function test_remap_terms() {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
@@ -1464,8 +1549,8 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.4
 	 * @group term
 	 */
-	public function testQueryDb() {
-		$this->createAndIndexTerms();
+	public function test_query_db() {
+		$this->create_and_index_terms();
 
 		$term_indexable = new \ElasticPress\Indexable\Term\Term();
 
@@ -1661,7 +1746,7 @@ class TestTerm extends BaseTestCase {
 	 * @return void
 	 * @group term
 	 */
-	public function testPutMapping() {
+	public function test_put_mapping() {
 
 		// This lets us trigger the ep_fallback_elasticsearch_version filter.
 		add_filter( 'ep_elasticsearch_version', '__return_false' );
@@ -1707,7 +1792,7 @@ class TestTerm extends BaseTestCase {
 	 * @since 3.6.3
 	 * @group term
 	 */
-	public function testDeleteTerm() {
+	public function test_delete_term() {
 		$term_id = $this->ep_factory->category->create();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1742,8 +1827,10 @@ class TestTerm extends BaseTestCase {
 
 	/**
 	 * Test integration with Term Queries.
+	 *
+	 * @group term
 	 */
-	public function testIntegrateSearchQueries() {
+	public function test_integrate_search_queries() {
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( false, null ) );
 
@@ -1784,8 +1871,9 @@ class TestTerm extends BaseTestCase {
 	 * Tests terms without meta value.
 	 *
 	 * @return void
+	 * @group term
 	 */
-	public function testMetaWithoutValue() {
+	public function test_meta_without_value() {
 
 		$term_id = $this->ep_factory->category->create();
 		update_term_meta( $term_id, 'test_key', 'value' );
@@ -1831,8 +1919,9 @@ class TestTerm extends BaseTestCase {
 	 * Test term query for non-public taxonomies.
 	 *
 	 * @return void
+	 * @group term
 	 */
-	public function testQueryForNonPublicTaxonomies() {
+	public function test_query_for_non_public_taxonomies() {
 		register_taxonomy(
 			'wptests_tax',
 			'post',

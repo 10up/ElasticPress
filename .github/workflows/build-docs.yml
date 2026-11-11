@@ -1,12 +1,15 @@
 name: Build Docs
 
 env:
-  NODE_VERSION: "24"
+  NODE_VERSION: "26.11.0"
 
 on:
   push:
     branches:
      - trunk
+
+permissions:
+  contents: write
 
 jobs:
   build:

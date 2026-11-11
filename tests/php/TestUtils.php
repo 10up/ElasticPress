@@ -65,7 +65,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 * @group skip-on-single-site
 	 */
-	public function testIsSiteIndexableByDefault() {
+	public function test_is_site_indexable_by_default() {
 		delete_site_meta( get_current_blog_id(), 'ep_indexable' );
 
 		$this->assertTrue( ElasticPress\Utils\is_site_indexable() );
@@ -78,7 +78,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 * @group skip-on-single-site
 	 */
-	public function testIsSiteIndexableByDefaultSpam() {
+	public function test_is_site_indexable_by_default_spam() {
 		delete_site_meta( get_current_blog_id(), 'ep_indexable' );
 
 		update_blog_status( get_current_blog_id(), 'spam', 1 );
@@ -95,7 +95,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 * @group skip-on-single-site
 	 */
-	public function testIsSiteIndexableDisabled() {
+	public function test_is_site_indexable_disabled() {
 		update_site_meta( get_current_blog_id(), 'ep_indexable', 'no' );
 		$this->assertFalse( ElasticPress\Utils\is_site_indexable() );
 	}
@@ -107,7 +107,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 * @group skip-on-single-site
 	 */
-	public function testGetSiteReturnsEmptyArrayForNonexistentSite() {
+	public function test_get_site_returns_empty_array_for_nonexistent_site() {
 		$result = ElasticPress\Utils\get_site( 999999 );
 		$this->assertSame( [], $result );
 	}
@@ -119,7 +119,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 * @group skip-on-single-site
 	 */
-	public function testIsSiteIndexableReturnsFalseForNonexistentSite() {
+	public function test_is_site_indexable_returns_false_for_nonexistent_site() {
 		$this->assertFalse( ElasticPress\Utils\is_site_indexable( 999999 ) );
 	}
 
@@ -127,8 +127,9 @@ class TestUtils extends BaseTestCase {
 	 * Tests the sanitize_credentials utils function.
 	 *
 	 * @return void
+	 * @group utils
 	 */
-	public function testSanitizeCredentials() {
+	public function test_sanitize_credentials() {
 
 		// First test anything that is not an array.
 		$creds = \ElasticPress\Utils\sanitize_credentials( false );
@@ -187,8 +188,9 @@ class TestUtils extends BaseTestCase {
 	 * Tests the is_indexing function.
 	 *
 	 * @return void
+	 * @group utils
 	 */
-	public function testIsIndexing() {
+	public function test_is_indexing() {
 
 		if ( is_multisite() ) {
 			update_site_option( 'ep_index_meta', [ 'method' => 'test' ] );
@@ -211,8 +213,9 @@ class TestUtils extends BaseTestCase {
 	 * Test the get_sync_url method
 	 *
 	 * @since 4.4.0
+	 * @group utils
 	 */
-	public function testGetSyncUrl() {
+	public function test_get_sync_url() {
 		/**
 		 * Test without the $do_sync parameter
 		 */
@@ -239,8 +242,9 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_request_id_base` function
 	 *
 	 * @since 4.5.0
+	 * @group utils
 	 */
-	public function testGetRequestIdBase() {
+	public function test_get_request_id_base() {
 		/**
 		 * Use the `ep_index_prefix` filter so `get_index_prefix()` can return something.
 		 */
@@ -264,8 +268,9 @@ class TestUtils extends BaseTestCase {
 	 * Test the `generate_request_id` function
 	 *
 	 * @since 4.5.0
+	 * @group utils
 	 */
-	public function testGenerateRequestId() {
+	public function test_generate_request_id() {
 		$this->assertMatchesRegularExpression( '/[0-9a-f]{32}/', Utils\generate_request_id() );
 
 		/**
@@ -292,8 +297,9 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_capability` function
 	 *
 	 * @since 4.5.0
+	 * @group utils
 	 */
-	public function testGetCapability() {
+	public function test_get_capability() {
 		$this->assertSame( 'manage_elasticpress', Utils\get_capability() );
 
 		/**
@@ -313,8 +319,9 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_network_capability` function
 	 *
 	 * @since 4.5.0
+	 * @group utils
 	 */
-	public function testGetNetworkCapability() {
+	public function test_get_network_capability() {
 		$this->assertSame( 'manage_network_elasticpress', Utils\get_network_capability() );
 
 		/**
@@ -334,8 +341,9 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_post_map_capabilities` function
 	 *
 	 * @since 4.5.0
+	 * @group utils
 	 */
-	public function testGetPostMapCapabilities() {
+	public function test_get_post_map_capabilities() {
 		$expected = [
 			'edit_post'          => 'manage_elasticpress',
 			'edit_posts'         => 'manage_elasticpress',
@@ -353,6 +361,7 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_post_map_capabilities` function passing context
 	 *
 	 * @since 5.1.0
+	 * @group utils
 	 */
 	public function test_get_post_map_capabilities_with_context() {
 		$change_cap_name = function ( $cap, $context ) {
@@ -379,8 +388,9 @@ class TestUtils extends BaseTestCase {
 	 * Test the `get_elasticsearch_error_reason` function
 	 *
 	 * @since 4.6.0
+	 * @group utils
 	 */
-	public function testGetElasticsearchErrorReason() {
+	public function test_get_elasticsearch_error_reason() {
 		// Strings should be returned without any change
 		$this->assertSame( 'Some message', Utils\get_elasticsearch_error_reason( 'Some message' ) );
 
@@ -660,5 +670,88 @@ class TestUtils extends BaseTestCase {
 		$query->queried_object = new \stdClass();
 
 		$this->assertSame( [], Utils\get_post_types_for_tax_query( $query ) );
+	}
+
+	/**
+	 * Tests the feature settings field types, and their filter.
+	 *
+	 * @since 5.3.6
+	 * @group utils
+	 */
+	public function test_get_settings_field_types() {
+		$this->assertContains( 'combobox', Utils\get_settings_field_types() );
+		$this->assertContains( 'select', Utils\get_settings_field_types() );
+
+		$remove_combobox = function ( $types ) {
+			return array_diff( $types, [ 'combobox' ] );
+		};
+		add_filter( 'ep_settings_field_types', $remove_combobox );
+
+		$this->assertNotContains( 'combobox', Utils\get_settings_field_types() );
+
+		remove_filter( 'ep_settings_field_types', $remove_combobox );
+	}
+
+	/**
+	 * Tests get_term_object_ids() returns each object once, in ascending order, across several terms
+	 *
+	 * @since 5.3.6
+	 * @group utils
+	 */
+	public function test_get_term_object_ids_for_several_terms() {
+		$term_1 = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
+		$term_2 = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
+
+		$in_both   = $this->factory->post->create();
+		$in_term_2 = $this->factory->post->create();
+		$in_term_1 = $this->factory->post->create();
+		wp_set_object_terms( $in_both, [ $term_1, $term_2 ], 'post_tag' );
+		wp_set_object_terms( $in_term_2, [ $term_2 ], 'post_tag' );
+		wp_set_object_terms( $in_term_1, [ $term_1 ], 'post_tag' );
+
+		$expected = [ $in_both, $in_term_2, $in_term_1 ];
+
+		// Both terms in one query
+		$this->assertSame( $expected, Utils\get_term_object_ids( [ $term_1, $term_2 ], 'post_tag' ) );
+
+		// One object ID per query, so each term is queried separately and their results are merged
+		add_filter(
+			'ep_term_object_ids_chunk_size',
+			function () {
+				return 1;
+			}
+		);
+
+		$this->assertSame( $expected, Utils\get_term_object_ids( [ $term_1, $term_2 ], 'post_tag' ) );
+		$this->assertSame( [], Utils\get_term_object_ids( [ $term_1 ], 'category' ) );
+		$this->assertSame( [], Utils\get_term_object_ids( [], 'post_tag' ) );
+	}
+
+	/**
+	 * Tests get_term_object_ids() stops at the limit, counting objects shared by several terms once
+	 *
+	 * @since 5.3.6
+	 * @group utils
+	 */
+	public function test_get_term_object_ids_limit() {
+		$term_1 = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
+		$term_2 = $this->factory->term->create( [ 'taxonomy' => 'post_tag' ] );
+
+		$post_ids = $this->factory->post->create_many( 4 );
+		wp_set_object_terms( $post_ids[0], [ $term_1, $term_2 ], 'post_tag' );
+		wp_set_object_terms( $post_ids[1], [ $term_1, $term_2 ], 'post_tag' );
+		wp_set_object_terms( $post_ids[2], [ $term_2 ], 'post_tag' );
+		wp_set_object_terms( $post_ids[3], [ $term_2 ], 'post_tag' );
+
+		// One object ID per query, so each term is its own batch and the second one repeats the first one's objects
+		add_filter(
+			'ep_term_object_ids_chunk_size',
+			function () {
+				return 1;
+			}
+		);
+
+		$this->assertSame( array_slice( $post_ids, 0, 3 ), Utils\get_term_object_ids( [ $term_1, $term_2 ], 'post_tag', 3 ) );
+		$this->assertSame( $post_ids, Utils\get_term_object_ids( [ $term_1, $term_2 ], 'post_tag' ) );
 	}
 }

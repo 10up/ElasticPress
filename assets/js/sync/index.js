@@ -121,7 +121,11 @@ export const SyncProvider = ({
 					const i = newErrorCounts.findIndex((t) => e === t.type);
 
 					if (i !== -1) {
-						newErrorCounts[i].count += errors[e].count;
+						newErrorCounts[i] = {
+							...newErrorCounts[i],
+							count: newErrorCounts[i].count + errors[e].count,
+							stack_trace: newErrorCounts[i].stack_trace || errors[e].stack_trace,
+						};
 					} else {
 						newErrorCounts.push({
 							...errors[e],

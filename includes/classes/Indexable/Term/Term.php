@@ -11,6 +11,7 @@ namespace ElasticPress\Indexable\Term;
 use WP_Term_Query;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Indexable;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -536,22 +537,18 @@ class Term extends Indexable {
 	/**
 	 * Prepare object IDs to send to ES
 	 *
+	 * Object IDs are fetched in chunks, paginating by object ID, so terms with many objects
+	 * do not load every relationship row (and cache the full list) in memory at once.
+	 *
 	 * @param  int    $term_id Term ID.
 	 * @param  string $taxonomy Term taxonomy.
 	 * @since  3.1
 	 * @return array
 	 */
 	public function prepare_object_ids( $term_id, $taxonomy ) {
-		$ids        = [];
-		$object_ids = get_objects_in_term( [ $term_id ], [ $taxonomy ] );
+		$object_ids = Utils\get_term_object_ids( [ $term_id ], (string) $taxonomy );
 
-		if ( ! empty( $object_ids ) && ! is_wp_error( $object_ids ) ) {
-			$ids['value'] = array_map( 'absint', array_values( $object_ids ) );
-		} else {
-			$ids['value'] = 0;
-		}
-
-		return $ids;
+		return [ 'value' => ! empty( $object_ids ) ? $object_ids : 0 ];
 	}
 
 	/**
