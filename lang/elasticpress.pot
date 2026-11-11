@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 5.3.5\n"
+"Project-Id-Version: ElasticPress 5.3.6\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-10T17:12:47+00:00\n"
+"POT-Creation-Date: 2026-11-11T13:59:33+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: elasticpress\n"
@@ -202,7 +202,7 @@ msgstr ""
 #: includes/classes/AdminNotices.php:805
 #: includes/classes/ElasticsearchErrorInterpreter.php:93
 #: includes/classes/StatusReport/ElasticPressIo.php:30
-#: assets/js/sync/index.js:269
+#: assets/js/sync/index.js:273
 #: dist/js/sync-script.js:2612
 #: dist/js/sync-script.js:1726
 msgid "ElasticPress.io"
@@ -211,7 +211,7 @@ msgstr ""
 #: includes/classes/AdminNotices.php:789
 #: includes/classes/AdminNotices.php:805
 #: includes/classes/ElasticsearchErrorInterpreter.php:93
-#: assets/js/sync/index.js:270
+#: assets/js/sync/index.js:274
 #: dist/js/sync-script.js:2612
 #: dist/js/sync-script.js:1727
 msgid "Elasticsearch"
@@ -291,7 +291,7 @@ msgstr ""
 #: includes/classes/Command.php:294
 #: includes/classes/Command.php:334
 #: includes/classes/Command.php:375
-#: includes/classes/IndexHelper.php:1418
+#: includes/classes/IndexHelper.php:1440
 #, php-format
 msgid "Mapping failed: %s"
 msgstr ""
@@ -352,8 +352,8 @@ msgstr ""
 #: includes/classes/Command.php:634
 #: includes/classes/Command.php:1187
 #: includes/classes/Command.php:1245
-#: includes/classes/Command.php:1537
-#: includes/classes/Command.php:1559
+#: includes/classes/Command.php:1558
+#: includes/classes/Command.php:1580
 msgid "Done."
 msgstr ""
 
@@ -423,57 +423,63 @@ msgstr ""
 msgid "This command expects a version number or the --default flag."
 msgstr ""
 
-#: includes/classes/Command.php:1348
+#. translators: %s: Error message
+#: includes/classes/Command.php:1323
+#, php-format
+msgid "Stack trace for: %s"
+msgstr ""
+
+#: includes/classes/Command.php:1369
 msgid "Time elapsed: "
 msgstr ""
 
-#: includes/classes/Command.php:1354
+#: includes/classes/Command.php:1375
 msgid "Memory Usage: "
 msgstr ""
 
-#: includes/classes/Command.php:1452
+#: includes/classes/Command.php:1473
 msgid "Are you sure you want to delete all ElasticPress settings?"
 msgstr ""
 
-#: includes/classes/Command.php:1457
+#: includes/classes/Command.php:1478
 msgid "Settings deleted."
 msgstr ""
 
 #. translators: list of active indexables slugs
-#: includes/classes/Command.php:1616
+#: includes/classes/Command.php:1637
 msgid "Indexable not found or inactive. Active indexables are: %l"
 msgstr ""
 
-#: includes/classes/Command.php:1626
+#: includes/classes/Command.php:1647
 msgid "Not found"
 msgstr ""
 
 #. translators: URL of the request
-#: includes/classes/Command.php:1651
+#: includes/classes/Command.php:1672
 #, php-format
 msgid "URL: %s"
 msgstr ""
 
 #. translators: Request arguments (outputted with print_r())
-#: includes/classes/Command.php:1658
+#: includes/classes/Command.php:1679
 #, php-format
 msgid "Request Args: %s"
 msgstr ""
 
 #. translators: HTTP transport used
-#: includes/classes/Command.php:1665
+#: includes/classes/Command.php:1686
 #, php-format
 msgid "Transport: %s"
 msgstr ""
 
 #. translators: Context under which the http_api_debug hook is fired
-#: includes/classes/Command.php:1672
+#: includes/classes/Command.php:1693
 #, php-format
 msgid "Context: %s"
 msgstr ""
 
 #. translators: HTTP response (outputted with print_r())
-#: includes/classes/Command.php:1679
+#: includes/classes/Command.php:1700
 #, php-format
 msgid "Response: %s"
 msgstr ""
@@ -506,19 +512,19 @@ msgstr ""
 msgid "ElasticPressIo::factory() is deprecated. Use \\ElasticPress\\get_container()->get( \\ElasticPress\\ElasticPressIo::class ) instead."
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:999
+#: includes/classes/Elasticsearch.php:1011
 msgid "Error while getting the index settings."
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:1413
+#: includes/classes/Elasticsearch.php:1425
 msgid "Site not indexed. <p>Please run: <code>wp elasticpress index --setup --network-wide</code> using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:1417
+#: includes/classes/Elasticsearch.php:1429
 msgid "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:1602
+#: includes/classes/Elasticsearch.php:1614
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -1046,7 +1052,7 @@ msgid "any"
 msgstr ""
 
 #: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:116
-#: assets/js/sync-ui/components/errors.js:27
+#: assets/js/sync-ui/components/errors.js:43
 #: dist/js/sync-script.js:635
 #: dist/js/sync-script.js:359
 msgid "Count"
@@ -1357,8 +1363,8 @@ msgstr ""
 
 #: includes/classes/Feature/Search/Synonyms.php:706
 #: assets/js/synonyms/index.js:26
-#: dist/js/synonyms-script.js:4712
-#: dist/js/synonyms-script.js:3242
+#: dist/js/synonyms-script.js:4683
+#: dist/js/synonyms-script.js:3226
 msgid "Manage Synonyms"
 msgstr ""
 
@@ -1657,7 +1663,7 @@ msgid "ElasticPress Custom Search Results"
 msgstr ""
 
 #: includes/classes/Feature/Terms/Terms.php:50
-#: includes/classes/Indexable/Term/Term.php:51
+#: includes/classes/Indexable/Term/Term.php:52
 msgid "Terms"
 msgstr ""
 
@@ -1715,11 +1721,11 @@ msgstr ""
 msgid "Disabled for any query that includes products"
 msgstr ""
 
-#: includes/classes/Feature/WooCommerce/Products.php:1149
+#: includes/classes/Feature/WooCommerce/Products.php:1170
 msgid "Weight results by date, except for product-only queries"
 msgstr ""
 
-#: includes/classes/Feature/WooCommerce/Products.php:1153
+#: includes/classes/Feature/WooCommerce/Products.php:1174
 msgid "Weight results by date, except for any query that includes products"
 msgstr ""
 
@@ -1789,7 +1795,7 @@ msgstr ""
 msgid "Check if your Elasticsearch host URL is correct and you have the right access to the host."
 msgstr ""
 
-#: includes/classes/Indexable.php:474
+#: includes/classes/Indexable.php:517
 msgid "It was not possible to create a body request with the document IDs provided."
 msgstr ""
 
@@ -1833,39 +1839,39 @@ msgstr ""
 msgid "Depending on the number of posts associated with a term, you may need to <a href=\"%s\">resync</a> after editing or deleting it."
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1029
+#: includes/classes/Indexable/Post/SyncManager.php:1025
 msgid "Content in sync"
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1030
+#: includes/classes/Indexable/Post/SyncManager.php:1026
 msgid "WordPress and Elasticsearch content match."
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1038
+#: includes/classes/Indexable/Post/SyncManager.php:1034
 #: assets/js/features/components/tab.js:32
 msgid "Sync required"
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1039
+#: includes/classes/Indexable/Post/SyncManager.php:1035
 msgid "Content not found in Elasticsearch."
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1046
+#: includes/classes/Indexable/Post/SyncManager.php:1042
 msgid "Out of sync"
 msgstr ""
 
-#: includes/classes/Indexable/Post/SyncManager.php:1047
+#: includes/classes/Indexable/Post/SyncManager.php:1043
 msgid "WordPress and Elasticsearch content are out of sync."
 msgstr ""
 
 #. translators: 1: EP prefix 2: Document status message
-#: includes/classes/Indexable/Post/SyncManager.php:1077
+#: includes/classes/Indexable/Post/SyncManager.php:1073
 #, php-format
 msgctxt "Doc status message"
 msgid "[%1$s] %2$s"
 msgstr ""
 
-#: includes/classes/Indexable/Term/Term.php:52
+#: includes/classes/Indexable/Term/Term.php:53
 msgid "Term"
 msgstr ""
 
@@ -1898,40 +1904,40 @@ msgid "Skipping %1$d %2$s…"
 msgstr ""
 
 #. translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID
-#: includes/classes/IndexHelper.php:729
+#: includes/classes/IndexHelper.php:742
 #, php-format
 msgid "Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d"
 msgstr ""
 
-#: includes/classes/IndexHelper.php:752
+#: includes/classes/IndexHelper.php:765
 msgid "Reached maximum number of errors to store"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: Blog ID, 3: number of failed objects
-#: includes/classes/IndexHelper.php:831
+#: includes/classes/IndexHelper.php:844
 #, php-format
 msgid "Number of %1$s index errors on site %2$d: %3$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: number of failed objects
-#: includes/classes/IndexHelper.php:839
+#: includes/classes/IndexHelper.php:852
 #, php-format
 msgid "Number of %1$s index errors: %2$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: Blog ID, 3: number of synced objects
-#: includes/classes/IndexHelper.php:851
+#: includes/classes/IndexHelper.php:864
 #, php-format
 msgid "Number of %1$s indexed on site %2$d: %3$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: number of synced objects
-#: includes/classes/IndexHelper.php:859
+#: includes/classes/IndexHelper.php:872
 #, php-format
 msgid "Number of %1$s indexed: %2$d"
 msgstr ""
 
-#: includes/classes/IndexHelper.php:970
+#: includes/classes/IndexHelper.php:983
 #: assets/js/sync-ui/components/progress.js:52
 #: dist/js/sync-script.js:1915
 #: dist/js/sync-script.js:1150
@@ -1939,29 +1945,29 @@ msgid "Sync complete"
 msgstr ""
 
 #. translators: 1: Indexable name
-#: includes/classes/IndexHelper.php:1006
+#: includes/classes/IndexHelper.php:1019
 #, php-format
 msgid "Network alias created for %1$s"
 msgstr ""
 
 #. translators: 1: Indexable name
-#: includes/classes/IndexHelper.php:1014
+#: includes/classes/IndexHelper.php:1027
 #, php-format
 msgid "Network alias creation failed for %1$s"
 msgstr ""
 
 #. translators: Index name
-#: includes/classes/IndexHelper.php:1268
+#: includes/classes/IndexHelper.php:1290
 #, php-format
 msgid "Index %s deleted"
 msgstr ""
 
-#: includes/classes/IndexHelper.php:1423
+#: includes/classes/IndexHelper.php:1445
 msgid "Mapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping."
 msgstr ""
 
 #. translators: Error message
-#: includes/classes/IndexHelper.php:1428
+#: includes/classes/IndexHelper.php:1450
 #, php-format
 msgid "Index failed: %s"
 msgstr ""
@@ -2106,12 +2112,12 @@ msgstr ""
 msgid "Report is not an AJAX report."
 msgstr ""
 
-#: includes/classes/Screen/StatusReport.php:257
+#: includes/classes/Screen/StatusReport.php:258
 msgid "Please generate a full report to see the content of this group."
 msgstr ""
 
 #. translators: %d: Number of messages.
-#: includes/classes/Screen/StatusReport.php:278
+#: includes/classes/Screen/StatusReport.php:279
 #, php-format
 msgid "%s message from ElasticPress.io"
 msgid_plural "%s messages from ElasticPress.io"
@@ -2301,11 +2307,11 @@ msgstr ""
 msgid "Recommended Solution"
 msgstr ""
 
-#: includes/classes/StatusReport/FailedQueries.php:120
+#: includes/classes/StatusReport/FailedQueries.php:125
 msgid "Clear query log"
 msgstr ""
 
-#: includes/classes/StatusReport/FailedQueries.php:161
+#: includes/classes/StatusReport/FailedQueries.php:166
 msgid "It seems WordPress was not able to complete the request. Review the error message and your configuration."
 msgstr ""
 
@@ -2478,8 +2484,8 @@ msgstr ""
 
 #: includes/dashboard.php:623
 #: assets/js/features/index.js:34
-#: dist/js/features-script.js:15544
-#: dist/js/features-script.js:14323
+#: dist/js/features-script.js:15886
+#: dist/js/features-script.js:14551
 msgid "Features"
 msgstr ""
 
@@ -2513,8 +2519,8 @@ msgstr ""
 
 #: includes/dashboard.php:659
 #: assets/js/status-report/index.js:21
-#: dist/js/status-report-script.js:1016
-#: dist/js/status-report-script.js:536
+#: dist/js/status-report-script.js:1019
+#: dist/js/status-report-script.js:537
 msgid "Status Report"
 msgstr ""
 
@@ -2979,9 +2985,9 @@ msgid "No features available."
 msgstr ""
 
 #. translators: %s: feature list
-#: assets/js/features/components/control.js:95
-#: dist/js/features-script.js:784
-#: dist/js/features-script.js:579
+#: assets/js/features/components/control.js:99
+#: dist/js/features-script.js:789
+#: dist/js/features-script.js:583
 #, js-format
 msgid "The %s feature must be enabled to use this feature."
 msgid_plural "The %s features must be enabled to use this feature."
@@ -2989,50 +2995,50 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: feature list
-#: assets/js/features/components/control.js:102
-#: dist/js/features-script.js:785
-#: dist/js/features-script.js:586
+#: assets/js/features/components/control.js:106
+#: dist/js/features-script.js:790
+#: dist/js/features-script.js:590
 #, js-format
 msgid "The %s feature must be enabled to use the following setting."
 msgid_plural "The %s features must be enabled to use the following setting."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/features/components/control.js:114
-#: dist/js/features-script.js:790
-#: dist/js/features-script.js:598
+#: assets/js/features/components/control.js:118
+#: dist/js/features-script.js:795
+#: dist/js/features-script.js:602
 msgid "Enabling this feature requires re-syncing your content."
 msgstr ""
 
-#: assets/js/features/components/control.js:115
-#: dist/js/features-script.js:790
-#: dist/js/features-script.js:599
+#: assets/js/features/components/control.js:119
+#: dist/js/features-script.js:795
+#: dist/js/features-script.js:603
 msgid "A change to following setting requires re-syncing your content."
 msgstr ""
 
 #. translators: %1$s: feature name, %2$s: last feature name
-#: assets/js/features/components/control.js:166
-#: dist/js/features-script.js:834
-#: dist/js/features-script.js:650
+#: assets/js/features/components/control.js:170
+#: dist/js/features-script.js:839
+#: dist/js/features-script.js:654
 #, js-format
 msgctxt "two feature names"
 msgid "%1$s and %2$s"
 msgstr ""
 
 #. translators: %1$s: feature names, %2$s: last feature name
-#: assets/js/features/components/control.js:173
-#: dist/js/features-script.js:837
-#: dist/js/features-script.js:657
+#: assets/js/features/components/control.js:177
+#: dist/js/features-script.js:842
+#: dist/js/features-script.js:661
 #, js-format
 msgctxt "multiple feature names"
 msgid "%1$s and %2$s"
 msgstr ""
 
-#: assets/js/features/components/control.js:174
+#: assets/js/features/components/control.js:178
 #: assets/js/instant-results/components/facets/taxonomy-terms-facet.js:43
-#: dist/js/features-script.js:837
+#: dist/js/features-script.js:842
 #: dist/js/instant-results-script.js:2617
-#: dist/js/features-script.js:658
+#: dist/js/features-script.js:662
 #: dist/js/instant-results-script.js:2019
 msgid ", "
 msgstr ""
@@ -3042,8 +3048,8 @@ msgid "Unavailable"
 msgstr ""
 
 #: assets/js/features/index.js:46
-#: dist/js/features-script.js:15572
-#: dist/js/features-script.js:14335
+#: dist/js/features-script.js:15914
+#: dist/js/features-script.js:14563
 msgid "ElasticPress Features add functionality to enhance search and queries on your site. You may choose to activate some or all of these Features depending on your needs. You can learn more about each Feature <a>here</a>."
 msgstr ""
 
@@ -3480,13 +3486,17 @@ msgstr ""
 msgid "Learn more about Sync"
 msgstr ""
 
-#: assets/js/sync-ui/components/errors.js:28
+#: assets/js/sync-ui/components/errors.js:23
+msgid "Stack trace"
+msgstr ""
+
+#: assets/js/sync-ui/components/errors.js:44
 #: dist/js/sync-script.js:642
 #: dist/js/sync-script.js:360
 msgid "Error type"
 msgstr ""
 
-#: assets/js/sync-ui/components/errors.js:44
+#: assets/js/sync-ui/components/errors.js:61
 #: dist/js/sync-script.js:680
 #: dist/js/sync-script.js:376
 msgid "No errors found in the log."
@@ -3682,7 +3692,7 @@ msgid "%1$s — %2$s"
 msgstr ""
 
 #: assets/js/sync-ui/components/progress.js:48
-#: assets/js/sync/index.js:238
+#: assets/js/sync/index.js:242
 #: dist/js/sync-script.js:1912
 #: dist/js/sync-script.js:2591
 #: dist/js/sync-script.js:1146
@@ -3691,8 +3701,8 @@ msgid "Sync failed"
 msgstr ""
 
 #: assets/js/sync-ui/components/progress.js:56
-#: assets/js/sync/index.js:384
-#: assets/js/sync/index.js:560
+#: assets/js/sync/index.js:388
+#: assets/js/sync/index.js:564
 #: dist/js/sync-script.js:1918
 #: dist/js/sync-script.js:2722
 #: dist/js/sync-script.js:2877
@@ -3703,7 +3713,7 @@ msgid "Sync paused"
 msgstr ""
 
 #: assets/js/sync-ui/components/progress.js:60
-#: assets/js/sync/index.js:557
+#: assets/js/sync/index.js:561
 #: dist/js/sync-script.js:1921
 #: dist/js/sync-script.js:2874
 #: dist/js/sync-script.js:1158
@@ -3798,14 +3808,14 @@ msgid "Sync Settings"
 msgstr ""
 
 #. translators: %s: Index type. ElasticPress.io or Elasticsearch.
-#: assets/js/sync/index.js:264
+#: assets/js/sync/index.js:268
 #: dist/js/sync-script.js:2612
 #: dist/js/sync-script.js:1721
 #, js-format
 msgid "Your indexing process has been stopped by WP-CLI and your %s index could be missing content. To restart indexing, please click the Start button or use WP-CLI commands to perform the reindex. Please note that search results could be incorrect or incomplete until the reindex finishes."
 msgstr ""
 
-#: assets/js/sync/index.js:272
+#: assets/js/sync/index.js:276
 #: dist/js/sync-script.js:2612
 #: dist/js/sync-script.js:1729
 msgid "Sync interrupted by WP-CLI command."
@@ -4189,8 +4199,8 @@ msgid "Add"
 msgstr ""
 
 #: assets/js/weighting/index.js:26
-#: dist/js/weighting-script.js:3073
-#: dist/js/weighting-script.js:1917
+#: dist/js/weighting-script.js:3065
+#: dist/js/weighting-script.js:1910
 msgid "Manage Search Fields & Weighting"
 msgstr ""
 
