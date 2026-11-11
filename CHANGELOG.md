@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
-## [5.3.6] - 2026-XX-XX
+## [5.3.6] - 2026-11-11
 
 **This release includes a security fix:**
 
