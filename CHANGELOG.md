@@ -54,7 +54,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Stage `elasticpress-playwright-utils` releases from CI, to be approved before they are published to npm. Props [@felipeelia](https://github.com/felipeelia) via [#4383](https://github.com/10up/ElasticPress/pull/4383) and [#4384](https://github.com/10up/ElasticPress/pull/4384).
 * The e2e WP-CLI wrapper no longer loads the wp-env config, and calls api.wordpress.org, on every command. Props [@felipeelia](https://github.com/felipeelia) via [#4395](https://github.com/10up/ElasticPress/pull/4395).
 * Test methods renamed to snake_case, a `@group` on every test, and PHPCS sniffs to keep it that way. Props [@felipeelia](https://github.com/felipeelia) via [#4404](https://github.com/10up/ElasticPress/pull/4404).
-* E2e workflows cache the Playwright browser and no longer install its system dependencies from the Ubuntu apt mirrors, whose outages failed every job. Props [@felipeelia](https://github.com/felipeelia) via [#4413](https://github.com/10up/ElasticPress/pull/4413).
+* Faster and more reliable e2e tests. Props [@felipeelia](https://github.com/felipeelia) via [#4413](https://github.com/10up/ElasticPress/pull/4413).
 * Bumped `phpunit/phpunit` from 9.6.22 to 9.6.33, `composer/composer` from 2.10.1 to 2.11.1, `league/flysystem` from 3.29.1 to 3.36.0, `phpcsstandards/phpcsutils` from 1.1.3 to 1.2.3, `squizlabs/php_codesniffer` from 3.13.5 to 3.13.6, and `wp-coding-standards/wpcs` from 3.1.0 to 3.4.1. Props [@dependabot](https://github.com/dependabot) via [#4407](https://github.com/10up/ElasticPress/pull/4407).
 
 ## [5.3.5] - 2026-09-10
