@@ -423,6 +423,61 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the Failed Queries report escapes user-controllable values.
+	 *
+	 * @group statusReport
+	 * @since 5.3.6
+	 */
+	public function test_failed_queries_report_escapes_values() {
+		$payload = '<img src=x onerror=alert(1)>';
+
+		add_filter(
+			'ep_query_logger_logs',
+			function () use ( $payload ) {
+				return [
+					[
+						'wp_url'      => 'http://example.com/?orderby=' . $payload,
+						'es_req'      => 'POST http://example.com/_search?' . $payload,
+						'request_id'  => '',
+						'timestamp'   => time(),
+						'query_time'  => 1,
+						'wp_args'     => [ 'orderby' => $payload ],
+						'status_code' => 400,
+						'body'        => '{"sort":"' . $payload . '"}',
+						'result'      => [
+							'error' => [
+								'root_cause' => [
+									[
+										'reason' => 'No mapping found for [' . $payload . '] in order to sort on',
+									],
+								],
+							],
+						],
+					],
+				];
+			}
+		);
+
+		$report = new \ElasticPress\StatusReport\FailedQueries( new \ElasticPress\QueryLogger() );
+		$fields = $report->get_groups()[0]['fields'];
+
+		$this->assertSame( 'No mapping found for [' . esc_html( $payload ) . '] in order to sort on', $fields['error']['value'] );
+		$this->assertStringContainsString( '<code>' . esc_html( $payload ) . '</code>', $fields['recommended_solution']['value'] );
+		$this->assertSame( 'POST http://example.com/_search?' . esc_html( $payload ), $fields['es_req']['value'] );
+
+		// JSON strings and arrays are rendered as text by the React component, so they are kept as they are.
+		$this->assertSame( '{"sort":"' . $payload . '"}', $fields['body']['value'] );
+		$this->assertSame( [ 'orderby' => $payload ], $fields['wp_args']['value'] );
+
+		// The copy & paste report is plain text, so escaped values are decoded back.
+		$render_copy_paste_report = new \ReflectionMethod( StatusReport::class, 'render_copy_paste_report' );
+		$render_copy_paste_report->setAccessible( true );
+		$plain_text = $render_copy_paste_report->invoke( new StatusReport(), $report->get_title(), $report->get_groups() );
+
+		$this->assertStringContainsString( 'error: No mapping found for [' . $payload . '] in order to sort on', $plain_text );
+	}
+
+	/**
 	 * Tests ElasticPress.io report.
 	 *
 	 * @group status-report
