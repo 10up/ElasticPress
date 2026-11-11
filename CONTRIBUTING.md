@@ -38,7 +38,7 @@ Open a [new blank issue](https://github.com/10up/ElasticPress/issues/new) with `
 - [ ] 4. Changelog: Add/update the changelog in `CHANGELOG.md` and `readme.txt`, ensuring to link the [X.Y.Z] release reference in the footer of `CHANGELOG.md` (e.g., https://github.com/10up/ElasticPress/compare/X.Y.Z-1...X.Y.Z).
 - [ ] 5. Props: Update `CREDITS.md` file with any new contributors, confirm maintainers are accurate.
 - [ ] 6. Readme updates: Make any other readme changes as necessary. `README.md` is geared toward GitHub and `readme.txt` contains WordPress.org-specific content. The two are slightly different.
-- [ ] 7. New files: Check to be sure any new files/paths that are unnecessary in the production version are included in `.distignore`.
+- [ ] 7. New files: Check to be sure any new files/paths that are unnecessary in the production version are marked as `export-ignore` in `.gitattributes`.
 - [ ] 8. POT file: Run `wp i18n make-pot . lang/elasticpress.pot` and commit the file. In case of errors, try to disable Xdebug (see [#3079](https://github.com/10up/ElasticPress/pull/3079#issuecomment-1291028290).)
 - [ ] 9. Release date: Double check the release date in both changelog files.
 - [ ] 10. Merge: Merge the release branch/PR into `develop`, then make a non-fast-forward merge from `develop` into `trunk` (`git checkout trunk && git merge --no-ff develop`). `trunk` contains the stable development version.
@@ -64,7 +64,7 @@ Pre-releases are different from normal versions because (1) they are not publish
 1. Changelog: Add/update the changelog in `CHANGELOG.md` and `readme.txt`, ensuring to link the [X.Y.Z] release reference in the footer of `CHANGELOG.md` (e.g., https://github.com/10up/ElasticPress/compare/X.Y.Z-1...X.Y.Z).
 1. Props: Update `CREDITS.md` file with any new contributors, confirm maintainers are accurate.
 1. Readme updates: Make any other readme changes as necessary. `README.md` is geared toward GitHub and `readme.txt` contains WordPress.org-specific content.  The two are slightly different.
-1. New files: Check to be sure any new files/paths that are unnecessary in the production version are included in `.distignore`.
+1. New files: Check to be sure any new files/paths that are unnecessary in the production version are marked as `export-ignore` in `.gitattributes`.
 1. POT file: Run `wp i18n make-pot . lang/elasticpress.pot` and commit the file.
 1. Release date: Double check the release date in both changelog files.
 1. Merge: Merge the release branch/PR into the next version branch (`4.x.x`, for example).
@@ -86,7 +86,7 @@ Open a [new blank issue](https://github.com/10up/ElasticPress/issues/new) with `
 - [ ] 4. Changelog: Add/update the changelog in `CHANGELOG.md` and `readme.txt`, ensuring to link the [X.Y.Z] release reference in the footer of `CHANGELOG.md` (e.g., https://github.com/10up/ElasticPress/compare/X.Y.Z-1...X.Y.Z).
 - [ ] 5. Props: Update `CREDITS.md` file with any new contributors, confirm maintainers are accurate.
 - [ ] 6. Readme updates: Make any other readme changes as necessary.  `README.md` is geared toward GitHub and `readme.txt` contains WordPress.org-specific content.  The two are slightly different.
-- [ ] 7. New files: Check to be sure any new files/paths that are unnecessary in the production version are included in `.distignore`.
+- [ ] 7. New files: Check to be sure any new files/paths that are unnecessary in the production version are marked as `export-ignore` in `.gitattributes`.
 - [ ] 8. POT file: Run `wp i18n make-pot . lang/elasticpress.pot` and commit the file. In case of errors, try to disable Xdebug (see [#3079](https://github.com/10up/ElasticPress/pull/3079#issuecomment-1291028290).)
 - [ ] 9. Release date: Double check the release date in both changelog files.
 - [ ] 10. Merge: Merge the release branch/PR into `trunk`.  `trunk` contains the stable development version.
