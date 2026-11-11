@@ -233,9 +233,9 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 			'ep_facet_meta_value_accessible_label',
 			$item['is_selected']
 				/* translators: %s: Filter term name. */
-				? sprintf( __( 'Remove filter: %s', 'elasticpress' ), $label )
+				? sprintf( __( 'Remove filter: %s', 'elasticpress' ), wp_strip_all_tags( $label ) )
 				/* translators: %s: Filter term name. */
-				: sprintf( __( 'Apply filter: %s', 'elasticpress' ), $label ),
+				: sprintf( __( 'Apply filter: %s', 'elasticpress' ), wp_strip_all_tags( $label ) ),
 			$item
 		);
 
