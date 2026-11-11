@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
 Tested up to: 7.1
-Stable tag:   5.3.5
+Stable tag:   5.3.6
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,52 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 5.3.6 - 2026-11-11 =
+
+**This release includes a security fix:**
+
+* **Status Report:** An unauthenticated visitor could store a script, through the `orderby` parameter, that ran when an administrator opened the Failed Queries report.
+
+__Added:__
+
+* `$source_includes` parameter to `Elasticsearch::get_documents()`, to fetch only some fields of each document. Props [@felipeelia](https://github.com/felipeelia).
+* `ep_pre_prepare_documents` action, fired once before a batch of documents is prepared to be indexed. Props [@felipeelia](https://github.com/felipeelia).
+* Feature settings `requires_fields` conditions accept a list of values. Props [@felipeelia](https://github.com/felipeelia).
+* Feature settings field groups can be collapsible (`collapsible`, `initialOpen`) and show a status badge (`badge`). Props [@felipeelia](https://github.com/felipeelia).
+* `combobox` field type for feature settings. Props [@felipeelia](https://github.com/felipeelia).
+* `ep.Features.Control` JS filter to render custom feature settings fields, and `ep_settings_field_types` filter with `ElasticPress\Utils\get_settings_field_types()` to check the available field types. Props [@felipeelia](https://github.com/felipeelia).
+* File, line, and stack trace of errors thrown while preparing documents, shown by `wp elasticpress sync --show-errors` and in the Sync page Errors tab, and written to the PHP error log when `WP_DEBUG` and `WP_DEBUG_LOG` are on. Props [@anjulahettige](https://github.com/anjulahettige).
+
+__Fixed:__
+
+* Memory exhaustion when preparing term documents for terms with a large number of objects, by fetching object IDs in chunks (filterable with the new `ep_term_object_ids_chunk_size` filter). Props [@rebeccahum](https://github.com/rebeccahum).
+* PHP warning `Undefined array key "total"` when a query sets `track_total_hits` to `false`. Props [@renatonascalves](https://github.com/renatonascalves).
+* Memory exhaustion when editing a term attached to a large number of posts, by fetching its object IDs in chunks. Props [@rebeccahum](https://github.com/rebeccahum).
+* Posts of child terms not being reindexed when editing a parent term, on sites where term IDs and term taxonomy IDs differ. Props [@rebeccahum](https://github.com/rebeccahum).
+* `wp elasticpress sync --nobulk` reports objects that fail to prepare as errors instead of counting them as indexed. Props [@anjulahettige](https://github.com/anjulahettige).
+* WooCommerce taxonomy query vars with comma-separated terms (e.g. `product_cat=a,b`) treated as a single slug. Props [@yograj-vijay-yadav](https://github.com/yograj-vijay-yadav).
+* Sync starting over, or never ending, when a batch comes back empty before the offset reaches the total. Props [@rebeccahum](https://github.com/rebeccahum).
+* Instant Results search template not saved after a sync started from the dashboard on single sites. Props [@burhandodhy](https://github.com/burhandodhy).
+* HTML markup in the `aria-label` of Filter by Post Type and Filter by Metadata links when term counts are displayed. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Security:__
+
+* Escape Elasticsearch errors and query log values in the Failed Queries report of the Status Report, preventing stored cross-site scripting via the `orderby` parameter. Props Duc Manh, [@felipeelia](https://github.com/felipeelia), and [@jeffpaul](https://github.com/jeffpaul).
+* Updated Node.js to v26.11.0 and the npm packages to their latest versions. Props [@ZacharyRener](https://github.com/ZacharyRener).
+* Bumped `fast-uri` from 3.1.7 to 3.1.8 (CVE-2026-86472). Props [@ZacharyRener](https://github.com/ZacharyRener).
+* Bumped `compression` from 1.8.1 to 1.8.2, `follow-redirects` from 1.16.0 to 1.16.3, `http-cache-semantics` from 4.2.0 to 4.3.0, `proxy-addr` from 2.0.7 to 2.0.8, `shell-quote` from 1.10.0 to 1.12.0, `simple-git` from 3.36.0 to 4.0.2, and `source-map-js` from 1.2.1 to 1.2.2. Props [@dependabot](https://github.com/dependabot).
+* Bumped `launch-editor` from 2.14.1 to 2.14.2, `markdown-it` from 14.3.2 to 14.3.3, `postcss-selector-parser` from 6.1.4 to 6.1.5 and from 7.1.5 to 7.1.7, and `serialize-javascript` from 7.1.0 to 7.1.4. Props [@dependabot](https://github.com/dependabot).
+* Explicit `permissions` on GitHub workflows, following code scanning alerts. Props [@jeffpaul](https://github.com/jeffpaul).
+
+__Developer:__
+
+* Pre-commit hook and `composer lint` check the test suite against PHP 8.2+, matching CI. Props [@felipeelia](https://github.com/felipeelia).
+* Fixed the privileged e2e workflow, which now shows its result as a commit status on the pull request. Props [@felipeelia](https://github.com/felipeelia).
+* Stage `elasticpress-playwright-utils` releases from CI, to be approved before they are published to npm. Props [@felipeelia](https://github.com/felipeelia).
+* The e2e WP-CLI wrapper no longer loads the wp-env config, and calls api.wordpress.org, on every command. Props [@felipeelia](https://github.com/felipeelia).
+* Test methods renamed to snake_case, a `@group` on every test, and PHPCS sniffs to keep it that way. Props [@felipeelia](https://github.com/felipeelia).
+* Bumped `phpunit/phpunit` from 9.6.22 to 9.6.33, `composer/composer` from 2.10.1 to 2.11.1, `league/flysystem` from 3.29.1 to 3.36.0, `phpcsstandards/phpcsutils` from 1.1.3 to 1.2.3, `squizlabs/php_codesniffer` from 3.13.5 to 3.13.6, and `wp-coding-standards/wpcs` from 3.1.0 to 3.4.1. Props [@dependabot](https://github.com/dependabot).
 
 = 5.3.5 - 2026-09-10 =
 

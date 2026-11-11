@@ -14,6 +14,48 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.3.6] - 2026-11-11
+
+**This release includes a security fix:**
+
+* **Status Report:** An unauthenticated visitor could store a script, through the `orderby` parameter, that ran when an administrator opened the Failed Queries report.
+
+### Added
+* `$source_includes` parameter to `Elasticsearch::get_documents()`, to fetch only some fields of each document. Props [@felipeelia](https://github.com/felipeelia) via [#4376](https://github.com/10up/ElasticPress/pull/4376).
+* `ep_pre_prepare_documents` action, fired once before a batch of documents is prepared to be indexed. Props [@felipeelia](https://github.com/felipeelia) via [#4378](https://github.com/10up/ElasticPress/pull/4378).
+* Feature settings `requires_fields` conditions accept a list of values. Props [@felipeelia](https://github.com/felipeelia) via [#4379](https://github.com/10up/ElasticPress/pull/4379).
+* Feature settings field groups can be collapsible (`collapsible`, `initialOpen`) and show a status badge (`badge`). Props [@felipeelia](https://github.com/felipeelia) via [#4380](https://github.com/10up/ElasticPress/pull/4380).
+* `combobox` field type for feature settings. Props [@felipeelia](https://github.com/felipeelia) via [#4381](https://github.com/10up/ElasticPress/pull/4381).
+* `ep.Features.Control` JS filter to render custom feature settings fields, and `ep_settings_field_types` filter with `ElasticPress\Utils\get_settings_field_types()` to check the available field types. Props [@felipeelia](https://github.com/felipeelia) via [#4381](https://github.com/10up/ElasticPress/pull/4381).
+* File, line, and stack trace of errors thrown while preparing documents, shown by `wp elasticpress sync --show-errors` and in the Sync page Errors tab, and written to the PHP error log when `WP_DEBUG` and `WP_DEBUG_LOG` are on. Props [@anjulahettige](https://github.com/anjulahettige) via [#4392](https://github.com/10up/ElasticPress/pull/4392).
+
+### Fixed
+* Memory exhaustion when preparing term documents for terms with a large number of objects, by fetching object IDs in chunks (filterable with the new `ep_term_object_ids_chunk_size` filter). Props [@rebeccahum](https://github.com/rebeccahum) via [#4373](https://github.com/10up/ElasticPress/pull/4373).
+* PHP warning `Undefined array key "total"` when a query sets `track_total_hits` to `false`. Props [@renatonascalves](https://github.com/renatonascalves) via [#4387](https://github.com/10up/ElasticPress/pull/4387).
+* Memory exhaustion when editing a term attached to a large number of posts, by fetching its object IDs in chunks. Props [@rebeccahum](https://github.com/rebeccahum) via [#4394](https://github.com/10up/ElasticPress/pull/4394).
+* Posts of child terms not being reindexed when editing a parent term, on sites where term IDs and term taxonomy IDs differ. Props [@rebeccahum](https://github.com/rebeccahum) via [#4394](https://github.com/10up/ElasticPress/pull/4394).
+* `wp elasticpress sync --nobulk` reports objects that fail to prepare as errors instead of counting them as indexed. Props [@anjulahettige](https://github.com/anjulahettige) via [#4405](https://github.com/10up/ElasticPress/pull/4405).
+* WooCommerce taxonomy query vars with comma-separated terms (e.g. `product_cat=a,b`) treated as a single slug. Props [@yograj-vijay-yadav](https://github.com/yograj-vijay-yadav) via [#4401](https://github.com/10up/ElasticPress/pull/4401).
+* Sync starting over, or never ending, when a batch comes back empty before the offset reaches the total. Props [@rebeccahum](https://github.com/rebeccahum) via [#4408](https://github.com/10up/ElasticPress/pull/4408).
+* Instant Results search template not saved after a sync started from the dashboard on single sites. Props [@burhandodhy](https://github.com/burhandodhy) via [#4411](https://github.com/10up/ElasticPress/pull/4411).
+* HTML markup in the `aria-label` of Filter by Post Type and Filter by Metadata links when term counts are displayed. Props [@burhandodhy](https://github.com/burhandodhy) via [#4410](https://github.com/10up/ElasticPress/pull/4410).
+
+### Security
+* Escape Elasticsearch errors and query log values in the Failed Queries report of the Status Report, preventing stored cross-site scripting via the `orderby` parameter. Props Duc Manh, [@felipeelia](https://github.com/felipeelia), and [@jeffpaul](https://github.com/jeffpaul) via [GHSA-6hx4-m9fj-4m2q](https://github.com/10up/ElasticPress/security/advisories/GHSA-6hx4-m9fj-4m2q).
+* Updated Node.js to v26.11.0 and the npm packages to their latest versions. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4374](https://github.com/10up/ElasticPress/pull/4374).
+* Bumped `fast-uri` from 3.1.7 to 3.1.8 (CVE-2026-86472). Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4375](https://github.com/10up/ElasticPress/pull/4375).
+* Bumped `compression` from 1.8.1 to 1.8.2, `follow-redirects` from 1.16.0 to 1.16.3, `http-cache-semantics` from 4.2.0 to 4.3.0, `proxy-addr` from 2.0.7 to 2.0.8, `shell-quote` from 1.10.0 to 1.12.0, `simple-git` from 3.36.0 to 4.0.2, and `source-map-js` from 1.2.1 to 1.2.2. Props [@dependabot](https://github.com/dependabot) via [#4391](https://github.com/10up/ElasticPress/pull/4391) and [#4406](https://github.com/10up/ElasticPress/pull/4406).
+* Bumped `launch-editor` from 2.14.1 to 2.14.2, `markdown-it` from 14.3.2 to 14.3.3, `postcss-selector-parser` from 6.1.4 to 6.1.5 and from 7.1.5 to 7.1.7, and `serialize-javascript` from 7.1.0 to 7.1.4. Props [@dependabot](https://github.com/dependabot) via [#4396](https://github.com/10up/ElasticPress/pull/4396) and [#4403](https://github.com/10up/ElasticPress/pull/4403).
+* Explicit `permissions` on GitHub workflows, following code scanning alerts. Props [@jeffpaul](https://github.com/jeffpaul) via [#4397](https://github.com/10up/ElasticPress/pull/4397).
+
+### Developer
+* Pre-commit hook and `composer lint` check the test suite against PHP 8.2+, matching CI. Props [@felipeelia](https://github.com/felipeelia) via [#4377](https://github.com/10up/ElasticPress/pull/4377).
+* Fixed the privileged e2e workflow, which now shows its result as a commit status on the pull request. Props [@felipeelia](https://github.com/felipeelia) via [#4383](https://github.com/10up/ElasticPress/pull/4383), [#4385](https://github.com/10up/ElasticPress/pull/4385), and [#4386](https://github.com/10up/ElasticPress/pull/4386).
+* Stage `elasticpress-playwright-utils` releases from CI, to be approved before they are published to npm. Props [@felipeelia](https://github.com/felipeelia) via [#4383](https://github.com/10up/ElasticPress/pull/4383) and [#4384](https://github.com/10up/ElasticPress/pull/4384).
+* The e2e WP-CLI wrapper no longer loads the wp-env config, and calls api.wordpress.org, on every command. Props [@felipeelia](https://github.com/felipeelia) via [#4395](https://github.com/10up/ElasticPress/pull/4395).
+* Test methods renamed to snake_case, a `@group` on every test, and PHPCS sniffs to keep it that way. Props [@felipeelia](https://github.com/felipeelia) via [#4404](https://github.com/10up/ElasticPress/pull/4404).
+* Bumped `phpunit/phpunit` from 9.6.22 to 9.6.33, `composer/composer` from 2.10.1 to 2.11.1, `league/flysystem` from 3.29.1 to 3.36.0, `phpcsstandards/phpcsutils` from 1.1.3 to 1.2.3, `squizlabs/php_codesniffer` from 3.13.5 to 3.13.6, and `wp-coding-standards/wpcs` from 3.1.0 to 3.4.1. Props [@dependabot](https://github.com/dependabot) via [#4407](https://github.com/10up/ElasticPress/pull/4407).
+
 ## [5.3.5] - 2026-09-10
 
 **This is a security release** addressing two issues in specific configurations:
@@ -2423,6 +2465,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.3.6]: https://github.com/10up/ElasticPress/compare/5.3.5...5.3.6
 [5.3.5]: https://github.com/10up/ElasticPress/compare/5.3.4...5.3.5
 [5.3.4]: https://github.com/10up/ElasticPress/compare/5.3.3...5.3.4
 [5.3.3]: https://github.com/10up/ElasticPress/compare/5.3.2.2...5.3.3
