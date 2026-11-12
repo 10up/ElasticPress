@@ -87,20 +87,26 @@ class DidYouMean extends Feature {
 		];
 
 		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
-			$mapping['mappings']['post']['properties']['post_content']['fields'] = [
-				'shingle' => [
-					'type'     => 'text',
-					'analyzer' => 'trigram',
-				],
-			];
+			$mapping_properties = &$mapping['mappings']['post']['properties'];
 		} else {
-			$mapping['mappings']['properties']['post_content']['fields'] = [
-				'shingle' => [
-					'type'     => 'text',
-					'analyzer' => 'trigram',
-				],
-			];
+			$mapping_properties = &$mapping['mappings']['properties'];
 		}
+
+		foreach ( [ 'post_content', 'post_title' ] as $source_field ) {
+			$existing_copy_to = $mapping_properties[ $source_field ]['copy_to'] ?? [];
+			$existing_copy_to = is_array( $existing_copy_to ) ? $existing_copy_to : [ $existing_copy_to ];
+
+			if ( ! in_array( 'ep_did_you_mean', $existing_copy_to, true ) ) {
+				$existing_copy_to[] = 'ep_did_you_mean';
+			}
+
+			$mapping_properties[ $source_field ]['copy_to'] = $existing_copy_to;
+		}
+
+		$mapping_properties['ep_did_you_mean'] = [
+			'type'     => 'text',
+			'analyzer' => 'trigram',
+		];
 
 		return $mapping;
 	}
@@ -160,11 +166,11 @@ class DidYouMean extends Feature {
 	public function add_query_args( $formatted_args, $args, $wp_query ): array {
 		$search_analyzer = [
 			'phrase' => [
-				'field'            => 'post_content.shingle',
+				'field'            => 'ep_did_you_mean',
 				'max_errors'       => 2,
 				'direct_generator' => [
 					[
-						'field' => 'post_content.shingle',
+						'field' => 'ep_did_you_mean',
 					],
 				],
 			],
