@@ -61,7 +61,8 @@ class WooCommerce extends Feature {
 		$this->available_during_installation = true;
 
 		$this->default_settings = [
-			'orders' => '0',
+			'orders'       => '0',
+			'disable_hpos' => '0',
 		];
 
 		$this->orders             = new Orders( $this );
