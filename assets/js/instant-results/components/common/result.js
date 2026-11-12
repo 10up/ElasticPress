@@ -17,6 +17,8 @@ import Image from './image';
  * @param {number} props.averageRating Average rating.
  * @param {string} props.date Localized date.
  * @param {string} props.excerpt Highlighted excerpt.
+ * @param {object} props.hit Elasticsearch hit.
+ * @param {number} props.id Post ID.
  * @param {string} props.priceHtml Product price HTML.
  * @param {object} props.thumbnail Thumbnail image attributes.
  * @param {string} props.title Highlighted title.
@@ -24,7 +26,9 @@ import Image from './image';
  * @param {string} props.url URL.
  * @returns {WPElement} Component element.
  */
-const Result = ({ averageRating = 0, date, excerpt, priceHtml, thumbnail, title, type, url }) => {
+const Result = (props) => {
+	const { averageRating = 0, date, excerpt, priceHtml, thumbnail, title, type, url } = props;
+
 	return (
 		<article
 			className={`ep-search-result ${thumbnail ? 'ep-search-result--has-thumbnail' : null}`}
