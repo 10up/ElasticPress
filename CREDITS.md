@@ -297,8 +297,10 @@ Thank you to all the people who have already contributed to this repository via 
 [Strickland (@Str1ckl4nd)](https://github.com/Str1ckl4nd),
 [@mauriceng98](https://github.com/mauriceng98),
 [七号公园 (@7thParkk)](https://github.com/7thParkk),
+[@mrglwglwgl](https://github.com/mrglwglwgl),
+Duc Manh,
 and
-[@mrglwglwgl](https://github.com/mrglwglwgl).
+[Yograj Vijay Yadav (@yograj-vijay-yadav)](https://github.com/yograj-vijay-yadav).
 
 ## Libraries
 

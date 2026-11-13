@@ -23,7 +23,7 @@ class TestSearchOrdering extends \ElasticPressTest\BaseTestCase {
 	 * @group rest-search-ordering
 	 * @group search-ordering
 	 */
-	public function testHandlePointerSearch() {
+	public function test_handle_pointer_search() {
 		$controller = new SearchOrdering();
 
 		Features::factory()->activate_feature( 'search' );

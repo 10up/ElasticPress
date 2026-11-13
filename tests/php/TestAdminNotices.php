@@ -86,7 +86,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.0
 	 */
-	public function testNoNoticesOnInstall() {
+	public function test_no_notices_on_install() {
 		delete_site_option( 'ep_host' );
 		delete_site_option( 'ep_last_sync' );
 		delete_site_option( 'ep_need_upgrade_sync', true );
@@ -117,7 +117,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.0
 	 */
-	public function testNeedSetupNoticeInAdmin() {
+	public function test_need_setup_notice_in_admin() {
 		delete_site_option( 'ep_host' );
 		delete_site_option( 'ep_last_sync' );
 		delete_site_option( 'ep_need_upgrade_sync', true );
@@ -149,7 +149,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.0
 	 */
-	public function testNoSyncNoticeInAdmin() {
+	public function test_no_sync_notice_in_admin() {
 		delete_site_option( 'ep_last_sync' );
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
@@ -180,7 +180,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.0
 	 */
-	public function testNoSyncNoticeInInstall() {
+	public function test_no_sync_notice_in_install() {
 		delete_site_option( 'ep_last_sync' );
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
@@ -210,7 +210,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.0
 	 */
-	public function testHostErrorNoticeInAdmin() {
+	public function test_host_error_notice_in_admin() {
 		update_site_option( 'ep_host', 'badhost' );
 		update_site_option( 'ep_last_sync', time() );
 		delete_site_option( 'ep_need_upgrade_sync', true );
@@ -255,7 +255,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.0
 	 */
-	public function testHostErrorNoticeInInstall() {
+	public function test_host_error_notice_in_install() {
 		update_site_option( 'ep_host', 'badhost' );
 		update_site_option( 'ep_last_sync', time() );
 		delete_site_option( 'ep_need_upgrade_sync', true );
@@ -300,7 +300,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.0
 	 */
-	public function testEsAboveCompatNoticeInAdmin() {
+	public function test_es_above_compat_notice_in_admin() {
 		update_site_option( 'ep_last_sync', time() );
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
@@ -337,7 +337,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.0
 	 */
-	public function testEsBelowCompatNoticeInAdmin() {
+	public function test_es_below_compat_notice_in_admin() {
 		update_site_option( 'ep_last_sync', time() );
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
@@ -374,7 +374,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.0
 	 */
-	public function testUpgradeSyncNoticeInAdmin() {
+	public function test_upgrade_sync_notice_in_admin() {
 		update_site_option( 'ep_last_sync', time() );
 		update_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
@@ -403,7 +403,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 4.0.0
 	 */
-	public function testUpgradeSyncNoticeAndInstantResultsInAdmin() {
+	public function test_upgrade_sync_notice_and_instant_results_in_admin() {
 		update_site_option( 'ep_last_sync', time() );
 		update_site_option( 'ep_need_upgrade_sync', true );
 		update_site_option( 'ep_version', '3.6.6' );
@@ -458,7 +458,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.0
 	 */
-	public function testFeatureSyncNoticeInAdmin() {
+	public function test_feature_sync_notice_in_admin() {
 		update_site_option( 'ep_last_sync', time() );
 		delete_site_option( 'ep_need_upgrade_sync' );
 		update_site_option( 'ep_feature_auto_activated_sync', true );
@@ -491,7 +491,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.6.2
 	 */
-	public function testValidMappingNoticeInAdmin() {
+	public function test_valid_mapping_notice_in_admin() {
 		update_site_option( 'ep_last_sync', time() );
 		delete_site_option( 'ep_need_upgrade_sync' );
 		update_site_option( 'ep_feature_auto_activated_sync', false );
@@ -535,7 +535,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 3.6.2
 	 */
-	public function testInvalidMappingNoticeInAdmin() {
+	public function test_invalid_mapping_notice_in_admin() {
 		update_site_option( 'ep_last_sync', time() );
 		delete_site_option( 'ep_need_upgrade_sync' );
 		update_site_option( 'ep_feature_auto_activated_sync', false );
@@ -578,7 +578,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * @group admin-notices
 	 * @since 4.4.0
 	 */
-	public function testTooManyFieldsNoticeInAdmin() {
+	public function test_too_many_fields_notice_in_admin() {
 		add_filter(
 			'ep_meta_mode',
 			function () {
@@ -646,8 +646,10 @@ class TestAdminNotices extends BaseTestCase {
 
 	/**
 	 * Tests notice is show when number of posts linked with term is greater than number of items per cycle.
+	 *
+	 * @group admin-notices
 	 */
-	public function testNumberOfPostsBiggerThanItemPerCycle() {
+	public function test_number_of_posts_bigger_than_item_per_cycle() {
 		global $pagenow, $tax;
 
 		// set global variables.

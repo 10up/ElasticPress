@@ -20,7 +20,7 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testRenderer() {
+	public function test_renderer() {
 		$this->markTestIncomplete();
 	}
 
@@ -30,7 +30,7 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 	 * @since 4.3.0
 	 * @group facets
 	 */
-	public function testGetMetaValueHtml() {
+	public function test_get_meta_value_html() {
 		$renderer = new Renderer();
 
 		/**

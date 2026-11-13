@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies.
  */
+import { safeHTML } from '@wordpress/dom';
 import { RawHTML, WPElement } from '@wordpress/element';
 
 /**
@@ -29,7 +30,7 @@ export default ({ value }) => {
 			}
 		}
 
-		return <RawHTML>{value}</RawHTML>;
+		return <RawHTML>{safeHTML(value)}</RawHTML>;
 	}
 
 	return value.toString();

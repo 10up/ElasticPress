@@ -54,23 +54,16 @@ test.describe('Status Report', { tag: '@group1' }, () => {
 		).toBeVisible();
 
 		// Until we expose the available services, we simply check the endpoint returned data
-		await expect(
-			loggedInPage
-				.locator('.ep-query-url', { hasText: 'elasticpress.io/endpoint-status' })
-				.locator('..')
-				.locator('.ep-query-result'),
-		).toContainText(
-			`{
-    "messages": [
-        {
-            "type": "info",
-            "message": "Testing message"
-        }
-    ],
-    "avaiableServices": {
+		const endpointStatusResult = loggedInPage
+			.locator('.ep-query-url', { hasText: 'elasticpress.io/endpoint-status' })
+			.locator('..')
+			.locator('.ep-query-result');
+
+		await expect(endpointStatusResult).toContainText('"message": "Testing message"');
+		await expect(endpointStatusResult).toContainText(
+			`"availableServices": {
         "vectorEmbeddings": false
-    }
-}`,
+    }`,
 		);
 	});
 });

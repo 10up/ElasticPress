@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<ruleset name="ElasticPressTests" namespace="ElasticPressTests">
+	<description>Naming and grouping rules for the ElasticPress PHPUnit test suite.</description>
+</ruleset>
