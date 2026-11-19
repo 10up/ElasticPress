@@ -125,6 +125,10 @@ class OrdersHPOSQuery {
 		// Handle HPOS meta_query.
 		$hpos_meta_query = $this->hpos_query->get( 'meta_query' );
 		if ( ! empty( $hpos_meta_query ) && is_array( $hpos_meta_query ) ) {
+			if ( ! $this->is_meta_query_translatable( $hpos_meta_query ) ) {
+				return [];
+			}
+
 			$args['meta_query'] = [ $hpos_meta_query ];
 		}
 
@@ -220,8 +224,10 @@ class OrdersHPOSQuery {
 
 		$mapping = [
 			'id'            => 'ID',
-			'date_created'  => 'date',
-			'date_modified' => 'modified',
+			'date'          => 'post_date_gmt',
+			'date_created'  => 'post_date_gmt',
+			'modified'      => 'post_modified_gmt',
+			'date_modified' => 'post_modified_gmt',
 			'parent'        => 'post_parent',
 			'total'         => 'meta._order_total.double',
 			'order_total'   => 'meta._order_total.double',
@@ -518,5 +524,36 @@ class OrdersHPOSQuery {
 			'value'   => is_array( $value ) ? array_map( $format, $value ) : $format( $value ),
 			'compare' => $compare,
 		];
+	}
+
+	/**
+	 * Checks whether ElasticPress can translate all the clauses of a meta_query.
+	 *
+	 * ElasticPress matches a single meta key exactly, and does not support regular expressions.
+	 *
+	 * @param array $meta_query Meta query, or a nested group of clauses.
+	 * @return bool
+	 */
+	protected function is_meta_query_translatable( array $meta_query ): bool {
+		foreach ( $meta_query as $clause ) {
+			if ( ! is_array( $clause ) ) {
+				continue;
+			}
+
+			// Like WooCommerce, an array without a key or a value is a nested group.
+			if ( ! isset( $clause['key'] ) && ! isset( $clause['value'] ) ) {
+				$is_translatable = $this->is_meta_query_translatable( $clause );
+			} else {
+				$is_translatable = ! empty( $clause['key'] ) && ! is_array( $clause['key'] )
+					&& '=' === ( $clause['compare_key'] ?? '=' )
+					&& ! in_array( strtoupper( $clause['compare'] ?? '' ), [ 'REGEXP', 'NOT REGEXP', 'RLIKE' ], true );
+			}
+
+			if ( ! $is_translatable ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

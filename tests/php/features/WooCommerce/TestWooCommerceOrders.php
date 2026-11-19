@@ -1653,6 +1653,232 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	}
 
 	/**
+	 * Test HPOS date sorting uses the GMT dates, like WooCommerce.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_date_orderby_uses_gmt_dates() {
+		$this->enable_hpos();
+
+		update_option( 'timezone_string', 'America/New_York' );
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Clocks fall back on 2026-11-01, so the second order has an earlier local time than the first.
+		$order_ids = [];
+		foreach ( [ '2026-11-01T05:50:00+00:00', '2026-11-01T06:10:00+00:00' ] as $date_created ) {
+			$order = new \WC_Order();
+			$order->set_date_created( $date_created );
+			$order->save();
+			$order_ids[] = $order->get_id();
+			ElasticPress\Indexables::factory()->get( 'post' )->index( $order->get_id(), true );
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		foreach ( [ 'date', 'date_created' ] as $orderby ) {
+			$this->orders->clear_elasticsearch_success_order_ids();
+
+			$orders = wc_get_orders(
+				[
+					'limit'   => 1,
+					'orderby' => $orderby,
+					'order'   => 'DESC',
+				]
+			);
+
+			$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+			$this->assertEquals( $order_ids[1], $orders[0]->get_id() );
+		}
+	}
+
+	/**
+	 * Test the HPOS query integration keeps the result of an earlier woocommerce_hpos_pre_query callback.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_query_keeps_earlier_pre_query_result() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$order_ids = [];
+		foreach ( range( 1, 2 ) as $i ) {
+			$order = new \WC_Order();
+			$order->save();
+			ElasticPress\Indexables::factory()->get( 'post' )->index( $order->get_id(), true );
+			$order_ids[] = $order->get_id();
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$earlier_result = function () use ( $order_ids ) {
+			return [ [ $order_ids[1] ], 1, 1 ];
+		};
+		add_filter( 'woocommerce_hpos_pre_query', $earlier_result, 5 );
+
+		$orders = wc_get_orders( [] );
+
+		remove_filter( 'woocommerce_hpos_pre_query', $earlier_result, 5 );
+
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $order_ids[1], $orders[0]->get_id() );
+		$this->assertFalse( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+	}
+
+	/**
+	 * Test HPOS refund updates are synced.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_updated_refund_is_synced() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_indexable = ElasticPress\Indexables::factory()->get( 'post' );
+
+		$order = new \WC_Order();
+		$order->save();
+
+		$refund = new \WC_Order_Refund();
+		$refund->set_parent_id( $order->get_id() );
+		$refund->set_amount( 10 );
+		$refund->save();
+		$post_indexable->index( $refund->get_id(), true );
+
+		$post_indexable->sync_manager->reset_sync_queue();
+
+		$refund->set_amount( 20 );
+		$refund->save();
+
+		$this->assertArrayHasKey( $refund->get_id(), $post_indexable->sync_manager->get_sync_queue() );
+
+		$post_indexable->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = $post_indexable->get( $refund->get_id() );
+		$this->assertEquals( 20, $document['meta']['_refund_amount'][0]['double'] );
+	}
+
+	/**
+	 * Test HPOS meta queries ElasticPress cannot translate are left to WooCommerce.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_untranslatable_meta_query_falls_back() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$order_ids = [];
+		foreach ( [ 'ABC-1', 'XYZ-ABC' ] as $external_ref ) {
+			$order = new \WC_Order();
+			$order->add_meta_data( 'external_ref', $external_ref );
+			$order->save();
+			$order_ids[] = $order->get_id();
+			ElasticPress\Indexables::factory()->get( 'post' )->index( $order->get_id(), true );
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$meta_queries = [
+			'REGEXP'      => [
+				[
+					'key'     => 'external_ref',
+					'value'   => '^ABC',
+					'compare' => 'REGEXP',
+				],
+			],
+			'RLIKE'       => [
+				'relation' => 'OR',
+				[
+					'key'     => 'external_ref',
+					'value'   => '^ABC',
+					'compare' => 'rlike',
+				],
+			],
+			'NOT REGEXP'  => [
+				[
+					'key'     => 'external_ref',
+					'value'   => '^ABC',
+					'compare' => 'NOT REGEXP',
+				],
+			],
+			'compare_key' => [
+				[
+					'key'         => 'external_',
+					'compare_key' => 'LIKE',
+				],
+			],
+			'key array'   => [
+				[
+					'key'   => [ 'external_ref', 'other_ref' ],
+					'value' => 'ABC-1',
+				],
+			],
+			'no key'      => [
+				[
+					'relation' => 'AND',
+					[
+						'value' => 'XYZ-ABC',
+					],
+				],
+			],
+		];
+
+		$expected = [
+			'REGEXP'      => [ $order_ids[0] ],
+			'RLIKE'       => [ $order_ids[0] ],
+			'NOT REGEXP'  => [ $order_ids[1] ],
+			'compare_key' => $order_ids,
+			'key array'   => [ $order_ids[0] ],
+			'no key'      => [ $order_ids[1] ],
+		];
+
+		foreach ( $meta_queries as $name => $meta_query ) {
+			$orders = wc_get_orders( [ 'meta_query' => $meta_query ] );
+
+			$this->assertEqualsCanonicalizing( $expected[ $name ], array_map( fn( $order ) => $order->get_id(), $orders ), $name );
+			foreach ( $orders as $order ) {
+				$this->assertFalse( $this->orders->order_has_elasticsearch_success( $order ), $name );
+			}
+		}
+
+		// Supported comparisons still use Elasticsearch.
+		$orders = wc_get_orders(
+			[
+				'meta_query' => [
+					[
+						'key'         => 'external_ref',
+						'value'       => 'ABC-1',
+						'compare_key' => '=',
+					],
+				],
+			]
+		);
+
+		$this->assertCount( 1, $orders );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+	}
+
+	/**
 	 * Test HPOS paid and completed date queries.
 	 *
 	 * @since 5.4.0

@@ -59,6 +59,7 @@ class OrdersHPOS {
 		add_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_refund_created', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
+		add_action( 'woocommerce_update_order_refund', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_trash_order', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_untrash_order', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_delete_order', [ $this, 'delete_order' ] );
@@ -78,6 +79,7 @@ class OrdersHPOS {
 		remove_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_refund_created', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
+		remove_action( 'woocommerce_update_order_refund', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_trash_order', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_untrash_order', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_delete_order', [ $this, 'delete_order' ] );
@@ -368,7 +370,8 @@ class OrdersHPOS {
 	 * @return array|null Order data array or null to continue with default query.
 	 */
 	public function maybe_intercept_wc_orders_query( $order_data, OrdersTableQuery $query ) {
-		if ( ! $this->should_integrate_with_query( $query ) ) {
+		// Keep the result of an earlier callback.
+		if ( null !== $order_data || ! $this->should_integrate_with_query( $query ) ) {
 			return $order_data;
 		}
 
