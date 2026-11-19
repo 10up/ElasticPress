@@ -165,6 +165,25 @@ class TestInstantResults extends BaseTestCase {
 	}
 
 	/**
+	 * Test that a dashboard sync on a single site saves the search template.
+	 *
+	 * @group instant-results
+	 * @group skip-on-multi-site
+	 * @since 5.3.6
+	 */
+	public function test_on_sync_complete_saves_template_on_single_site() {
+		$feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
+
+		// Dashboard sync
+		$feature->on_sync_complete( [ 'network_wide' => 0 ] );
+		$this->assertSame( 1, did_action( 'ep_instant_results_template_saved' ) );
+
+		// WP-CLI sync
+		$feature->on_sync_complete( [ 'network_wide' => null ] );
+		$this->assertSame( 2, did_action( 'ep_instant_results_template_saved' ) );
+	}
+
+	/**
 	 * Test the epio_delete_search_template method.
 	 *
 	 * @group instant-results

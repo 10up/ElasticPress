@@ -14,12 +14,38 @@ namespace ElasticPressTest;
 class TestIndexHelper extends BaseTestCase {
 
 	/**
+	 * Test that error data keeps a stack trace when messages share an error key.
+	 *
+	 * @since 5.3.6
+	 * @group index-helper
+	 */
+	public function test_build_message_errors_data_keeps_stack_trace_for_shared_key() {
+		// Both messages map to the "no such index [???]" key.
+		$messages = [
+			'1 (Post): [index_not_found_exception] no such index [first]',
+			'2 (Post): [prepare_document_error] no such index [second] in wp-content/plugins/example.php:10',
+		];
+
+		$stack_traces = [
+			$messages[1] => '#0 wp-content/plugins/example.php(10): example()',
+		];
+
+		$method = new \ReflectionMethod( \ElasticPress\IndexHelper::class, 'build_message_errors_data' );
+		$method->setAccessible( true );
+		$errors = $method->invoke( \ElasticPress\IndexHelper::factory(), $messages, $stack_traces );
+
+		$this->assertCount( 1, $errors );
+		$this->assertSame( 2, $errors['no such index [???]']['count'] );
+		$this->assertSame( $stack_traces[ $messages[1] ], $errors['no such index [???]']['stack_trace'] );
+	}
+
+	/**
 	 * Test if the ep_sync_args filter is applied in the full_index method
 	 *
 	 * @since 4.5.0
-	 * @group indexHelper
+	 * @group index-helper
 	 */
-	public function testFullIndexEpSyncArgsFilter() {
+	public function test_full_index_ep_sync_args_filter() {
 		$index_helper = \ElasticPress\IndexHelper::factory();
 
 		$args = [
@@ -40,11 +66,67 @@ class TestIndexHelper extends BaseTestCase {
 	}
 
 	/**
+	 * Test that a full sync ends when a batch comes back empty before the offset reaches the total,
+	 * instead of starting over from the first object.
+	 *
+	 * @since 5.3.6
+	 * @group index-helper
+	 */
+	public function test_full_index_ends_on_empty_batch() {
+		global $wpdb;
+
+		\ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		\ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+
+		$this->ep_factory->post->create_many( 4 );
+
+		$created = false;
+
+		// A post created while the sync runs raises the total, but its ID is above the ones still to be synced.
+		$create_post = function () use ( &$created, $wpdb ) {
+			if ( $created ) {
+				return;
+			}
+
+			$created = true;
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->insert(
+				$wpdb->posts,
+				[
+					'post_title'            => 'Created mid-sync',
+					'post_status'           => 'publish',
+					'post_type'             => 'post',
+					'post_content'          => '',
+					'post_excerpt'          => '',
+					'to_ping'               => '',
+					'pinged'                => '',
+					'post_content_filtered' => '',
+				]
+			);
+		};
+		add_action( 'ep_pre_index_batch', $create_post );
+
+		\ElasticPress\IndexHelper::factory()->full_index(
+			[
+				'method'        => 'cli',
+				'indexables'    => [ 'post' ],
+				'per_page'      => 2,
+				'output_method' => '__return_null',
+			]
+		);
+
+		$last_sync = \ElasticPress\Utils\get_option( 'ep_last_cli_index' );
+
+		$this->assertSame( 4, $last_sync['synced'] );
+	}
+
+	/**
 	 * Test get_index_default_per_page
 	 *
-	 * @group indexHelper
+	 * @group index-helper
 	 */
-	public function testGetIndexDefaultPerPage() {
+	public function test_get_index_default_per_page() {
 		$index_helper = \ElasticPress\IndexHelper::factory();
 
 		/**

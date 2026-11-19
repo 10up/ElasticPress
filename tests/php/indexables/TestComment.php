@@ -54,7 +54,7 @@ class TestComment extends BaseTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		$this->deleteAllComments();
+		$this->delete_all_comments();
 
 		$this->fired_actions = array();
 	}
@@ -64,7 +64,7 @@ class TestComment extends BaseTestCase {
 	 *
 	 * @since 3.6.0
 	 */
-	public function deleteAllComments() {
+	public function delete_all_comments() {
 
 		foreach ( get_comments() as $comment ) {
 			wp_delete_comment( $comment->comment_ID, true );
@@ -78,9 +78,9 @@ class TestComment extends BaseTestCase {
 	 * @param bool $has_child Create child comment
 	 * @return array
 	 * @since 3.6.0
-	 * @group comments
+	 * @group comment
 	 */
-	public function createComments( $number = 4, $has_child = false ) {
+	public function create_comments( $number = 4, $has_child = false ) {
 		$parent_comment_id = 0;
 		$child_comment_id  = 0;
 		$comment_ids       = [];
@@ -128,9 +128,9 @@ class TestComment extends BaseTestCase {
 	 * Test a comment sync
 	 *
 	 * @since 3.6.0
-	 * @group comments
+	 * @group comment
 	 */
-	public function testCommentSync() {
+	public function test_comment_sync() {
 		add_action(
 			'ep_sync_comment_on_transition',
 			function () {
@@ -168,7 +168,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentSyncMeta() {
+	public function test_comment_sync_meta() {
 		$post_id = $this->ep_factory->post->create();
 
 		$comment_id = wp_insert_comment(
@@ -195,7 +195,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentSyncOnMetaUpdate() {
+	public function test_comment_sync_on_meta_update() {
 		$post_id = $this->ep_factory->post->create();
 
 		$comment_id = wp_insert_comment(
@@ -217,7 +217,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentSyncKill() {
+	public function test_comment_sync_kill() {
 		$post_id = $this->ep_factory->post->create();
 
 		$created_comment_id = wp_insert_comment(
@@ -251,9 +251,9 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testBasicCommentQuery() {
+	public function test_basic_comment_query() {
 
-		$this->createComments( 3 );
+		$this->create_comments( 3 );
 
 		// First try without ES and make sure everything is right.
 		$comments_query = new \WP_Comment_Query( [] );
@@ -305,8 +305,8 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryNumber() {
-		$this->createComments();
+	public function test_comment_query_number() {
+		$this->create_comments();
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -328,8 +328,8 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryOffset() {
-		$this->createComments( 6 );
+	public function test_comment_query_offset() {
+		$this->create_comments( 6 );
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -351,8 +351,8 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryOrderCommentContent() {
-		$this->createComments();
+	public function test_comment_query_order_comment_content() {
+		$this->create_comments();
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -391,8 +391,8 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryOrderCommentPostType() {
-		$this->createComments();
+	public function test_comment_query_order_comment_post_type() {
+		$this->create_comments();
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -412,8 +412,8 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryOrderCommentID() {
-		$this->createComments();
+	public function test_comment_query_order_comment_id() {
+		$this->create_comments();
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -455,7 +455,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryOrderCommentPostID() {
+	public function test_comment_query_order_comment_post_id() {
 		$post_id_1 = $this->ep_factory->post->create();
 		$post_id_2 = $this->ep_factory->post->create();
 
@@ -510,9 +510,9 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryIds() {
+	public function test_comment_query_ids() {
 
-		$created_comments = $this->createComments( 3 );
+		$created_comments = $this->create_comments( 3 );
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -538,9 +538,9 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryCount() {
+	public function test_comment_query_count() {
 
-		$this->createComments( 3 );
+		$this->create_comments( 3 );
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -562,8 +562,8 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryHierarchical() {
-		$created_comments = $this->createComments( 0, true );
+	public function test_comment_query_hierarchical() {
+		$created_comments = $this->create_comments( 0, true );
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -603,7 +603,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentDelete() {
+	public function test_comment_delete() {
 		add_action(
 			'ep_sync_comment_on_transition',
 			function () {
@@ -660,9 +660,9 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryPaged() {
+	public function test_comment_query_paged() {
 
-		$this->createComments( 7 );
+		$this->create_comments( 7 );
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -683,7 +683,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryAuthorEmail() {
+	public function test_comment_query_author_email() {
 		$post_id = $this->ep_factory->post->create();
 
 		$this->ep_factory->comment->create(
@@ -749,7 +749,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryAuthorUrl() {
+	public function test_comment_query_author_url() {
 		$post_id = $this->ep_factory->post->create();
 
 		$this->ep_factory->comment->create(
@@ -816,7 +816,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryUserId() {
+	public function test_comment_query_user_id() {
 		$current_user_id = get_current_user_id();
 
 		$post_id = $this->ep_factory->post->create();
@@ -878,7 +878,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryAuthorIn() {
+	public function test_comment_query_author_in() {
 		$current_user_id   = get_current_user_id();
 		$another_author_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
@@ -941,7 +941,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryAuthorNotIn() {
+	public function test_comment_query_author_not_in() {
 		$current_user_id   = get_current_user_id();
 		$another_author_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
@@ -997,8 +997,8 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryCommentIn() {
-		$created_comments = $this->createComments();
+	public function test_comment_query_comment_in() {
+		$created_comments = $this->create_comments();
 
 		$test_comments = [ $created_comments['comment_ids'][0], $created_comments['comment_ids'][1] ];
 
@@ -1027,8 +1027,8 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryCommentNotIn() {
-		$created_comments = $this->createComments( 5 );
+	public function test_comment_query_comment_not_in() {
+		$created_comments = $this->create_comments( 5 );
 
 		$test_comments = [ $created_comments['comment_ids'][0], $created_comments['comment_ids'][1] ];
 
@@ -1056,7 +1056,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryDateQuery() {
+	public function test_comment_query_date_query() {
 
 		$post_id   = $this->ep_factory->post->create();
 		$in_range  = [];
@@ -1175,7 +1175,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryKarma() {
+	public function test_comment_query_karma() {
 
 		$post_id   = $this->ep_factory->post->create();
 		$match     = [];
@@ -1240,7 +1240,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryMeta() {
+	public function test_comment_query_meta() {
 
 		$post_id = $this->ep_factory->post->create();
 		$match   = [];
@@ -1300,7 +1300,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryMetaQuery() {
+	public function test_comment_query_meta_query() {
 
 		$post_id = $this->ep_factory->post->create();
 		$match   = [];
@@ -1368,8 +1368,8 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryParentIn() {
-		$created_comments = $this->createComments( 3, true );
+	public function test_comment_query_parent_in() {
+		$created_comments = $this->create_comments( 3, true );
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -1395,8 +1395,8 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryParentNotIn() {
-		$created_comments = $this->createComments( 3, true );
+	public function test_comment_query_parent_not_in() {
+		$created_comments = $this->create_comments( 3, true );
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -1422,7 +1422,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryPostAuthor() {
+	public function test_comment_query_post_author() {
 
 		$user_id_1 = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		$user_id_2 = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -1535,9 +1535,9 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryPostId() {
-		$this->createComments();
-		$created_comments = $this->createComments( 3 );
+	public function test_comment_query_post_id() {
+		$this->create_comments();
+		$created_comments = $this->create_comments( 3 );
 
 		$comments_query = new \WP_Comment_Query(
 			[
@@ -1597,7 +1597,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryPostStatus() {
+	public function test_comment_query_post_status() {
 
 		$post_id_1 = $this->ep_factory->post->create( [ 'post_status' => 'publish' ] );
 		$post_id_2 = $this->ep_factory->post->create( [ 'post_status' => 'draft' ] );
@@ -1669,7 +1669,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryPostType() {
+	public function test_comment_query_post_type() {
 
 		$post_id_1 = $this->ep_factory->post->create( [ 'post_type' => 'post' ] );
 		$post_id_2 = $this->ep_factory->post->create( [ 'post_type' => 'page' ] );
@@ -1746,7 +1746,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryPostParent() {
+	public function test_comment_query_post_parent() {
 
 		$post_id_1 = $this->ep_factory->post->create( [ 'post_type' => 'page' ] );
 		$post_id_2 = $this->ep_factory->post->create(
@@ -1803,7 +1803,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQuerySearch() {
+	public function test_comment_query_search() {
 		$post_id = $this->ep_factory->post->create();
 
 		$this->ep_factory->comment->create(
@@ -1873,7 +1873,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryStatus() {
+	public function test_comment_query_status() {
 
 		$post_id = $this->ep_factory->post->create();
 		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -1985,7 +1985,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryType() {
+	public function test_comment_query_type() {
 
 		$post_id = $this->ep_factory->post->create();
 
@@ -2073,7 +2073,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentQueryPostName() {
+	public function test_comment_query_post_name() {
 
 		$post_id = $this->ep_factory->post->create(
 			[
@@ -2134,7 +2134,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testWooCommerceReviewIndexing() {
+	public function test_woocommerce_review_indexing() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -2178,7 +2178,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentIndexableQueryDb() {
+	public function test_comment_indexable_query_db() {
 		ElasticPress\Features::factory()->deactivate_feature( 'woocommerce' );
 
 		$post_id = $this->ep_factory->post->create();
@@ -2389,7 +2389,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentIndexableQueryDbWithWooCommerceFeatureEnabled() {
+	public function test_comment_indexable_query_db_with_woocommerce_feature_enabled() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -2438,7 +2438,7 @@ class TestComment extends BaseTestCase {
 	 * @since 3.6.0
 	 * @group comment
 	 */
-	public function testCommentIndexableQueryDbWithOrderNote() {
+	public function test_comment_indexable_query_db_with_order_note() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -2507,9 +2507,9 @@ class TestComment extends BaseTestCase {
 	 * Check if a not allowed comment type is not indexed
 	 *
 	 * @since 3.6.0
-	 * @group comments
+	 * @group comment
 	 */
-	public function testCommentSyncOrderNote() {
+	public function test_comment_sync_order_note() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -2544,9 +2544,9 @@ class TestComment extends BaseTestCase {
 	 * when meta is updated.
 	 *
 	 * @since 3.6.0
-	 * @group comments
+	 * @group comment
 	 */
-	public function testCommentSyncOrderNoteWithMeta() {
+	public function test_comment_sync_order_note_with_meta() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -2583,9 +2583,9 @@ class TestComment extends BaseTestCase {
 	 * When the Protected Content is enabled unapproved comments will be indexed.
 	 *
 	 * @since 3.6.0
-	 * @group comments
+	 * @group comment
 	 */
-	public function testCommentIndexingWithProtectedContentEnabled() {
+	public function test_comment_indexing_with_protected_content_enabled() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -2626,7 +2626,7 @@ class TestComment extends BaseTestCase {
 	 * Test if the mapping applies the ep_stop filter correctly
 	 *
 	 * @since 4.7.0
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_mapping_ep_stop_filter() {
 		$indexable      = ElasticPress\Indexables::factory()->get( 'comment' );

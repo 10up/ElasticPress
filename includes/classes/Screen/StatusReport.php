@@ -245,7 +245,8 @@ class StatusReport {
 			return $value ? 'true' : 'false';
 		}
 
-		return (string) $value;
+		// Values may be escaped for the HTML view, but this report is plain text
+		return wp_specialchars_decode( (string) $value, ENT_QUOTES );
 	}
 
 	/**

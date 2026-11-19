@@ -191,18 +191,38 @@ jobs:
     - name: Install dependencies
       run: npm ci --include=dev
 
+    - name: Get Playwright version
+      id: playwright-version
+      run: echo "version=$(npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+    # Browser binaries are tied to the Playwright version, so key on it.
+    - name: Restore Playwright browser cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+
     # Playwright's own Chromium, not the runner's Google Chrome: the runner
     # ships whatever Chrome is current, and versions past the one this
     # Playwright release pins hang the click actionability check. ffmpeg is
-    # for video (retain-on-failure).
+    # for video (retain-on-failure). Downloads come from Playwright's CDN and
+    # are a no-op when the cache above was restored.
+    #
+    # No --with-deps / install-deps: ubuntu-latest already has every library
+    # Chromium needs (it ships Google Chrome), so apt would only add fonts the
+    # tests don't use, and an apt mirror outage would fail every job. If a
+    # future image drops a library, Chromium fails to launch with "Host system
+    # is missing dependencies", listing what to install.
     - name: Install Playwright browser
-      run: npx playwright install --with-deps chromium ffmpeg
+      run: npx playwright install chromium ffmpeg
 
     - name: Set up WP environment with Elasticsearch
+      id: env-es
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
       if: matrix.esVersion != 'EP.io'
 
     - name: Set up WP environment with Elasticsearch (EP.io)
+      id: env-epio
       run: |
         npm run env start
         npm run env:install-cli
@@ -258,19 +278,26 @@ jobs:
       if: ${{ always() && matrix.esVersion != 'EP.io' }}
       run: cd bin/es-docker/ && docker compose down
 
+    # always(), not !cancelled(): indices on the shared EP.io host must be
+    # deleted even when the job is cancelled. It needs WordPress, though, so it
+    # is skipped when the environment never started (no indices were created).
     - name: Delete Elasticsearch indices
-      if: ${{ always() && matrix.esVersion == 'EP.io' }}
+      if: ${{ always() && steps.env-epio.outcome == 'success' }}
       run: |
         PLUGIN_NAME=$(basename "$PWD")
         ./bin/wp-env-cli wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
         ./bin/wp-env-cli wordpress "wp --allow-root elasticpress-tests delete-all-indices"
 
+    # Regression check for uninstall.php (#3407). It runs even when the tests
+    # failed, but not when the job was cancelled or WordPress never started.
+    # The tests leave the plugin either network-activated or activated on the
+    # main site, so one of the two deactivate commands is expected to fail.
     - name: Test plugin uninstall
-      if: always()
+      if: ${{ !cancelled() && (steps.env-es.outcome == 'success' || steps.env-epio.outcome == 'success') }}
       run: |
         PLUGIN_NAME=$(basename "$PWD")
-        ! ./bin/wp-env-cli wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
-        ! ./bin/wp-env-cli wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME}"
+        ./bin/wp-env-cli wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network" || true
+        ./bin/wp-env-cli wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME}" || true
         ./bin/wp-env-cli wordpress "cp -r wp-content/plugins/${PLUGIN_NAME} wp-content/plugins/ep-delete"
         ./bin/wp-env-cli wordpress "wp --allow-root plugin uninstall ep-delete"
 

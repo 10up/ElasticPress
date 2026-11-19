@@ -42,7 +42,7 @@ class TestComments extends \ElasticPressTest\BaseTestCase {
 	 *
 	 * @group rest
 	 * @group rest-comments
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_get_comments_omits_comments_on_password_protected_posts() {
 		$fixtures = $this->create_findme_comments();
@@ -84,7 +84,7 @@ class TestComments extends \ElasticPressTest\BaseTestCase {
 	 *
 	 * @group rest
 	 * @group rest-comments
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_get_comments_includes_password_protected_comments_for_editors() {
 		$fixtures = $this->create_findme_comments();
@@ -104,7 +104,7 @@ class TestComments extends \ElasticPressTest\BaseTestCase {
 	 *
 	 * @group rest
 	 * @group rest-comments
-	 * @group comments
+	 * @group comment
 	 */
 	public function test_get_comments_includes_password_protected_comments_with_password_cookie() {
 		$fixtures = $this->create_findme_comments();
