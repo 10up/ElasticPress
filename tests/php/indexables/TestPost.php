@@ -10712,7 +10712,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test that `bulk_index_dynamically` doesn't send the documents of a failed request again
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.7
 	 * @group post
 	 */
 	public function test_bulk_index_dynamically_does_not_resend_failed_documents() {

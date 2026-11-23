@@ -124,7 +124,7 @@ class TestIndexHelper extends BaseTestCase {
 	/**
 	 * Test that a sync doesn't count a batch as synced when one of its requests failed
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.7
 	 * @group index-helper
 	 */
 	public function test_full_index_counts_batch_with_failed_request_as_failed() {
