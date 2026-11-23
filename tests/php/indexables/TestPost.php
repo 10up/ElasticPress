@@ -10710,6 +10710,46 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test that `bulk_index_dynamically` doesn't send the documents of a failed request again
+	 *
+	 * @since 5.4.0
+	 * @group post
+	 */
+	public function test_bulk_index_dynamically_does_not_resend_failed_documents() {
+		// Each document is larger than the default buffer size, so they don't fit in one request
+		$post_ids = $this->ep_factory->post->create_many( 5, [ 'post_content' => str_repeat( 'lorem ipsum ', 50000 ) ] );
+
+		$sent = [];
+		add_filter(
+			'pre_http_request',
+			function ( $preempt, $args, $url ) use ( &$sent ) {
+				if ( ! str_contains( $url, '/_bulk' ) ) {
+					return $preempt;
+				}
+
+				preg_match_all( '/\{"index":\{"_id":(\d+)/', $args['body'], $matches );
+				$sent[] = array_map( 'absint', $matches[1] );
+
+				// Every request fails, until a request sent over and over again would stop
+				return [
+					'body'     => '{}',
+					'response' => [
+						'code'    => count( $sent ) > 10 ? 200 : 503,
+						'message' => '',
+					],
+				];
+			},
+			10,
+			3
+		);
+
+		( new \ElasticPress\Indexable\Post\Post() )->bulk_index_dynamically( $post_ids );
+
+		$this->assertGreaterThan( 1, count( $sent ), 'The documents should take more than one request' );
+		$this->assertSame( $post_ids, array_merge( ...$sent ), 'Each document should be sent once' );
+	}
+
+	/**
 	 * Data provider for the `ep_pre_prepare_documents` test.
 	 *
 	 * @since 5.3.6

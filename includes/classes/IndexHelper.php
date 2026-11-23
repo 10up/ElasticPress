@@ -669,6 +669,7 @@ class IndexHelper {
 					}
 
 					$failed_objects = [];
+					$failed_request = null;
 					foreach ( $bulk_requests as $return ) {
 						/**
 						 * Fires after bulk indexing
@@ -680,7 +681,8 @@ class IndexHelper {
 						do_action( "ep_cli_{$indexable->slug}_bulk_index", $queued_items, $return );
 
 						if ( is_wp_error( $return ) ) {
-							$should_retry = true;
+							$should_retry   = true;
+							$failed_request = $return;
 						}
 						if ( is_array( $return ) && isset( $return['errors'] ) && true === $return['errors'] ) {
 							$failed_objects = array_merge(
@@ -694,6 +696,9 @@ class IndexHelper {
 							);
 						}
 					}
+
+					// The documents of a failed request are not sent again, so the batch failed even if a later request went through.
+					$return = $failed_request ?? $return;
 				}
 
 				// Things worked, we don't need to try again.
