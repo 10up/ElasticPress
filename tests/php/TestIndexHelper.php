@@ -122,6 +122,54 @@ class TestIndexHelper extends BaseTestCase {
 	}
 
 	/**
+	 * Test that a sync doesn't count a batch as synced when one of its requests failed
+	 *
+	 * @since 5.3.7
+	 * @group index-helper
+	 */
+	public function test_full_index_counts_batch_with_failed_request_as_failed() {
+		\ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		\ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+
+		// Each document is larger than the default buffer size, so the batch takes more than one request
+		$this->ep_factory->post->create_many( 3, [ 'post_content' => str_repeat( 'lorem ipsum ', 50000 ) ] );
+
+		// Only the first request fails
+		$requests = 0;
+		add_filter(
+			'pre_http_request',
+			function ( $preempt, $args, $url ) use ( &$requests ) {
+				if ( ! str_contains( $url, '/_bulk' ) || ++$requests > 1 ) {
+					return $preempt;
+				}
+
+				return [
+					'body'     => '',
+					'response' => [
+						'code'    => 503,
+						'message' => '',
+					],
+				];
+			},
+			10,
+			3
+		);
+
+		\ElasticPress\IndexHelper::factory()->full_index(
+			[
+				'method'        => 'cli',
+				'indexables'    => [ 'post' ],
+				'output_method' => '__return_null',
+			]
+		);
+
+		$last_sync = \ElasticPress\Utils\get_option( 'ep_last_cli_index' );
+
+		$this->assertGreaterThan( 1, $requests, 'The batch should take more than one request' );
+		$this->assertGreaterThan( 0, $last_sync['failed'], 'The batch should be counted as failed' );
+	}
+
+	/**
 	 * Test get_index_default_per_page
 	 *
 	 * @group index-helper

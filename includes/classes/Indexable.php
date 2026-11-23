@@ -613,8 +613,7 @@ abstract class Indexable {
 		/*
 		 * This script will use two main arrays: $body and $documents, being $body the
 		 * documents to be sent in the next request and $documents the list of docs to be indexed.
-		 * The do-while loop will stop if all documents are sent or if a request fails even sending
-		 * a buffer as small as possible.
+		 * The do-while loop will stop once all documents are sent.
 		 */
 		do {
 			$next_document          = array_shift( $documents );
@@ -680,46 +679,30 @@ abstract class Indexable {
 			if ( is_wp_error( $result ) ) {
 				$error_code = $result->get_error_code();
 
-				// Too many requests, wait and try again.
+				// Too many requests, wait before sending the next documents.
 				if ( 429 === $error_code ) {
 					sleep( 2 );
 				}
 
-				// If the error is not a "Request too big" then we really fail this batch of documents.
-				if ( 413 !== $error_code ) {
-					$results[] = $result;
+				// A "Request too big" is sent again with fewer documents if it can be. Otherwise we really fail this batch
+				// of documents, and they are not sent again.
+				if ( 413 === $error_code && count( $body ) === 1 ) {
+					$max_buffer_size = min( $max_buffer_size, $current_body_size );
+				} elseif ( 413 === $error_code && $current_body_size !== $min_buffer_size ) {
+					// We have a too big buffer. Remove one doc from the body, and set both max and current as its size.
+					$removed_document   = array_pop( $body );
+					$current_body_size -= mb_strlen( $removed_document );
+					array_unshift( $documents, $removed_document );
+
+					$max_buffer_size = count( $body ) ?
+						max( $min_buffer_size, $current_body_size ) :
+						$min_buffer_size;
+
+					$current_buffer_size = $max_buffer_size;
 					continue;
 				}
-
-				if ( count( $body ) === 1 ) {
-					$max_buffer_size   = min( $max_buffer_size, $current_body_size );
-					$results[]         = $result;
-					$body              = [];
-					$current_body_size = 0;
-					continue;
-				}
-
-				// As the buffer is as small as possible, return the error.
-				if ( $current_body_size === $min_buffer_size ) {
-					$results[] = $result;
-					continue;
-				}
-
-				// We have a too big buffer. Remove one doc from the body, and set both max and current as its size.
-				$removed_document   = array_pop( $body );
-				$current_body_size -= mb_strlen( $removed_document );
-				array_unshift( $documents, $removed_document );
-
-				$max_buffer_size = count( $body ) ?
-					max( $min_buffer_size, $current_body_size ) :
-					$min_buffer_size;
-
-				$current_buffer_size = $max_buffer_size;
-				continue;
-			}
-
-			// Things worked so we can try to bump the buffer size.
-			if ( $current_buffer_size < $max_buffer_size && $current_body_size > $current_buffer_size ) {
+			} elseif ( $current_buffer_size < $max_buffer_size && $current_body_size > $current_buffer_size ) {
+				// Things worked so we can try to bump the buffer size.
 				$current_buffer_size = min( ( $current_buffer_size + $incremental_step ), $max_buffer_size );
 			}
 
