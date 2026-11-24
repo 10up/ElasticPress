@@ -383,6 +383,12 @@ class Features {
 		 */
 		do_action( 'ep_setup_features' );
 
+		/**
+		 * Activate the post indexable regardless of whether the Post Search
+		 * feature is enabled, so posts continue to sync to Elasticsearch.
+		 */
+		Indexables::factory()->activate( 'post' );
+
 		foreach ( $this->registered_features as $feature ) {
 			$feature->set_i18n_strings();
 
