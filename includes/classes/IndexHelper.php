@@ -440,7 +440,15 @@ class IndexHelper {
 		 */
 		$has_objects = ! empty( $this->current_query['objects'] );
 
-		if ( $has_objects && $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) {
+		/*
+		 * The total was counted when the sync started, so it misses objects that became indexable since. Past the
+		 * total, a batch is still indexed if it's below the last one. A batch that keeps coming back the same, e.g.,
+		 * because a filter turned off paging by ID, still ends the sync.
+		 */
+		$last_processed_id = $this->index_meta['current_sync_item']['last_processed_object_id'] ?? null;
+		$is_below_last     = $has_objects && $last_processed_id && end( $this->current_query['objects'] )->ID < $last_processed_id;
+
+		if ( ( $has_objects && $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) || $is_below_last ) {
 			$this->index_next_batch();
 		} else {
 			$this->index_cleanup();
@@ -494,7 +502,8 @@ class IndexHelper {
 
 		$args = [
 			'per_page'   => absint( $per_page ),
-			'ep_sync_id' => uniqid(),
+			// The same for every batch of a sync, so the total is counted once per sync instead of once per batch
+			'ep_sync_id' => $this->index_meta['start_time'],
 		];
 
 		if ( ! $indexable->support_indexing_advanced_pagination || 'offset' === $this->index_meta['pagination_method'] ) {
