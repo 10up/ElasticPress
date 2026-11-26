@@ -1359,19 +1359,21 @@ class IndexHelper {
 			return;
 		}
 
-		$indexable = Indexables::factory()->get( $current_sync_item['indexable'] );
+		$indexable  = Indexables::factory()->get( $current_sync_item['indexable'] );
+		$blog_id    = $current_sync_item['blog_id'] ?? null;
+		$index_name = $indexable->get_index_name( $blog_id );
 
-		if ( ! in_array( $indexable->get_index_name(), $this->index_meta['starting_indices'], true ) ) {
+		if ( ! in_array( $index_name, $this->index_meta['starting_indices'], true ) ) {
 			return;
 		}
 
-		$indexable->delete_index();
+		$indexable->delete_index( $blog_id );
 
 		$this->output_success(
 			sprintf(
 				/* translators: Index name */
 				esc_html__( 'Index %s deleted', 'elasticpress' ),
-				$indexable->get_index_name()
+				$index_name
 			)
 		);
 	}

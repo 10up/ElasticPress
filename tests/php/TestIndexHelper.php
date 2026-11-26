@@ -156,4 +156,142 @@ class TestIndexHelper extends BaseTestCase {
 		add_filter( 'ep_index_default_per_page', $change_via_ep_filter );
 		$this->assertEquals( 15, $index_helper->get_index_default_per_page() );
 	}
+
+	/**
+	 * Run an inactive task without changing the caller's site context.
+	 *
+	 * @param array $task Queued inactive task.
+	 * @param array $indices Index names captured when the run started.
+	 * @return array Output messages.
+	 */
+	private function process_inactive_task( array $task, array $indices ): array {
+		$helper   = new \ElasticPress\IndexHelper();
+		$messages = [];
+		$meta     = new \ReflectionProperty( $helper, 'index_meta' );
+		$meta->setAccessible( true );
+		$meta->setValue(
+			$helper,
+			[
+				'current_sync_item' => $task,
+				'starting_indices'  => $indices,
+			]
+		);
+		$args = new \ReflectionProperty( $helper, 'args' );
+		$args->setAccessible( true );
+		$args->setValue(
+			$helper,
+			[
+				'output_method' => static function ( $message ) use ( &$messages ) {
+					$messages[] = $message['message'];
+				},
+			]
+		);
+		$method = new \ReflectionMethod( $helper, 'process_not_active_indexable_sync_item' );
+		$method->setAccessible( true );
+		$method->invoke( $helper );
+		$this->assertNull( $meta->getValue( $helper )['current_sync_item'] );
+		\ElasticPress\Utils\delete_option( 'ep_index_meta' );
+
+		return $messages;
+	}
+
+	/**
+	 * A queued subsite's inactive index is deleted even when Main is current.
+	 *
+	 * @group index-helper
+	 * @group inactive-cleanup
+	 */
+	public function test_inactive_cleanup_uses_queued_site_for_deletion_and_log() {
+		$site_id   = self::factory()->blog->create();
+		$current   = get_current_blog_id();
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+		$main_name = $indexable->get_index_name();
+		$site_name = $indexable->get_index_name( $site_id );
+		$indexable->delete_index();
+		$indexable->delete_index( $site_id );
+		$this->assertTrue( $indexable->put_mapping() );
+		$this->assertTrue( \ElasticPress\Elasticsearch::factory()->put_mapping( $site_name, $indexable->generate_mapping() ) );
+
+		$messages = $this->process_inactive_task(
+			[
+				'indexable'   => 'post',
+				'blog_id'     => $site_id,
+				'put_mapping' => true,
+			],
+			[ $main_name, $site_name ]
+		);
+
+		$this->assertFalse( $indexable->index_exists( $site_id ), 'The queued site index must be deleted.' );
+		$this->assertTrue( $indexable->index_exists(), 'The caller site index must remain.' );
+		$this->assertSame( [ "Index {$site_name} deleted" ], $messages );
+		$this->assertSame( $current, get_current_blog_id() );
+	}
+
+	/**
+	 * Non-fresh and missing-target tasks never delete the current site's index.
+	 *
+	 * @group index-helper
+	 * @group inactive-cleanup
+	 */
+	public function test_inactive_cleanup_preserves_no_op_guards() {
+		$site_id   = self::factory()->blog->create();
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+		$main_name = $indexable->get_index_name();
+		$site_name = $indexable->get_index_name( $site_id );
+		$indexable->delete_index();
+		$indexable->delete_index( $site_id );
+		$this->assertTrue( $indexable->put_mapping() );
+		$this->assertTrue( \ElasticPress\Elasticsearch::factory()->put_mapping( $site_name, $indexable->generate_mapping() ) );
+
+		foreach ( [ false, true ] as $fresh ) {
+			$indices  = $fresh ? [ $main_name ] : [ $main_name, $site_name ];
+			$messages = $this->process_inactive_task(
+				[
+					'indexable'   => 'post',
+					'blog_id'     => $site_id,
+					'put_mapping' => $fresh,
+				],
+				$indices
+			);
+			$this->assertSame( [], $messages );
+			$this->assertTrue( $indexable->index_exists( $site_id ) );
+			$this->assertTrue( $indexable->index_exists() );
+		}
+
+		$indexable->delete_index( $site_id );
+		$messages = $this->process_inactive_task(
+			[
+				'indexable'   => 'post',
+				'blog_id'     => $site_id,
+				'put_mapping' => true,
+			],
+			[ $main_name ]
+		);
+		$this->assertSame( [], $messages );
+		$this->assertTrue( $indexable->index_exists() );
+	}
+
+	/**
+	 * Tasks without a site ID retain current-site and shared-index behavior.
+	 *
+	 * @group index-helper
+	 * @group inactive-cleanup
+	 */
+	public function test_inactive_cleanup_without_site_id_keeps_existing_scope() {
+		foreach ( [ 'post', 'global' ] as $slug ) {
+			$indexable = \ElasticPress\Indexables::factory()->get( $slug );
+			$indexable->delete_index();
+			$this->assertTrue( $indexable->put_mapping() );
+			$name     = $indexable->get_index_name();
+			$messages = $this->process_inactive_task(
+				[
+					'indexable'   => $slug,
+					'put_mapping' => true,
+				],
+				[ $name ]
+			);
+			$this->assertFalse( $indexable->index_exists() );
+			$this->assertSame( [ "Index {$name} deleted" ], $messages );
+		}
+	}
 }
