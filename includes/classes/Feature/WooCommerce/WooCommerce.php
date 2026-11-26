@@ -194,8 +194,12 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function should_integrate_with_query( $query ) {
-		// Lets make sure this doesn't interfere with the CLI
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		// Only the explicitly marked Orders template query may integrate under CLI.
+		$is_cli               = defined( 'WP_CLI' ) && WP_CLI;
+		$is_template_query    = $query->get( 'ep_order_search_template' ) && 'shop_order' === $query->get( 'post_type' );
+		$skip_cli_integration = $is_cli && ! $is_template_query;
+
+		if ( $skip_cli_integration ) {
 			return false;
 		}
 

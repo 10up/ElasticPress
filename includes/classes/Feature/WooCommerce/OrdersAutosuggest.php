@@ -26,13 +26,6 @@ class OrdersAutosuggest {
 	use ElasticPressIoTemplateManager;
 
 	/**
-	 * The name of the index.
-	 *
-	 * @var string
-	 */
-	protected $index;
-
-	/**
 	 * The search template.
 	 *
 	 * @var string
@@ -53,7 +46,6 @@ class OrdersAutosuggest {
 	 * @param WooCommerce|null $woocommerce WooCommerce feature object instance
 	 */
 	public function __construct( ?WooCommerce $woocommerce = null ) {
-		$this->index       = Indexables::factory()->get( 'post' )->get_index_name();
 		$this->woocommerce = $woocommerce ?
 			$woocommerce :
 			Features::factory()->get_registered_feature( 'woocommerce' );
@@ -74,7 +66,8 @@ class OrdersAutosuggest {
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
 		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
-		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
+		add_action( 'ep_after_sync_index', [ $this, 'on_sync_complete' ] );
+		add_action( 'ep_after_sync_item', [ $this, 'on_sync_item_complete' ], 10, 2 );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
 		add_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
@@ -95,7 +88,8 @@ class OrdersAutosuggest {
 	public function tear_down() {
 		remove_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
 		remove_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ] );
-		remove_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
+		remove_action( 'ep_after_sync_index', [ $this, 'on_sync_complete' ] );
+		remove_action( 'ep_after_sync_item', [ $this, 'on_sync_item_complete' ] );
 		remove_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
 		remove_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
 		remove_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
@@ -109,11 +103,76 @@ class OrdersAutosuggest {
 	}
 
 	/**
+	 * Save once for a native dashboard store after its last active task completes.
+	 *
+	 * @param array $item Completed task.
+	 * @param array $meta Remaining sync metadata.
+	 */
+	public function on_sync_item_complete( array $item, array $meta ): void {
+		$is_native_site = ! empty( $meta['site_context'] ) && ! empty( $item['blog_id'] );
+
+		if ( ! $is_native_site ) {
+			return;
+		}
+
+		foreach ( $meta['sync_stack'] as $pending ) {
+			$is_same_site = ( $pending['blog_id'] ?? null ) === $item['blog_id'];
+
+			if ( $is_same_site && Indexables::factory()->is_active( $pending['indexable'] ) ) {
+				return;
+			}
+		}
+
+		$this->epio_save_search_template();
+	}
+
+	/**
+	 * Save templates for non-native jobs, including current-site and network CLI runs.
+	 *
+	 * @param array $args Completed sync arguments.
+	 */
+	public function on_sync_complete( array $args ): void {
+		if ( ! empty( $args['site_context'] ) ) {
+			return;
+		}
+
+		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && isset( $args['network_wide'] );
+
+		if ( isset( $args['site_id'] ) ) {
+			$sites = [ Utils\get_site( $args['site_id'] ) ];
+		} elseif ( $is_network ) {
+			$limit = is_numeric( $args['network_wide'] ) ? (int) $args['network_wide'] : 0;
+			$sites = Utils\get_sites( $limit, true );
+		} else {
+			$this->epio_save_search_template();
+			return;
+		}
+
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			try {
+				$is_store_enabled = is_plugin_active( 'woocommerce/woocommerce.php' ) && $this->is_enabled();
+
+				if ( $is_store_enabled ) {
+					$this->epio_save_search_template();
+				}
+			} finally {
+				restore_current_blog();
+			}
+		}
+	}
+
+	/**
 	 * Get the endpoint for WooCommerce Orders search.
 	 *
 	 * @return string WooCommerce orders search endpoint.
 	 */
 	public function get_search_endpoint() {
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
+
 		/**
 		 * Filters the WooCommerce Orders search endpoint.
 		 *
@@ -122,7 +181,7 @@ class OrdersAutosuggest {
 		 * @param {string} $endpoint Endpoint path.
 		 * @param {string} $index Elasticsearch index.
 		 */
-		return apply_filters( 'ep_woocommerce_order_search_endpoint', "api/v1/search/orders/{$this->index}", $this->index );
+		return apply_filters( 'ep_woocommerce_order_search_endpoint', "api/v1/search/orders/{$index}", $index );
 	}
 
 	/**
@@ -131,6 +190,8 @@ class OrdersAutosuggest {
 	 * @return string WooCommerce Orders search template endpoint.
 	 */
 	public function get_template_endpoint(): string {
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
+
 		/**
 		 * Filters the WooCommerce Orders search template API endpoint.
 		 *
@@ -140,7 +201,7 @@ class OrdersAutosuggest {
 		 * @param {string} $index Elasticsearch index.
 		 * @returns {string} Search template API endpoint.
 		 */
-		return apply_filters( 'ep_woocommerce_order_search_template_endpoint', "api/v1/search/orders/{$this->index}/template", $this->index );
+		return apply_filters( 'ep_woocommerce_order_search_template_endpoint', "api/v1/search/orders/{$index}/template", $index );
 	}
 
 	/**

@@ -880,6 +880,15 @@ class IndexHelper {
 		$this->index_meta['current_sync_item'] = null;
 		$this->index_meta['offset']            = 0;
 
+		/**
+		 * Fires when an indexable task completes, in its site's current context.
+		 *
+		 * @hook ep_after_sync_item
+		 * @param {array} $current_sync_item Completed task.
+		 * @param {array} $index_meta Remaining sync metadata.
+		 */
+		do_action( 'ep_after_sync_item', $current_sync_item, $this->index_meta );
+
 		if ( $current_sync_item['failed'] ) {
 			if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$message = sprintf(

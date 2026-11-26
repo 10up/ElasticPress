@@ -484,4 +484,193 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 		remove_filter( 'pre_option_ep_feature_settings', $filter );
 		remove_filter( 'pre_site_option_ep_feature_settings', $filter );
 	}
+
+	/**
+	 * Endpoints follow the store after an instance has already been constructed.
+	 *
+	 * @group orders-completion
+	 */
+	public function test_template_endpoint_follows_current_store() {
+		$site_id = self::factory()->blog->create();
+		$origin  = get_current_blog_id();
+		switch_to_blog( $site_id );
+		$index = ElasticPress\Indexables::factory()->get( 'post' )->get_index_name();
+
+		try {
+			$this->assertSame( "api/v1/search/orders/{$index}/template", $this->orders_autosuggest->get_template_endpoint() );
+			$this->assertSame( "api/v1/search/orders/{$index}", $this->orders_autosuggest->get_search_endpoint() );
+		} finally {
+			restore_current_blog();
+		}
+
+		$this->assertSame( $origin, get_current_blog_id() );
+	}
+
+	/**
+	 * The marked template retains order fields under CLI without integrating normal queries.
+	 *
+	 * @group orders-completion
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_cli_template_contains_order_search_fields() {
+		define( 'WP_CLI', true );
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$settings                          = ElasticPress\Utils\get_option( 'ep_feature_settings', [] );
+		$settings['woocommerce']['orders'] = '1';
+		ElasticPress\Utils\update_option( 'ep_feature_settings', $settings );
+		$this->woocommerce_feature->orders->setup();
+		$this->orders_autosuggest->setup();
+		$template = $this->orders_autosuggest->get_search_template();
+
+		foreach ( [ 'meta.order_number.value', 'term_suggest', 'meta._billing_email.value', 'meta._billing_last_name.value', 'meta._billing_first_name.value' ] as $field ) {
+			$this->assertStringContainsString( $field, $template );
+		}
+
+		$this->assertStringContainsString( 'shop_order', $template );
+		$this->assertStringNotContainsString( 'post_password', $template );
+		$query = new \WP_Query();
+		$query->set( 'post_type', 'shop_order' );
+		$query->set( 's', 'ordinary CLI query' );
+		$this->assertFalse( $this->woocommerce_feature->should_integrate_with_query( $query ) );
+	}
+
+
+	/**
+	 * Enable template generation and capture actual template writes.
+	 *
+	 * @param array $writes Captured requests.
+	 */
+	private function capture_template_writes( array &$writes ): void {
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$settings                          = ElasticPress\Utils\get_option( 'ep_feature_settings', [] );
+		$settings['woocommerce']['orders'] = '1';
+		ElasticPress\Utils\update_option( 'ep_feature_settings', $settings );
+		update_option( 'active_plugins', [ 'woocommerce/woocommerce.php' ] );
+		$this->woocommerce_feature->setup();
+		add_filter( 'pre_transient_wc_attribute_taxonomies', '__return_empty_array' );
+		add_filter(
+			'pre_http_request',
+			static function ( $response, $args, $url ) use ( &$writes ) {
+				$is_template = 'PUT' === $args['method'] && false !== strpos( $url, '/api/v1/search/orders/' );
+
+				if ( $is_template ) {
+					$writes[] = [
+						'url'  => $url,
+						'body' => $args['body'],
+						'site' => get_current_blog_id(),
+					];
+					return [
+						'response' => [ 'code' => 200 ],
+						'body'     => '{}',
+						'headers'  => [],
+					];
+				}
+
+				return $response;
+			},
+			10,
+			3
+		);
+	}
+
+	/**
+	 * Non-native completion uses selected scope and restores the caller.
+	 *
+	 * @group orders-completion
+	 */
+	public function test_selected_completion_only_writes_target_template() {
+		$target = self::factory()->blog->create();
+		update_blog_option( $target, 'active_plugins', [ 'woocommerce/woocommerce.php' ] );
+		$writes = [];
+		$this->capture_template_writes( $writes );
+		$origin = get_current_blog_id();
+		do_action(
+			'ep_after_sync_index',
+			[
+				'site_id'      => $target,
+				'network_wide' => 0,
+			]
+		);
+		$this->assertSame( [ $target ], array_column( $writes, 'site' ) );
+		$this->assertStringContainsString( ElasticPress\Indexables::factory()->get( 'post' )->get_index_name( $target ) . '/template', $writes[0]['url'] );
+		$this->assertStringContainsString( 'meta.order_number.value', $writes[0]['body'] );
+		$this->assertSame( $origin, get_current_blog_id() );
+	}
+
+	/**
+	 * Network completion excludes stores without WooCommerce and ineligible sites.
+	 *
+	 * @group orders-completion
+	 */
+	public function test_network_completion_only_writes_eligible_store_templates() {
+		remove_filter( 'option_active_plugins', __NAMESPACE__ . '\\add_woocommerce_to_active_plugins' );
+		$target = self::factory()->blog->create();
+		// This eligible site intentionally has no active WooCommerce plugin.
+		self::factory()->blog->create();
+		$excluded = self::factory()->blog->create();
+		update_blog_option( $target, 'active_plugins', [ 'woocommerce/woocommerce.php' ] );
+		update_blog_option( $excluded, 'active_plugins', [ 'woocommerce/woocommerce.php' ] );
+		update_site_meta( $excluded, 'ep_indexable', 'no' );
+		$writes = [];
+		$this->capture_template_writes( $writes );
+		$origin = get_current_blog_id();
+		$this->assertContains( $target, array_map( 'intval', wp_list_pluck( ElasticPress\Utils\get_sites( 0, true ), 'blog_id' ) ) );
+		$this->assertContains( 'woocommerce/woocommerce.php', get_blog_option( $target, 'active_plugins' ) );
+		do_action( 'ep_after_sync_index', [ 'network_wide' => 0 ] );
+		$this->assertEqualsCanonicalizing( [ $origin, $target ], array_column( $writes, 'site' ) );
+		$this->assertSame( $origin, get_current_blog_id() );
+	}
+
+	/**
+	 * Native jobs save once at the store's last active task, not again at origin.
+	 *
+	 * @group orders-completion
+	 */
+	public function test_native_completion_waits_for_last_store_task() {
+		$writes = [];
+		$this->capture_template_writes( $writes );
+		$site_id = get_current_blog_id();
+		$item    = [
+			'blog_id'   => $site_id,
+			'indexable' => 'post',
+		];
+		$meta    = [
+			'site_context' => true,
+			'sync_stack'   => [ $item ],
+		];
+		do_action( 'ep_after_sync_item', $item, $meta );
+		$this->assertSame( [], $writes );
+		$meta['sync_stack'] = [];
+		do_action( 'ep_after_sync_item', $item, $meta );
+		$this->assertSame( [ $site_id ], array_column( $writes, 'site' ) );
+		do_action(
+			'ep_after_sync_index',
+			[
+				'site_context' => true,
+				'network_wide' => 0,
+			]
+		);
+		$this->assertSame( [ $site_id ], array_column( $writes, 'site' ) );
+	}
+
+	/**
+	 * A store that no longer supports Orders does not receive a network template.
+	 *
+	 * @group orders-completion
+	 */
+	public function test_network_completion_skips_unavailable_store() {
+		$target = self::factory()->blog->create();
+		$writes = [];
+		$this->capture_template_writes( $writes );
+		add_filter(
+			'ep_woocommerce_orders_autosuggest_available',
+			static function ( $available ) use ( $target ) {
+				return get_current_blog_id() === $target ? false : $available;
+			},
+			20
+		);
+		do_action( 'ep_after_sync_index', [ 'network_wide' => 0 ] );
+		$this->assertSame( [ get_current_blog_id() ], array_column( $writes, 'site' ) );
+	}
 }
