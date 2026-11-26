@@ -339,6 +339,36 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await expect(searchModal).toContainText('Blog post');
 			});
 
+			test('Does not break with an unknown post type in the URL', async ({
+				loggedInPage,
+			}) => {
+				await maybeEnableFeature('instant-results');
+				await wpCli('elasticpress put-search-template', true);
+
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				const apiResponsePromise = loggedInPage.waitForResponse(
+					'**/wp-json/elasticpress/v1/features*',
+				);
+				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+				await addInstantResultFilter(loggedInPage, 'post type');
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+				await apiResponsePromise;
+
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=new');
+				await loggedInPage.goto(
+					'/?ep-search=new&ep-post_type=post,doesnotexist&ep-relation=or',
+				);
+				await responsePromise;
+
+				const searchModal = loggedInPage.locator('.ep-search-modal');
+				await expect(searchModal).toBeVisible();
+				await expect(searchModal.locator('.ep-search-results__title')).toContainText(/\d+/);
+				await expect(
+					searchModal.getByRole('button', { name: /doesnotexist/ }),
+				).toBeVisible();
+			});
+
 			test('Is possible to filter the number of results', async ({ loggedInPage }) => {
 				/**
 				 * The number of results should match the posts per page
