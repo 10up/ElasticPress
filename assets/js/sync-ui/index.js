@@ -17,6 +17,7 @@ import {
 	isEpio,
 	nonce,
 	postTypes,
+	sites,
 	syncHistory,
 	syncTrigger,
 } from './config';
@@ -42,7 +43,13 @@ const App = () => (
 		isEpio={isEpio}
 		nonce={nonce}
 	>
-		<SyncSettingsProvider autoIndex={autoIndex} indexables={indexables} postTypes={postTypes}>
+		<SyncSettingsProvider
+			autoIndex={autoIndex}
+			indexables={indexables}
+			indexMeta={indexMeta}
+			postTypes={postTypes}
+			sites={sites}
+		>
 			<SettingsScreenProvider title={__('Sync Settings', 'elasticpress')}>
 				<Sync />
 			</SettingsScreenProvider>

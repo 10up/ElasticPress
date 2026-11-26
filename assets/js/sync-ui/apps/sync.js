@@ -18,6 +18,7 @@ import Objects from '../components/objects';
 import Progress from '../components/progress';
 import PutMapping from '../components/put-mapping';
 import SyncHistory from '../components/sync-history';
+import Sites from '../components/sites';
 import { useSyncSettings } from '../provider';
 
 /**
@@ -31,6 +32,7 @@ export default () => {
 		errorCounts,
 		isComplete,
 		isEpio,
+		isFailed,
 		isSyncing,
 		logMessage,
 		startSync,
@@ -102,11 +104,21 @@ export default () => {
 		const { put_mapping } = args;
 
 		const putMapping = syncHistory.length ? put_mapping : true;
-		const syncArgs = { ...args, put_mapping: putMapping, trigger: 'manual' };
+		const syncArgs = {
+			...args,
+			put_mapping: putMapping,
+			trigger: 'manual',
+		};
 
 		startSync(syncArgs);
 		logMessage(__('Starting sync…', 'elasticpress'), 'info');
 	};
+
+	useEffect(() => {
+		if (isFailed) {
+			setIsLogOpen(true);
+		}
+	}, [isFailed]);
 
 	useEffect(onCompleteDisplayNotice, [createNotice, isComplete]);
 	useEffect(onComplete, [createNotice, errorCount, errorCounts, isComplete]);
@@ -142,6 +154,7 @@ export default () => {
 			<Panel className="ep-sync-panel">
 				<PanelBody className="ep-sync-panel__controls">
 					{isSyncing || isComplete ? <Progress /> : null}
+					<Sites />
 					<Controls />
 					{syncHistory.length ? <PutMapping /> : null}
 				</PanelBody>

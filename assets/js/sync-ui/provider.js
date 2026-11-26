@@ -17,10 +17,19 @@ const Context = createContext();
  * @param {boolean} props.autoIndex Whether to start an index automatically.
  * @param {Function} props.children Component children
  * @param {Array} props.indexables Indexables and their labels.
+ * @param {object|null} props.indexMeta Current sync metadata.
+ * @param {Array|null} props.sites Eligible network sites.
  * @param {Array} props.postTypes Post types and their labels.
  * @returns {WPElement}
  */
-export const SyncSettingsProvider = ({ autoIndex, children, indexables, postTypes }) => {
+export const SyncSettingsProvider = ({
+	autoIndex,
+	children,
+	indexables,
+	indexMeta,
+	postTypes,
+	sites,
+}) => {
 	const { createNotice } = useDispatch(noticeStore);
 
 	const [args, setArgs] = useState({
@@ -30,6 +39,7 @@ export const SyncSettingsProvider = ({ autoIndex, children, indexables, postType
 		offset: 0,
 		put_mapping: false,
 		post_type: [],
+		site_id: indexMeta?.site_id ? String(indexMeta.site_id) : '',
 		upper_limit_object_id: '',
 	});
 
@@ -42,11 +52,12 @@ export const SyncSettingsProvider = ({ autoIndex, children, indexables, postType
 			createNotice,
 			indexables,
 			postTypes,
+			sites,
 			setArgs,
 			showLog,
 			setShowLog,
 		}),
-		[args, autoIndex, createNotice, indexables, postTypes, setArgs, showLog, setShowLog],
+		[args, autoIndex, createNotice, indexables, postTypes, sites, setArgs, showLog, setShowLog],
 	);
 
 	return <Context.Provider value={value}>{children}</Context.Provider>;

@@ -214,6 +214,27 @@ function is_site_indexable( $blog_id = null ) {
 }
 
 /**
+ * Get eligible sync targets in the current network.
+ *
+ * @return array Sites allowed by the network indexing filters.
+ */
+function get_sync_sites() {
+	$sites      = get_sites( 0, true );
+	$network_id = get_current_network_id();
+
+	return array_values(
+		array_filter(
+			$sites,
+			function ( $site ) use ( $network_id ) {
+				$is_current_network = (int) $site['site_id'] === $network_id;
+
+				return $is_current_network && is_site_indexable( $site['blog_id'] );
+			}
+		)
+	);
+}
+
+/**
  * Sanitize EPIO credentials prior to storing them.
  *
  * @param array $credentials Array containing username and token.

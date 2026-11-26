@@ -9,6 +9,7 @@ const {
 	isEpio,
 	nonce,
 	postTypes,
+	sites,
 	syncHistory,
 	syncTrigger,
 } = window.epDash;
@@ -21,6 +22,7 @@ export {
 	isEpio,
 	nonce,
 	postTypes,
+	sites,
 	syncHistory,
 	syncTrigger,
 };

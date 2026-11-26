@@ -140,6 +140,7 @@ class IndexHelper {
 			'pagination_method' => $pagination_method,
 			'start'             => true,
 			'sync_stack'        => [],
+			'site_id'           => $this->args['site_id'] ?? null,
 			'network_alias'     => [],
 			'start_time'        => microtime( true ),
 			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
@@ -166,7 +167,9 @@ class IndexHelper {
 				$this->args['network_wide'] = 0;
 			}
 
-			$sites = Utils\get_sites( $this->args['network_wide'], true );
+			$sites = isset( $this->args['site_id'] )
+				? [ Utils\get_site( $this->args['site_id'] ) ]
+				: Utils\get_sites( $this->args['network_wide'], true );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );

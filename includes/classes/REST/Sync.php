@@ -102,6 +102,12 @@ class Sync {
 				'type'        => 'boolean',
 				'required'    => false,
 			],
+			'site_id'               => [
+				'description' => __( 'ID of the network site to sync. Omit to sync all eligible sites.', 'elasticpress' ),
+				'type'        => 'integer',
+				'minimum'     => 1,
+				'required'    => false,
+			],
 			'trigger'               => [
 				'enum'     => [ 'features', 'install', 'manual', 'upgrade' ],
 				'required' => false,
@@ -129,12 +135,46 @@ class Sync {
 	 * Start or continue a sync.
 	 *
 	 * @param \WP_REST_Request $request Full details about the request.
-	 * @return void
+	 * @return void|\WP_Error Error when the selected site cannot be synced.
 	 */
 	public function sync( \WP_REST_Request $request ) {
 		nocache_headers();
 
 		$index_meta = Utils\get_indexing_status();
+
+		$has_site_id = $request->has_param( 'site_id' );
+		$site_id     = $has_site_id ? $request->get_param( 'site_id' ) : null;
+
+		if ( $has_site_id ) {
+			$valid_site = rest_validate_value_from_schema( $site_id, $this->get_args()['site_id'], 'site_id' );
+
+			if ( is_wp_error( $valid_site ) ) {
+				return new \WP_Error( 'ep_invalid_sync_site', __( 'Select a valid site to sync.', 'elasticpress' ), [ 'status' => 400 ] );
+			}
+
+			$site_id = (int) $site_id;
+		}
+
+		if ( false !== $index_meta ) {
+			$active_site_id = $index_meta['site_id'] ?? null;
+			$has_conflict   = $has_site_id && $site_id !== $active_site_id;
+
+			if ( $has_conflict ) {
+				return new \WP_Error( 'ep_sync_site_conflict', __( 'A sync with a different site selection is already in progress. Resume or stop that sync first.', 'elasticpress' ), [ 'status' => 409 ] );
+			}
+
+			$site_id = $active_site_id;
+		}
+
+		if ( null !== $site_id ) {
+			$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+			$site_ids   = $is_network ? array_map( 'intval', wp_list_pluck( Utils\get_sync_sites(), 'blog_id' ) ) : [];
+			$is_allowed = in_array( $site_id, $site_ids, true );
+
+			if ( ! $is_allowed ) {
+				return new \WP_Error( 'ep_invalid_sync_site', __( 'The selected site no longer exists or is not eligible for indexing. Reload the sync page and select an eligible site.', 'elasticpress' ), [ 'status' => 400 ] );
+			}
+		}
 
 		if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
 			$this->get_sync_status( $request );
@@ -150,6 +190,11 @@ class Sync {
 			],
 			$request->get_params()
 		);
+
+		if ( null !== $site_id ) {
+			$args['site_id']      = $site_id;
+			$args['network_wide'] = 0;
+		}
 
 		IndexHelper::factory()->full_index( $args );
 	}

@@ -58,6 +58,24 @@ export const useIndex = (apiUrl, nonce) => {
 			 * Throw an error for non-20X responses.
 			 */
 			if (!response.ok) {
+				let validationError;
+
+				try {
+					validationError = JSON.parse(responseBody);
+				} catch {
+					// Non-JSON errors use the existing troubleshooting message.
+				}
+
+				const isSiteError =
+					[400, 409].includes(response.status) &&
+					['ep_invalid_sync_site', 'ep_sync_site_conflict'].includes(
+						validationError?.code,
+					);
+
+				if (isSiteError) {
+					throw new Error(validationError.message);
+				}
+
 				if (response.status === 403) {
 					/**
 					 * A 403 response will occur if the nonce has expired or
