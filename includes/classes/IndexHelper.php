@@ -157,7 +157,7 @@ class IndexHelper {
 			],
 		];
 
-		$global_indexables     = $this->filter_indexables( Indexables::factory()->get_all( true, true, 'all' ) );
+		$global_indexables     = isset( $this->args['site_id'] ) ? [] : $this->filter_indexables( Indexables::factory()->get_all( true, true, 'all' ) );
 		$non_global_indexables = $this->filter_indexables( Indexables::factory()->get_all( false, true, 'all' ) );
 
 		$is_network_wide = isset( $this->args['network_wide'] ) && ! is_null( $this->args['network_wide'] );

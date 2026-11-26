@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { CheckboxControl } from '@wordpress/components';
+import { CheckboxControl, Notice } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
@@ -18,7 +18,7 @@ import { useSyncSettings } from '../provider';
  */
 export default () => {
 	const { isSyncing } = useSync();
-	const { args, indexables, setArgs } = useSyncSettings();
+	const { args, hasOnlyGlobalIndexables, indexables, setArgs } = useSyncSettings();
 
 	/**
 	 * Handle changes to Indexable checkboxes.
@@ -49,17 +49,29 @@ export default () => {
 			<legend className="ep-sync-advanced-control__label">
 				{__('Content to sync', 'elasticpress')}
 			</legend>
-			{indexables.map(([indexable, label]) => (
-				<CheckboxControl
-					checked={args.indexables?.includes(indexable)}
-					disabled={isSyncing}
-					indeterminate={!args.indexables.length}
-					key={indexable}
-					label={label}
-					onChange={(checked) => onChange(indexable, checked)}
-					__nextHasNoMarginBottom
-				/>
-			))}
+			{indexables.map(([indexable, label, isGlobal]) => {
+				const isExcluded = Boolean(args.site_id) && isGlobal;
+
+				return (
+					<CheckboxControl
+						checked={!isExcluded && args.indexables?.includes(indexable)}
+						disabled={isSyncing || isExcluded}
+						indeterminate={!isExcluded && !args.indexables.length}
+						key={indexable}
+						label={label}
+						onChange={(checked) => onChange(indexable, checked)}
+						__nextHasNoMarginBottom
+					/>
+				);
+			})}
+			{hasOnlyGlobalIndexables ? (
+				<Notice status="warning" isDismissible={false}>
+					{__(
+						'Select site-specific content to sync, or select All eligible sites to sync shared network content.',
+						'elasticpress',
+					)}
+				</Notice>
+			) : null}
 		</fieldset>
 	) : null;
 };

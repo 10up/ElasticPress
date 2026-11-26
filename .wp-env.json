@@ -38,6 +38,7 @@
     "wp-content/plugins/open-instant-results-with-buttons.php": "./tests/e2e/src/wordpress-files/test-plugins/open-instant-results-with-buttons.php",
     "wp-content/plugins/shorten-autosave.php": "./tests/e2e/src/wordpress-files/test-plugins/shorten-autosave.php",
     "wp-content/plugins/show-comments-and-terms.php": "./tests/e2e/src/wordpress-files/test-plugins/show-comments-and-terms.php",
+    "wp-content/plugins/global-indexable.php": "./tests/e2e/src/wordpress-files/test-plugins/global-indexable.php",
     "wp-content/plugins/sync-error.php": "./tests/e2e/src/wordpress-files/test-plugins/sync-error.php",
     "wp-content/plugins/sync-error-specific-post.php": "./tests/e2e/src/wordpress-files/test-plugins/sync-error-specific-post.php",
     "wp-content/plugins/temporarily-disable-autosuggest.php": "./tests/e2e/src/wordpress-files/test-plugins/temporarily-disable-autosuggest.php",

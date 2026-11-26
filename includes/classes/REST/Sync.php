@@ -9,6 +9,7 @@
 namespace ElasticPress\REST;
 
 use ElasticPress\IndexHelper;
+use ElasticPress\Indexables;
 use ElasticPress\Utils;
 
 /**
@@ -173,6 +174,14 @@ class Sync {
 
 			if ( ! $is_allowed ) {
 				return new \WP_Error( 'ep_invalid_sync_site', __( 'The selected site no longer exists or is not eligible for indexing. Reload the sync page and select an eligible site.', 'elasticpress' ), [ 'status' => 400 ] );
+			}
+
+			$requested_indexables = $request->get_param( 'indexables' ) ?? [];
+			$site_indexables      = Indexables::factory()->get_all( false, true, 'all' );
+			$has_no_site_content  = ! empty( $requested_indexables ) && ! array_intersect( $requested_indexables, $site_indexables );
+
+			if ( $has_no_site_content ) {
+				return new \WP_Error( 'ep_invalid_sync_indexables', __( 'Select site-specific content to sync, or select All eligible sites to sync shared network content.', 'elasticpress' ), [ 'status' => 400 ] );
 			}
 		}
 

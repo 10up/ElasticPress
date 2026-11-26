@@ -41,7 +41,7 @@ export default () => {
 		<SelectControl
 			label={__('Sites to sync', 'elasticpress')}
 			help={__(
-				'Shared network content is included when its content type is selected.',
+				'Shared network content is synced only when All eligible sites is selected.',
 				'elasticpress',
 			)}
 			value={args.site_id}

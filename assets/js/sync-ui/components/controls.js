@@ -19,7 +19,7 @@ import { useSyncSettings } from '../provider';
 export default () => {
 	const { isPaused, isSyncing, logMessage, pauseSync, resumeSync, stopSync } = useSync();
 
-	const { args } = useSyncSettings();
+	const { args, hasOnlyGlobalIndexables } = useSyncSettings();
 
 	/**
 	 * Handle clicking pause button.
@@ -72,7 +72,7 @@ export default () => {
 					)}
 				</>
 			) : (
-				<Button variant="primary" type="submit">
+				<Button variant="primary" type="submit" disabled={hasOnlyGlobalIndexables}>
 					{__('Start sync', 'elasticpress')}
 				</Button>
 			)}

@@ -44,6 +44,11 @@ export const SyncSettingsProvider = ({
 	});
 
 	const [showLog, setShowLog] = useState(false);
+	const hasSelectedSiteContent = indexables.some(
+		([slug, , isGlobal]) => !isGlobal && args.indexables.includes(slug),
+	);
+	const hasOnlyGlobalIndexables =
+		Boolean(args.site_id) && args.indexables.length > 0 && !hasSelectedSiteContent;
 
 	const value = useMemo(
 		() => ({
@@ -51,13 +56,25 @@ export const SyncSettingsProvider = ({
 			autoIndex,
 			createNotice,
 			indexables,
+			hasOnlyGlobalIndexables,
 			postTypes,
 			sites,
 			setArgs,
 			showLog,
 			setShowLog,
 		}),
-		[args, autoIndex, createNotice, indexables, postTypes, sites, setArgs, showLog, setShowLog],
+		[
+			args,
+			autoIndex,
+			createNotice,
+			indexables,
+			hasOnlyGlobalIndexables,
+			postTypes,
+			sites,
+			setArgs,
+			showLog,
+			setShowLog,
+		],
 	);
 
 	return <Context.Provider value={value}>{children}</Context.Provider>;
