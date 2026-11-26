@@ -251,7 +251,10 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await expect(searchModal).toBeVisible(); // Should be visible immediately
 				await expect(loggedInPage).toHaveURL(/.*search=new/);
 
-				await responsePromise;
+				const response = await responsePromise;
+
+				// No Authorization header should be sent when there are no credentials.
+				expect(await response.request().headerValue('authorization')).toBeNull();
 
 				await expect(searchModal).toContainText('new');
 				// Show the number of results
