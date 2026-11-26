@@ -123,6 +123,15 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 	test.afterAll(async () => {
 		await wpCli('elasticpress deactivate-feature woocommerce', true);
 		await wpCli('plugin deactivate woocommerce', true);
+
+		// Remove the Product Search widgets, so other specs do not search for products only.
+		await wpCliEval(`
+			foreach ( get_option( 'widget_block', [] ) as $number => $widget ) {
+				if ( is_array( $widget ) && false !== strpos( $widget['content'], '"post_type":"product"' ) ) {
+					WP_CLI::runcommand( "widget delete block-{$number}" );
+				}
+			}
+		`);
 	});
 
 	test.beforeEach(async ({ loggedInPage }) => {
@@ -501,6 +510,8 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await maybeEnableFeature('did-you-mean');
 
 				await wpCli('wp elasticpress sync --setup --yes');
+				// The search right after the sync can run before Elasticsearch refreshes the new index.
+				await refreshIndex('post');
 
 				/**
 				 * Perform a search.
