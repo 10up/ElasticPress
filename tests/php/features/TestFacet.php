@@ -172,6 +172,15 @@ class TestFacet extends BaseTestCase {
 		$selected = $facet_feature->get_selected();
 		$this->assertArrayNotHasKey( 'category', $selected['taxonomies'] );
 		$this->assertArrayHasKey( 's', $selected );
+
+		// test when filter value is an array.
+		parse_str( 'ep_filter_category[]=dolor&ep_post_type_filter[]=post&ep_date_filter[]=2026&ep_meta_filter_color[]=red&ep_meta_range_filter_price_min[]=1&ep_filter_othertax=amet', $_GET );
+		$selected = $facet_feature->get_selected();
+		$this->assertArrayNotHasKey( 'ep_post_type', $selected );
+		$this->assertArrayNotHasKey( 'ep_date', $selected );
+		$this->assertArrayNotHasKey( 'meta', $selected );
+		$this->assertArrayNotHasKey( 'meta-range', $selected );
+		$this->assert_selected_tax( [ 'amet' => true ], 'othertax', $selected );
 	}
 
 	/**
