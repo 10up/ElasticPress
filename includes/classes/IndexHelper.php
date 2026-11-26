@@ -146,9 +146,6 @@ class IndexHelper {
 	 * @since 4.0.0
 	 */
 	protected function build_index_meta() {
-		Utils\update_option( 'ep_last_sync', time() );
-		Utils\delete_option( 'ep_need_upgrade_sync' );
-		Utils\delete_option( 'ep_feature_auto_activated_sync' );
 		delete_transient( 'ep_sync_interrupted' );
 
 		$start_date_time = date_create( 'now', wp_timezone() );
@@ -181,6 +178,13 @@ class IndexHelper {
 			'site_context'      => ! empty( $this->args['site_context'] ),
 			'origin_site_id'    => get_main_site_id(),
 			'sync_args'         => array_intersect_key( $this->args, array_flip( [ 'include', 'indexables', 'lower_limit_object_id', 'upper_limit_object_id', 'offset', 'post_type', 'put_mapping' ] ) ),
+			'bookkeeping'       => [
+				'complete_scope' => $this->has_complete_sync_scope(),
+				'upgrade'        => Utils\get_option( 'ep_need_upgrade_sync', false ),
+				'feature'        => Utils\get_option( 'ep_feature_auto_activated_sync', false ),
+				'draft_pending'  => (bool) Features::factory()->get_feature_settings_draft(),
+				'has_errors'     => false,
+			],
 			'network_alias'     => [],
 			'start_time'        => microtime( true ),
 			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
@@ -1007,11 +1011,66 @@ class IndexHelper {
 	}
 
 	/**
+	 * Whether this job requests complete coverage of the installation.
+	 *
+	 * Explicit content restrictions are conservatively treated as partial.
+	 *
+	 * @return bool Whether the job can fulfill installation-wide requirements.
+	 */
+	protected function has_complete_sync_scope(): bool {
+		$is_network         = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+		$has_site_limit     = isset( $this->args['network_wide'] ) && is_numeric( $this->args['network_wide'] ) && 0 !== (int) $this->args['network_wide'];
+		$is_partial_network = $is_network && ( ! isset( $this->args['network_wide'] ) || $has_site_limit || isset( $this->args['site_id'] ) );
+
+		if ( $is_partial_network ) {
+			return false;
+		}
+
+		foreach ( [ 'indexables', 'post_type', 'include', 'post-ids', 'offset', 'lower_limit_object_id', 'upper_limit_object_id' ] as $restriction ) {
+			if ( ! empty( $this->args[ $restriction ] ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Fulfill requirements only after successful, complete coverage.
+	 */
+	protected function complete_sync_bookkeeping(): void {
+		$bookkeeping          = $this->index_meta['bookkeeping'] ?? [];
+		$has_errors           = ! empty( $bookkeeping['has_errors'] ) || ! empty( $this->index_meta['totals']['failed'] );
+		$has_pending_settings = ! empty( $bookkeeping['draft_pending'] ) || Features::factory()->get_feature_settings_draft();
+		$can_fulfill          = ! empty( $bookkeeping['complete_scope'] ) && ! $has_errors && ! $has_pending_settings;
+
+		if ( ! $can_fulfill ) {
+			return;
+		}
+
+		Utils\update_option( 'ep_last_sync', time() );
+
+		$feature = Utils\get_option( 'ep_feature_auto_activated_sync', false );
+
+		if ( $feature && $feature === $bookkeeping['feature'] ) {
+			Utils\delete_option( 'ep_feature_auto_activated_sync' );
+		}
+
+		$upgrade           = Utils\get_option( 'ep_need_upgrade_sync', false );
+		$fulfilled_upgrade = ! empty( $this->index_meta['put_mapping'] ) && $upgrade && $upgrade === $bookkeeping['upgrade'];
+
+		if ( $fulfilled_upgrade ) {
+			Utils\delete_option( 'ep_need_upgrade_sync' );
+		}
+	}
+
+	/**
 	 * Make the necessary clean up after everything was sync'd.
 	 *
 	 * @since 4.0.0
 	 */
 	protected function full_index_complete() {
+		$this->complete_sync_bookkeeping();
 		$this->update_last_index();
 
 		/**
@@ -1097,6 +1156,12 @@ class IndexHelper {
 	 * @return void
 	 */
 	protected function output( $message_text, $type = 'info', $context = '', array $stack_traces = [] ) {
+		$is_sync_error = 'error' === $type && isset( $this->index_meta['bookkeeping'] );
+
+		if ( $is_sync_error ) {
+			$this->index_meta['bookkeeping']['has_errors'] = true;
+		}
+
 		if ( $this->index_meta ) {
 			Utils\update_option( 'ep_index_meta', $this->index_meta );
 		} else {

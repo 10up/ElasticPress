@@ -127,13 +127,14 @@ class Screen {
 			return;
 		}
 
-		$screen_name = $page_screen_map[ $page ];
-		$is_settings = 'settings' === $screen_name;
+		$screen_name      = $page_screen_map[ $page ];
+		$is_settings      = 'settings' === $screen_name;
+		$can_resume_setup = 'sync' === $screen_name && false !== Utils\get_indexing_status();
 
 		// Settings screen allows install status 2, others require completed install or sync parameter
 		$can_access = $is_settings
 			? ( true === $install_status || 2 === $install_status || Utils\isset_do_sync_parameter() )
-			: ( ! $install_complete && ( true === $install_status || Utils\isset_do_sync_parameter() ) );
+			: ( ! $install_complete && ( true === $install_status || Utils\isset_do_sync_parameter() || $can_resume_setup ) );
 
 		if ( $can_access ) {
 			$this->screen = $screen_name;
