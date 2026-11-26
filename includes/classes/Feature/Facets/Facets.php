@@ -493,7 +493,8 @@ class Facets extends Feature {
 
 			foreach ( $filter_names as $filter_name => $type_obj ) {
 				if ( 0 === strpos( $key, $filter_name ) ) {
-					if ( empty( $value ) ) {
+					// Facet values are always strings. Ignore anything else, like `?ep_filter_category[]=foo`.
+					if ( empty( $value ) || ! is_string( $value ) ) {
 						continue;
 					}
 					$facet = str_replace( $filter_name, '', $key );
