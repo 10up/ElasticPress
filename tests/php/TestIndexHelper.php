@@ -66,6 +66,38 @@ class TestIndexHelper extends BaseTestCase {
 	}
 
 	/**
+	 * Test that a dashboard sync stores `web` as its method, while still firing the `dashboard` hooks
+	 *
+	 * @since 5.3.7
+	 * @group index-helper
+	 */
+	public function test_full_index_dashboard_method() {
+		$this->ep_factory->post->create();
+
+		$meta_methods = [];
+		add_filter(
+			'ep_index_meta',
+			function ( $index_meta ) use ( &$meta_methods ) {
+				$meta_methods[] = $index_meta['method'];
+				return $index_meta;
+			}
+		);
+
+		\ElasticPress\IndexHelper::factory()->full_index(
+			[
+				'method'        => 'dashboard',
+				'indexables'    => [ 'post' ],
+				'output_method' => '__return_null',
+			]
+		);
+
+		$this->assertSame( [ 'web' ], $meta_methods );
+		$this->assertSame( 'web', \ElasticPress\IndexHelper::factory()->get_last_sync()['method'] );
+		$this->assertGreaterThanOrEqual( 1, did_action( 'ep_dashboard_start_index' ) );
+		$this->assertGreaterThanOrEqual( 1, did_action( 'ep_after_dashboard_index' ) );
+	}
+
+	/**
 	 * Test that a full sync ends when a batch comes back empty before the offset reaches the total,
 	 * instead of starting over from the first object.
 	 *
