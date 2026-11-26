@@ -5,7 +5,7 @@ import { addFilter } from '@wordpress/hooks';
 
 window.addEventListener('load', () => {
 	if (typeof window.epDataFilter !== 'undefined') {
-		addFilter('ep.Autosuggest.data', 'ep/epDatafilter', window.epDatafilter);
+		addFilter('ep.Autosuggest.data', 'ep/epDataFilter', window.epDataFilter);
 	}
 
 	if (typeof window.epAutosuggestItemHTMLFilter !== 'undefined') {
