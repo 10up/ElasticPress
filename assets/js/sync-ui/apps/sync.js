@@ -169,7 +169,7 @@ export default () => {
 							title={__('Advanced options', 'elasticpress')}
 						>
 							<Indexables />
-							<Objects />
+							<Objects key={args.site_id} />
 						</PanelBody>
 						<PanelBody title={__('Sync history', 'elasticpress')}>
 							<SyncHistory />

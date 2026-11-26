@@ -82,6 +82,10 @@ class IndexHelper {
 		 * @param {array} $index_meta Current index meta
 		 * @return {array} New sync arguments
 		 */
+		if ( ! empty( $this->index_meta['site_context'] ) ) {
+			$args = array_merge( $args, $this->index_meta['sync_args'] ?? [] );
+		}
+
 		$this->args = apply_filters( 'ep_sync_args', $args, $this->index_meta );
 
 		if ( false === $this->index_meta ) {
@@ -92,8 +96,41 @@ class IndexHelper {
 		// For the dashboard, this will be called and exit the script until the queue is empty again.
 		$this->flush_messages_queue();
 
+		if ( ! empty( $this->index_meta['site_context'] ) ) {
+			foreach ( $this->index_meta['sync_stack'] as $key => $item ) {
+				if ( isset( $item['found_items'] ) ) {
+					continue;
+				}
+
+				$site_id = $item['blog_id'] ?? $this->index_meta['origin_site_id'];
+
+				if ( get_current_blog_id() === (int) $site_id ) {
+					$this->index_meta['sync_stack'][ $key ] = $this->prepare_sync_item( $item );
+					$this->index_meta['current_sync_item']  = false;
+				}
+
+				$this->output( __( 'Preparing site content for sync…', 'elasticpress' ) );
+				return;
+			}
+		}
+
 		while ( $this->has_items_to_be_processed() ) {
+			$next_site_id = self::get_sync_site_id( $this->index_meta );
+			$needs_site   = ! empty( $this->index_meta['site_context'] ) && get_current_blog_id() !== $next_site_id;
+
+			if ( $needs_site ) {
+				$this->output( __( 'Continuing sync on the next site…', 'elasticpress' ) );
+				return;
+			}
+
 			$this->process_sync_item();
+		}
+
+		$needs_origin = ! empty( $this->index_meta['site_context'] ) && get_current_blog_id() !== $this->index_meta['origin_site_id'];
+
+		if ( $needs_origin ) {
+			$this->output( __( 'Completing the network sync…', 'elasticpress' ) );
+			return;
 		}
 
 		while ( $this->has_network_alias_to_be_created() ) {
@@ -141,6 +178,9 @@ class IndexHelper {
 			'start'             => true,
 			'sync_stack'        => [],
 			'site_id'           => $this->args['site_id'] ?? null,
+			'site_context'      => ! empty( $this->args['site_context'] ),
+			'origin_site_id'    => get_main_site_id(),
+			'sync_args'         => array_intersect_key( $this->args, array_flip( [ 'include', 'indexables', 'lower_limit_object_id', 'upper_limit_object_id', 'offset', 'post_type', 'put_mapping' ] ) ),
 			'network_alias'     => [],
 			'start_time'        => microtime( true ),
 			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
@@ -187,9 +227,9 @@ class IndexHelper {
 						$this->index_meta['network_alias'][] = $indexable;
 					}
 				}
-			}
 
-			restore_current_blog();
+				restore_current_blog();
+			}
 		} else {
 			foreach ( $non_global_indexables as $indexable ) {
 				$this->add_sync_item_to_stack(
@@ -1237,30 +1277,70 @@ class IndexHelper {
 	 * @param array $sync_stack_item The new sync item
 	 */
 	protected function add_sync_item_to_stack( array $sync_stack_item ) {
-		$indexable_slug   = $sync_stack_item['indexable'];
-		$indexable_object = Indexables::factory()->get( $indexable_slug );
-
-		if ( ! $indexable_object ) {
+		if ( ! empty( $this->index_meta['site_context'] ) ) {
+			$this->index_meta['sync_stack'][] = $sync_stack_item;
 			return;
 		}
 
-		$index_exists = in_array( $indexable_object->get_index_name(), $this->index_meta['starting_indices'], true );
+		$sync_stack_item = $this->prepare_sync_item( $sync_stack_item );
 
-		$sync_stack_item['put_mapping'] = ! empty( $this->args['put_mapping'] ) || ! $index_exists;
-
-		if ( ! Indexables::factory()->is_active( $indexable_slug ) ) {
+		if ( ! Indexables::factory()->is_active( $sync_stack_item['indexable'] ) ) {
 			array_unshift( $this->index_meta['sync_stack'], $sync_stack_item );
 			return;
 		}
 
-		// This is needed, because get_objects_to_index() calculates its total based on the current sync item.
-		$this->index_meta['current_sync_item'] = $sync_stack_item;
-
-		$objects_to_index = $this->get_objects_to_index();
-
-		$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
-
 		$this->index_meta['sync_stack'][] = $sync_stack_item;
+	}
+
+	/**
+	 * Initialize a task's mapping and count in its site's runtime.
+	 *
+	 * @param array $item Sync task.
+	 * @return array Prepared task.
+	 */
+	protected function prepare_sync_item( array $item ) {
+		$indexable = Indexables::factory()->get( $item['indexable'] );
+
+		if ( ! $indexable ) {
+			$item['found_items'] = 0;
+			return $item;
+		}
+
+		$index_exists        = in_array( $indexable->get_index_name(), $this->index_meta['starting_indices'], true );
+		$item['put_mapping'] = ! empty( $this->args['put_mapping'] ) || ! $index_exists;
+		$item['found_items'] = 0;
+
+		if ( Indexables::factory()->is_active( $item['indexable'] ) ) {
+			$this->index_meta['current_sync_item'] = $item;
+			$objects                               = $this->get_objects_to_index();
+			$item['found_items']                   = $objects['total_objects'] ?? 0;
+		}
+
+		return $item;
+	}
+
+	/**
+	 * Get the native site context needed by the next dashboard request.
+	 *
+	 * @param array $meta Saved sync metadata.
+	 * @return int Site ID.
+	 */
+	public static function get_sync_site_id( array $meta ) {
+		$origin = (int) ( $meta['origin_site_id'] ?? get_main_site_id() );
+
+		foreach ( $meta['sync_stack'] ?? [] as $item ) {
+			if ( ! isset( $item['found_items'] ) ) {
+				return (int) ( $item['blog_id'] ?? $origin );
+			}
+		}
+
+		$item = $meta['current_sync_item'] ?? false;
+
+		if ( ! $item ) {
+			$item = $meta['sync_stack'][0] ?? [];
+		}
+
+		return (int) ( $item['blog_id'] ?? $origin );
 	}
 
 	/**

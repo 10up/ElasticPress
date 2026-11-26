@@ -20,10 +20,16 @@ import Offset from './offset';
  * @returns {WPElement} Sync page component.
  */
 export default () => {
-	const [selected, setSelected] = useState('all');
-
 	const { isSyncing } = useSync();
 	const { args, setArgs } = useSyncSettings();
+	const [selected, setSelected] = useState(() => {
+		if (args.include.length) {
+			return 'include';
+		}
+
+		const hasLimits = args.lower_limit_object_id !== '' || args.upper_limit_object_id !== '';
+		return hasLimits ? 'limits' : 'all';
+	});
 
 	/**
 	 * Handle change to method for indexing objects.

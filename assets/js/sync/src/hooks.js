@@ -67,11 +67,12 @@ export const useIndex = (apiUrl, nonce) => {
 				}
 
 				const isSiteError =
-					[400, 409].includes(response.status) &&
+					[400, 403, 409, 502].includes(response.status) &&
 					[
 						'ep_invalid_sync_site',
 						'ep_sync_site_conflict',
 						'ep_invalid_sync_indexables',
+						'ep_sync_site_context',
 					].includes(validationError?.code);
 
 				if (isSiteError) {

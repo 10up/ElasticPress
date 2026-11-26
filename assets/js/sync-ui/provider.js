@@ -2,8 +2,19 @@
  * WordPress dependencies.
  */
 import { useDispatch } from '@wordpress/data';
-import { createContext, useContext, useMemo, useState, WPElement } from '@wordpress/element';
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+	WPElement,
+} from '@wordpress/element';
 import { store as noticeStore } from '@wordpress/notices';
+import { __ } from '@wordpress/i18n';
+
+import { apiUrl, nonce } from './config';
 
 /**
  * Sync context.
@@ -27,7 +38,7 @@ export const SyncSettingsProvider = ({
 	children,
 	indexables,
 	indexMeta,
-	postTypes,
+	postTypes: defaultPostTypes,
 	sites,
 }) => {
 	const { createNotice } = useDispatch(noticeStore);
@@ -41,9 +52,78 @@ export const SyncSettingsProvider = ({
 		post_type: [],
 		site_id: indexMeta?.site_id ? String(indexMeta.site_id) : '',
 		upper_limit_object_id: '',
+		...indexMeta?.sync_args,
 	});
 
 	const [showLog, setShowLog] = useState(false);
+	const [postTypes, setPostTypes] = useState(defaultPostTypes);
+	const [isLoadingPostTypes, setIsLoadingPostTypes] = useState(Boolean(args.site_id));
+	const [postTypesError, setPostTypesError] = useState('');
+
+	useEffect(() => {
+		if (!sites || !args.site_id) {
+			setPostTypes(defaultPostTypes);
+			setIsLoadingPostTypes(false);
+			setPostTypesError('');
+			return undefined;
+		}
+
+		const controller = new AbortController();
+		const url = new URL(apiUrl);
+		const route = url.searchParams.get('rest_route');
+
+		if (route) {
+			url.searchParams.set('rest_route', `${route}/post-types`);
+		} else {
+			url.pathname += '/post-types';
+		}
+
+		url.searchParams.set('site_id', args.site_id);
+		setIsLoadingPostTypes(true);
+		setPostTypesError('');
+		setPostTypes([]);
+		fetch(url, {
+			headers: { 'X-WP-Nonce': nonce },
+			signal: controller.signal,
+		})
+			.then(async (response) => {
+				const data = await response.json();
+
+				if (!response.ok) {
+					throw new Error(data.message);
+				}
+
+				setPostTypes(data);
+				setIsLoadingPostTypes(false);
+			})
+			.catch((error) => {
+				if (error.name !== 'AbortError') {
+					setPostTypesError(
+						error.message ||
+							__('Unable to load the selected site’s post types.', 'elasticpress'),
+					);
+					setIsLoadingPostTypes(false);
+				}
+			});
+
+		return () => controller.abort();
+	}, [args.site_id, defaultPostTypes, sites]);
+
+	const selectSite = useCallback(
+		(siteId) => {
+			setIsLoadingPostTypes(Boolean(siteId));
+			setArgs({
+				...args,
+				site_id: siteId,
+				post_type: [],
+				include: [],
+				lower_limit_object_id: '',
+				upper_limit_object_id: '',
+				offset: 0,
+			});
+		},
+		[args],
+	);
 	const hasSelectedSiteContent = indexables.some(
 		([slug, , isGlobal]) => !isGlobal && args.indexables.includes(slug),
 	);
@@ -58,6 +138,9 @@ export const SyncSettingsProvider = ({
 			indexables,
 			hasOnlyGlobalIndexables,
 			postTypes,
+			isLoadingPostTypes,
+			postTypesError,
+			selectSite,
 			sites,
 			setArgs,
 			showLog,
@@ -70,6 +153,9 @@ export const SyncSettingsProvider = ({
 			indexables,
 			hasOnlyGlobalIndexables,
 			postTypes,
+			isLoadingPostTypes,
+			postTypesError,
+			selectSite,
 			sites,
 			setArgs,
 			showLog,

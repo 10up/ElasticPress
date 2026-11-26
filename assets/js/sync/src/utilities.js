@@ -24,7 +24,7 @@ export const getItemsTotalFromIndexMeta = (indexMeta) => {
 	}
 
 	itemsTotal = indexMeta.sync_stack.reduce(
-		(itemsTotal, sync) => itemsTotal + sync.found_items,
+		(itemsTotal, sync) => itemsTotal + (sync.found_items ?? 0),
 		itemsTotal,
 	);
 

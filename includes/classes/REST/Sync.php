@@ -56,6 +56,17 @@ class Sync {
 				'permission_callback' => [ $this, 'check_permission' ],
 			]
 		);
+
+		register_rest_route(
+			'elasticpress/v1',
+			'sync/post-types',
+			[
+				'args'                => [ 'site_id' => $this->get_args()['site_id'] ],
+				'callback'            => [ $this, 'get_post_types' ],
+				'methods'             => 'GET',
+				'permission_callback' => [ $this, 'check_permission' ],
+			]
+		);
 	}
 
 	/**
@@ -190,6 +201,17 @@ class Sync {
 			exit;
 		}
 
+		$use_site_context = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+
+		if ( $use_site_context && ! empty( $index_meta['site_context'] ) ) {
+			$runtime_site_id = IndexHelper::get_sync_site_id( $index_meta );
+			$result          = $this->route_to_site( $request, $runtime_site_id, 'sync' );
+
+			if ( null !== $result ) {
+				return $result;
+			}
+		}
+
 		$args = array_merge(
 			[
 				'method'        => 'dashboard',
@@ -205,7 +227,134 @@ class Sync {
 			$args['network_wide'] = 0;
 		}
 
+		$args['site_context'] = $use_site_context;
+
 		IndexHelper::factory()->full_index( $args );
+	}
+
+	/**
+	 * Return post-type choices from the selected site's native runtime.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array|\WP_REST_Response|\WP_Error Post types or an error.
+	 */
+	public function get_post_types( \WP_REST_Request $request ) {
+		$site_id = (int) ( $request->get_param( 'site_id' ) ?? get_current_blog_id() );
+		$result  = $this->route_to_site( $request, $site_id, 'sync/post-types' );
+
+		if ( null !== $result ) {
+			return $result;
+		}
+
+		$types = Indexables::factory()->get( 'post' )->get_indexable_post_types();
+
+		return array_values(
+			array_map(
+				static fn( $type ) => [ $type, get_post_type_object( $type )->labels->name ],
+				$types
+			)
+		);
+	}
+
+	/**
+	 * Forward a network request through the site's normal WordPress bootstrap.
+	 *
+	 * Only WordPress's existing login cookie and REST nonce are forwarded. The
+	 * receiving route still performs normal authentication and capability checks.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @param int              $site_id Required runtime site.
+	 * @param string           $route REST route suffix.
+	 * @return null|\WP_REST_Response|\WP_Error Null when already in the right runtime.
+	 */
+	protected function route_to_site( \WP_REST_Request $request, $site_id, $route ) {
+		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+
+		if ( ! $is_network ) {
+			return null;
+		}
+
+		$site_ids  = array_map( 'intval', wp_list_pluck( Utils\get_sync_sites(), 'blog_id' ) );
+		$is_origin = 'sync' === $route && get_main_site_id() === $site_id;
+		$allowed   = $is_origin || in_array( $site_id, $site_ids, true );
+
+		if ( ! $allowed ) {
+			return new \WP_Error( 'ep_invalid_sync_site', __( 'The selected site no longer exists or is not eligible for indexing. Reload the sync page and select an eligible site.', 'elasticpress' ), [ 'status' => 400 ] );
+		}
+
+		$context       = $request->get_header( 'X-ElasticPress-Site' );
+		$wrong_context = $context && ( (string) $site_id !== $context || get_current_blog_id() !== $site_id );
+
+		if ( $wrong_context ) {
+			return new \WP_Error( 'ep_sync_site_context', __( 'The sync request did not reach the expected site. Check the site URL before resuming.', 'elasticpress' ), [ 'status' => 409 ] );
+		}
+
+		if ( get_current_blog_id() === $site_id ) {
+			return null;
+		}
+
+		$cookie = isset( $_COOKIE[ LOGGED_IN_COOKIE ] ) ? wp_unslash( $_COOKIE[ LOGGED_IN_COOKIE ] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Opaque authentication cookie validated by WordPress on the receiving site.
+		$nonce  = $request->get_header( 'X-WP-Nonce' );
+
+		if ( ! $cookie || ! $nonce ) {
+			return new \WP_Error( 'ep_sync_site_context', __( 'Reload the sync page to authenticate requests to the selected site.', 'elasticpress' ), [ 'status' => 403 ] );
+		}
+
+		$url    = get_rest_url( $site_id, 'elasticpress/v1/' . $route );
+		$params = $request->get_params();
+
+		if ( 'GET' === $request->get_method() ) {
+			$url    = add_query_arg( $params, $url );
+			$params = [];
+		}
+
+		$response = wp_remote_request(
+			$url,
+			[
+				'method'      => $request->get_method(),
+				'timeout'     => 60,
+				'redirection' => 0,
+				'headers'     => [
+					'X-WP-Nonce'          => $nonce,
+					'X-ElasticPress-Site' => (string) $site_id,
+				],
+				'cookies'     => [
+					new \WP_Http_Cookie(
+						[
+							'name'  => LOGGED_IN_COOKIE,
+							'value' => $cookie,
+						]
+					),
+				],
+				'body'        => $params,
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return new \WP_Error( 'ep_sync_site_context', __( 'Unable to reach the selected site. Check its URL and server loopback requests, then resume the sync.', 'elasticpress' ), [ 'status' => 502 ] );
+		}
+
+		$status = wp_remote_retrieve_response_code( $response );
+		$body   = wp_remote_retrieve_body( $response );
+
+		if ( 'sync' === $route ) {
+			// Match the dashboard client's handling of shortcode output before sync JSON.
+			$json_start = strpos( $body, '{"data"' );
+			$has_prefix = false !== $json_start && $json_start > 0;
+
+			if ( $has_prefix ) {
+				$body = substr( $body, $json_start );
+			}
+		}
+
+		$data  = json_decode( $body, true );
+		$valid = is_array( $data ) && $status >= 200 && $status < 300;
+
+		if ( ! $valid ) {
+			return new \WP_Error( 'ep_sync_site_context', __( 'The selected site rejected the sync request. Check its URL and authentication, then resume the sync.', 'elasticpress' ), [ 'status' => 502 ] );
+		}
+
+		return new \WP_REST_Response( $data, $status );
 	}
 
 	/**

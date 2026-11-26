@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { SelectControl } from '@wordpress/components';
+import { Notice, SelectControl } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
@@ -18,7 +18,7 @@ import { useSyncSettings } from '../provider';
  */
 export default () => {
 	const sync = useSync();
-	const { args, setArgs, sites } = useSyncSettings();
+	const { args, selectSite, sites, isLoadingPostTypes, postTypesError } = useSyncSettings();
 
 	const options = [
 		{ label: __('All eligible sites', 'elasticpress'), value: '' },
@@ -38,17 +38,25 @@ export default () => {
 	}
 
 	return sites ? (
-		<SelectControl
-			label={__('Sites to sync', 'elasticpress')}
-			help={__(
-				'Shared network content is synced only when All eligible sites is selected.',
-				'elasticpress',
+		<>
+			<SelectControl
+				label={__('Sites to sync', 'elasticpress')}
+				help={__(
+					'Shared network content is synced only when All eligible sites is selected. Changing sites resets post-type and object filters.',
+					'elasticpress',
+				)}
+				value={args.site_id}
+				options={options}
+				disabled={sync.isSyncing}
+				onChange={selectSite}
+				__nextHasNoMarginBottom
+			/>
+			{isLoadingPostTypes && <p>{__('Loading site post types…', 'elasticpress')}</p>}
+			{postTypesError && (
+				<Notice status="error" isDismissible={false}>
+					{postTypesError}
+				</Notice>
 			)}
-			value={args.site_id}
-			options={options}
-			disabled={sync.isSyncing}
-			onChange={(siteId) => setArgs({ ...args, site_id: siteId })}
-			__nextHasNoMarginBottom
-		/>
+		</>
 	) : null;
 };
