@@ -1045,7 +1045,9 @@ class IndexHelper {
 		$indexes   = [];
 		$indexable = Indexables::factory()->get( array_shift( $this->index_meta['network_alias'] ) );
 
-		$sites = Utils\get_sites( 0, true );
+		$sites = isset( $this->index_meta['site_id'] )
+			? [ Utils\get_site( $this->index_meta['site_id'] ) ]
+			: Utils\get_sites( 0, true );
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );

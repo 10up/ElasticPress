@@ -294,4 +294,103 @@ class TestIndexHelper extends BaseTestCase {
 			$this->assertSame( [ "Index {$name} deleted" ], $messages );
 		}
 	}
+
+	/**
+	 * Finalize an alias using saved job scope, without a site in request arguments.
+	 *
+	 * @param int|null $site_id Selected site, or null for a network job.
+	 * @return array Output messages.
+	 */
+	private function finalize_post_alias( $site_id ): array {
+		$helper   = new \ElasticPress\IndexHelper();
+		$messages = [];
+		$meta     = new \ReflectionProperty( $helper, 'index_meta' );
+		$meta->setAccessible( true );
+		$meta->setValue(
+			$helper,
+			[
+				'site_id'       => $site_id,
+				'network_alias' => [ 'post' ],
+			]
+		);
+		$args = new \ReflectionProperty( $helper, 'args' );
+		$args->setAccessible( true );
+		$args->setValue(
+			$helper,
+			[
+				'output_method' => static function ( $message ) use ( &$messages ) {
+					$messages[] = $message['message'];
+				},
+			]
+		);
+		$method = new \ReflectionMethod( $helper, 'create_network_alias' );
+		$method->setAccessible( true );
+		$method->invoke( $helper );
+		$this->assertSame( [], $meta->getValue( $helper )['network_alias'] );
+		\ElasticPress\Utils\delete_option( 'ep_index_meta' );
+
+		return $messages;
+	}
+
+	/**
+	 * An unrelated missing index must not prevent restoring the selected member.
+	 *
+	 * @group index-helper
+	 * @group selected-alias
+	 */
+	public function test_selected_alias_restores_saved_target_with_unrelated_missing_index() {
+		$target_id  = self::factory()->blog->create();
+		$missing_id = self::factory()->blog->create();
+		$current_id = get_current_blog_id();
+		$indexable  = \ElasticPress\Indexables::factory()->get( 'post' );
+		$elastic    = \ElasticPress\Elasticsearch::factory();
+		$main_name  = $indexable->get_index_name();
+		$target     = $indexable->get_index_name( $target_id );
+		$indexable->delete_network_alias();
+		$indexable->delete_index();
+		$indexable->delete_index( $target_id );
+		$indexable->delete_index( $missing_id );
+		$this->assertTrue( $indexable->put_mapping() );
+		$this->assertTrue( $elastic->put_mapping( $target, $indexable->generate_mapping() ) );
+		$this->assertTrue( $indexable->create_network_alias( [ $main_name, $target ] ) );
+
+		// Recreating the selected index drops only that index's alias membership.
+		$indexable->delete_index( $target_id );
+		$this->assertTrue( $elastic->put_mapping( $target, $indexable->generate_mapping() ) );
+		$messages = $this->finalize_post_alias( $target_id );
+		$response = $elastic->remote_request( '_alias/' . $indexable->get_network_alias(), [ 'method' => 'GET' ] );
+		$members  = array_keys( json_decode( wp_remote_retrieve_body( $response ), true ) );
+		$this->assertEqualsCanonicalizing( [ $main_name, $target ], $members );
+		$this->assertSame( [ 'Network alias created for posts' ], $messages );
+		$this->assertFalse( $indexable->index_exists( $missing_id ) );
+		$this->assertSame( $current_id, get_current_blog_id() );
+	}
+
+	/**
+	 * A job without a selected site still attaches all eligible site indexes.
+	 *
+	 * @group index-helper
+	 * @group selected-alias
+	 */
+	public function test_network_alias_without_selected_site_retains_network_scope() {
+		self::factory()->blog->create();
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+		$elastic   = \ElasticPress\Elasticsearch::factory();
+		$expected  = [];
+		$indexable->delete_network_alias();
+
+		foreach ( \ElasticPress\Utils\get_sites( 0, true ) as $site ) {
+			switch_to_blog( $site['blog_id'] );
+			$indexable->delete_index();
+			$this->assertTrue( $indexable->put_mapping() );
+			$expected[] = $indexable->get_index_name();
+			restore_current_blog();
+		}
+
+		$messages = $this->finalize_post_alias( null );
+		$response = $elastic->remote_request( '_alias/' . $indexable->get_network_alias(), [ 'method' => 'GET' ] );
+		$members  = array_keys( json_decode( wp_remote_retrieve_body( $response ), true ) );
+		$this->assertEqualsCanonicalizing( $expected, $members );
+		$this->assertSame( [ 'Network alias created for posts' ], $messages );
+	}
 }
