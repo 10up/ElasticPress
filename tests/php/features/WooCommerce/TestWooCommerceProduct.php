@@ -1171,7 +1171,19 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$default_supported = $this->products->get_supported_post_types( $query );
-		$this->assertSame( $default_supported, [ 'product_variation' ] );
+		$this->assertSame( $default_supported, [] );
+
+		/*
+		 * Product must be returned when ep_integrate is explicitly true.
+		 */
+		$ep_integrate_query             = new \WP_Query();
+		$ep_integrate_query->query_vars = [
+			'ep_integrate' => true,
+			'post_type'    => 'product',
+		];
+
+		$integrate_supported = $this->products->get_supported_post_types( $ep_integrate_query );
+		$this->assertContains( 'product', $integrate_supported );
 
 		/**
 		 * Test the `ep_woocommerce_products_supported_post_types` filter
@@ -1184,9 +1196,34 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 		add_filter( 'ep_woocommerce_products_supported_post_types', $add_post_type, 10, 2 );
 
 		$custom_supported = $this->products->get_supported_post_types( $query );
-		$this->assertSame( $custom_supported, [ 'product_variation', 'post' ] );
+		$this->assertSame( $custom_supported, [ 'post' ] );
+	}
 
-		$this->markTestIncomplete( 'This test should also test the addition of the `product` post type under some circumstances.' );
+	/**
+	 * Test that a query with product_variation post type does not trigger
+	 * ElasticPress integration. This handles the welaunch "WooCommerce
+	 * Single Variations" plugin conflict where the plugin adds
+	 * product_variation to post_type on shop queries.
+	 *
+	 * @link https://github.com/10up/ElasticPress/issues/3887
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testProductVariationQueryDoesNotIntegrate() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$query             = new \WP_Query();
+		$query->query_vars = [
+			's'            => 'test',
+			'post_type'    => [ 'product', 'product_variation' ],
+			'ep_integrate' => true,
+		];
+
+		$this->assertFalse(
+			$this->products->should_integrate_with_query( $query ),
+			'Query with product_variation post type must not trigger EP integration.'
+		);
 	}
 
 	/**
