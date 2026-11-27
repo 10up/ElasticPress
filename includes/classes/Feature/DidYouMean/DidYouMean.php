@@ -127,8 +127,30 @@ class DidYouMean extends Feature {
 			return false;
 		}
 
+		/**
+		 * Filter whether to suppress the suggestion when the current query already returned results.
+		 *
+		 * @since 5.4.0
+		 * @hook ep_suggestion_suppress_when_results_exist
+		 * @param {bool}     $suppress Whether to suppress the suggestion. Default true.
+		 * @param {WP_Query} $query    The WP_Query object.
+		 * @return {bool} New value
+		 */
+		$suppress_when_results_exist = apply_filters( 'ep_suggestion_suppress_when_results_exist', true, $query );
+
+		// No need to suggest alternatives if the current query already returned results.
+		if ( $suppress_when_results_exist && $query->found_posts > 0 ) {
+			return false;
+		}
+
 		$term = $this->get_suggested_term( $query );
 		if ( empty( $term ) ) {
+			return false;
+		}
+
+		// No need to suggest the same term the user already typed.
+		$search_term = $query->query_vars['s'] ?? '';
+		if ( strtolower( $term ) === strtolower( $search_term ) ) {
 			return false;
 		}
 
@@ -293,6 +315,12 @@ class DidYouMean extends Feature {
 
 		$term = $this->get_suggested_term( $wp_query );
 		if ( empty( $term ) ) {
+			return;
+		}
+
+		// Do not redirect to the same term the user already searched for.
+		$search_term = $wp_query->query_vars['s'] ?? '';
+		if ( strtolower( $term ) === strtolower( $search_term ) ) {
 			return;
 		}
 
