@@ -170,9 +170,13 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 						'label' => 'Method',
 						'value' => 'WP-CLI',
 					),
+					'scope'           => [
+						'label' => 'Target scope',
+						'value' => 'Not recorded',
+					],
 					'is_full_sync'    => array(
-						'label' => 'Full Sync',
-						'value' => $last_index['is_full_sync'],
+						'label' => 'Sync mode',
+						'value' => 'Fresh rebuild',
 					),
 					'start_date_time' => array(
 						'label' => 'Start Date Time',

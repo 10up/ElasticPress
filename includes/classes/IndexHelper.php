@@ -254,6 +254,7 @@ class IndexHelper {
 			);
 		}
 
+		$this->index_meta['scope']             = $this->get_sync_scope();
 		$this->index_meta['current_sync_item'] = false;
 		/**
 		 * Fires at start of new index
@@ -946,6 +947,7 @@ class IndexHelper {
 		$start_time   = $this->index_meta['start_time'];
 		$totals       = $this->index_meta['totals'];
 		$trigger      = $this->index_meta['trigger'];
+		$scope        = $this->index_meta['scope'] ?? null;
 
 		$this->index_meta = null;
 
@@ -962,6 +964,7 @@ class IndexHelper {
 		$totals['is_full_sync'] = $is_full_sync;
 		$totals['method']       = $method;
 		$totals['trigger']      = $trigger;
+		$totals['scope']        = $scope;
 
 		// Final status
 		if ( '' !== $final_status ) {
@@ -1344,6 +1347,35 @@ class IndexHelper {
 		$ep_indexable_sync_kill = apply_filters( 'ep_' . $indexable->slug . '_sync_kill', false, $indexable_object->ID );
 
 		return $ep_item_sync_kill || $ep_indexable_sync_kill || $ep_indexable_index_kill;
+	}
+
+	/**
+	 * Snapshot the targeted sites and shared content before the queue is consumed.
+	 *
+	 * @return array Sync scope, independent of rebuild mode and final outcome.
+	 */
+	protected function get_sync_scope(): array {
+		$sites  = [];
+		$shared = [];
+
+		foreach ( $this->index_meta['sync_stack'] as $item ) {
+			if ( isset( $item['blog_id'] ) ) {
+				$site_id           = (int) $item['blog_id'];
+				$sites[ $site_id ] = [
+					'id'   => $site_id,
+					'name' => is_multisite() ? get_blog_option( $site_id, 'blogname' ) : get_option( 'blogname' ),
+					'url'  => $item['url'],
+				];
+			} else {
+				$indexable = Indexables::factory()->get( $item['indexable'] );
+				$shared[]  = $indexable->labels['plural'];
+			}
+		}
+
+		return [
+			'sites'  => array_values( $sites ),
+			'shared' => $shared,
+		];
 	}
 
 	/**

@@ -26,6 +26,8 @@ export default () => {
 					<li key={s.start_date_time}>
 						<PreviousSync
 							failures={s.failed}
+							isFullSync={s.is_full_sync}
+							scope={s.scope}
 							method={s.method}
 							stateDatetime={s.start_date_time}
 							status={s.final_status}

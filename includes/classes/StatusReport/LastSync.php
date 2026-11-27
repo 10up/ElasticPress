@@ -72,8 +72,10 @@ class LastSync extends Report {
 		}
 
 		if ( isset( $sync_info['is_full_sync'] ) ) {
-			$sync_info['is_full_sync'] = $sync_info['is_full_sync'] ? esc_html__( 'Yes', 'elasticpress' ) : esc_html__( 'No', 'elasticpress' );
+			$sync_info['is_full_sync'] = $sync_info['is_full_sync'] ? esc_html__( 'Fresh rebuild', 'elasticpress' ) : esc_html__( 'Ordinary sync', 'elasticpress' );
 		}
+
+		$sync_info['scope'] = $this->format_scope( $sync_info['scope'] ?? null );
 
 		$labels = [
 			'total'           => esc_html__( 'Total', 'elasticpress' ),
@@ -82,7 +84,8 @@ class LastSync extends Report {
 			'failed'          => esc_html__( 'Failed', 'elasticpress' ),
 			'errors'          => esc_html__( 'Errors', 'elasticpress' ),
 			'method'          => esc_html__( 'Method', 'elasticpress' ),
-			'is_full_sync'    => esc_html__( 'Full Sync', 'elasticpress' ),
+			'is_full_sync'    => esc_html__( 'Sync mode', 'elasticpress' ),
+			'scope'           => esc_html__( 'Target scope', 'elasticpress' ),
 			'end_date_time'   => esc_html__( 'End Date Time', 'elasticpress' ),
 			'start_date_time' => esc_html__( 'Start Date Time', 'elasticpress' ),
 			'total_time'      => esc_html__( 'Total Time', 'elasticpress' ),
@@ -95,7 +98,7 @@ class LastSync extends Report {
 		 * the usual `array_replace(array_flip())` strategy to reorder an array adds a wrong numeric value to the
 		 * non-existent row.
 		 */
-		$preferred_order   = [ 'method', 'is_full_sync', 'start_date_time', 'end_date_time', 'total_time', 'total', 'synced', 'skipped', 'failed', 'errors' ];
+		$preferred_order   = [ 'method', 'scope', 'is_full_sync', 'start_date_time', 'end_date_time', 'total_time', 'total', 'synced', 'skipped', 'failed', 'errors' ];
 		$ordered_sync_info = [];
 		foreach ( $preferred_order as $field ) {
 			if ( array_key_exists( $field, $sync_info ) ) {
@@ -126,5 +129,41 @@ class LastSync extends Report {
 				'fields' => $fields,
 			],
 		];
+	}
+
+	/**
+	 * Format saved scope without looking up sites that may have changed since syncing.
+	 *
+	 * @param array|null $scope Saved scope, or null for older records.
+	 * @return string Readable target scope.
+	 */
+	protected function format_scope( ?array $scope ): string {
+		if ( null === $scope ) {
+			return __( 'Not recorded', 'elasticpress' );
+		}
+
+		$parts = [];
+		$sites = array_map(
+			static fn( $site ) => sprintf(
+				/* translators: 1: Site name, 2: Site address, 3: Site ID. */
+				__( '%1$s (%2$s, ID %3$d)', 'elasticpress' ),
+				$site['name'],
+				$site['url'],
+				$site['id']
+			),
+			$scope['sites']
+		);
+
+		if ( $sites ) {
+			/* translators: List of targeted sites. */
+			$parts[] = sprintf( __( 'Sites: %s', 'elasticpress' ), implode( '; ', $sites ) );
+		}
+
+		if ( $scope['shared'] ) {
+			/* translators: List of shared indexable names. */
+			$parts[] = sprintf( __( 'Shared network content: %s', 'elasticpress' ), implode( ', ', $scope['shared'] ) );
+		}
+
+		return $parts ? esc_html( implode( '; ', $parts ) ) : esc_html__( 'No targets', 'elasticpress' );
 	}
 }
