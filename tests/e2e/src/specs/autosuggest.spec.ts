@@ -148,6 +148,23 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 		await expect(page).toHaveURL(/.*cypress=foobar/);
 	});
 
+	test('Can use the legacy epDataFilter global to filter results', async ({ page }) => {
+		await page.addInitScript(() => {
+			(window as any).epDataFilter = (data: any) => {
+				data.hits.hits.forEach((hit: any) => {
+					hit._source.post_title = `${hit._source.post_title} (filtered)`;
+				});
+				return data;
+			};
+		});
+		await page.goto('/');
+		await frontendSearch(page).pressSequentially('Markup: HTML Tags and Formatting');
+
+		const autosuggest = frontendAutosuggest(page);
+		await expect(autosuggest).toBeVisible();
+		await expect(autosuggest).toContainText('Markup: HTML Tags and Formatting (filtered)');
+	});
+
 	test('Can select an Autosuggest suggestion even if Instant Results is active', async ({
 		page,
 	}) => {

@@ -532,6 +532,31 @@ class TestElasticsearch extends BaseTestCase {
 	}
 
 	/**
+	 * Test that remote_request() keeps every query parameter of the path
+	 *
+	 * @since 5.3.7
+	 * @group elasticsearch
+	 */
+	public function test_remote_request_keeps_all_query_params() {
+		$urls = [];
+		add_filter(
+			'ep_pre_request_url',
+			function ( $url ) use ( &$urls ) {
+				$urls[] = $url;
+				return $url;
+			}
+		);
+
+		$response = ElasticPress\Elasticsearch::factory()->remote_request( '_cat/health?format=json&h=status' );
+
+		$this->assertCount( 1, $urls );
+		$this->assertStringEndsWith( '/_cat/health?format=json&h=status', $urls[0] );
+
+		$health = json_decode( wp_remote_retrieve_body( $response ), true );
+		$this->assertSame( [ 'status' ], array_keys( $health[0] ) );
+	}
+
+	/**
 	 * Test the ep_get_query_log filter
 	 *
 	 * @since 5.3.0

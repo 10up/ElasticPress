@@ -243,7 +243,7 @@ class RelatedPosts extends Feature {
 
 		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => $class ] );
 		?>
-		<section <?php echo wp_kses_data( $wrapper_attributes ); ?>">
+		<section <?php echo wp_kses_data( $wrapper_attributes ); ?>>
 			<ul>
 				<?php foreach ( $posts as $related_post ) : ?>
 					<li>

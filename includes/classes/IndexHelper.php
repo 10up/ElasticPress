@@ -134,7 +134,8 @@ class IndexHelper {
 		);
 
 		$this->index_meta = [
-			'method'            => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
+			// Hook names use `dashboard`, but `Utils\get_indexing_status()` reports it as `web`, and the next requests continue from that.
+			'method'            => ! empty( $this->args['method'] ) && 'dashboard' !== $this->args['method'] ? $this->args['method'] : 'web',
 			'put_mapping'       => ! empty( $this->args['put_mapping'] ),
 			'offset'            => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
 			'pagination_method' => $pagination_method,
@@ -440,7 +441,15 @@ class IndexHelper {
 		 */
 		$has_objects = ! empty( $this->current_query['objects'] );
 
-		if ( $has_objects && $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) {
+		/*
+		 * The total was counted when the sync started, so it misses objects that became indexable since. Past the
+		 * total, a batch is still indexed if it's below the last one. A batch that keeps coming back the same, e.g.,
+		 * because a filter turned off paging by ID, still ends the sync.
+		 */
+		$last_processed_id = $this->index_meta['current_sync_item']['last_processed_object_id'] ?? null;
+		$is_below_last     = $has_objects && $last_processed_id && end( $this->current_query['objects'] )->ID < $last_processed_id;
+
+		if ( ( $has_objects && $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) || $is_below_last ) {
 			$this->index_next_batch();
 		} else {
 			$this->index_cleanup();
@@ -494,7 +503,8 @@ class IndexHelper {
 
 		$args = [
 			'per_page'   => absint( $per_page ),
-			'ep_sync_id' => uniqid(),
+			// The same for every batch of a sync, so the total is counted once per sync instead of once per batch
+			'ep_sync_id' => $this->index_meta['start_time'],
 		];
 
 		if ( ! $indexable->support_indexing_advanced_pagination || 'offset' === $this->index_meta['pagination_method'] ) {
@@ -669,6 +679,7 @@ class IndexHelper {
 					}
 
 					$failed_objects = [];
+					$failed_request = null;
 					foreach ( $bulk_requests as $return ) {
 						/**
 						 * Fires after bulk indexing
@@ -680,7 +691,8 @@ class IndexHelper {
 						do_action( "ep_cli_{$indexable->slug}_bulk_index", $queued_items, $return );
 
 						if ( is_wp_error( $return ) ) {
-							$should_retry = true;
+							$should_retry   = true;
+							$failed_request = $return;
 						}
 						if ( is_array( $return ) && isset( $return['errors'] ) && true === $return['errors'] ) {
 							$failed_objects = array_merge(
@@ -694,6 +706,9 @@ class IndexHelper {
 							);
 						}
 					}
+
+					// The documents of a failed request are not sent again, so the batch failed even if a later request went through.
+					$return = $failed_request ?? $return;
 				}
 
 				// Things worked, we don't need to try again.

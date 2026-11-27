@@ -106,7 +106,7 @@ export default ({ defaultIsOpen, label }) => {
 						{selectedPostTypes.map((value) => (
 							<ActiveConstraint
 								key={value}
-								label={postTypeLabels[value].singular}
+								label={postTypeLabels[value]?.singular || value}
 								onClick={() => onClear(value)}
 							/>
 						))}
