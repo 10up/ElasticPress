@@ -102,7 +102,9 @@ test.describe('Network shared indexable scope', { tag: '@group2' }, () => {
 		await goToAdminPage(loggedInPage, 'network/admin.php?page=elasticpress-sync');
 		await loggedInPage.getByRole('combobox', { name: 'Sites to sync' }).selectOption(siteId);
 		await loggedInPage
-			.getByRole('checkbox', { name: 'Delete all data and start fresh sync' })
+			.getByRole('checkbox', {
+				name: /^Delete (all|selected site) data and start fresh sync$/,
+			})
 			.check();
 		await completeSync(loggedInPage);
 		const sharedAfter = await indexState(globalIndex);
@@ -152,7 +154,9 @@ test.describe('Network shared indexable scope', { tag: '@group2' }, () => {
 		await loggedInPage.getByRole('button', { name: 'Advanced options' }).click();
 		await loggedInPage.getByRole('checkbox', { name: 'Global', exact: true }).check();
 		await loggedInPage
-			.getByRole('checkbox', { name: 'Delete all data and start fresh sync' })
+			.getByRole('checkbox', {
+				name: /^Delete (all|selected site) data and start fresh sync$/,
+			})
 			.check();
 		await completeSync(loggedInPage);
 		await expect(loggedInPage.locator('.ep-sync-messages')).toContainText(

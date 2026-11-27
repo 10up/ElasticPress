@@ -23,7 +23,7 @@ test.describe('Orders templates in native store syncs', { tag: '@group2' }, () =
 		await goToAdminPage(page, 'network/admin.php?page=elasticpress-sync');
 		await page.getByRole('combobox', { name: 'Sites to sync' }).selectOption(target);
 		const fresh = page.getByRole('checkbox', {
-			name: 'Delete all data and start fresh sync',
+			name: /^Delete (all|selected site) data and start fresh sync$/,
 		});
 
 		if (await fresh.count()) {

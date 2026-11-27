@@ -51,7 +51,9 @@ test.describe('Selected-site network alias restoration', { tag: '@group2' }, () 
 			await posts.check();
 		}
 
-		const fresh = page.getByRole('checkbox', { name: 'Delete all data and start fresh sync' });
+		const fresh = page.getByRole('checkbox', {
+			name: /^Delete (all|selected site) data and start fresh sync$/,
+		});
 
 		if (await fresh.count()) {
 			await fresh.check();

@@ -32,7 +32,11 @@ test.describe('Native subsite sync content', { tag: '@group2' }, () => {
 			await posts.check();
 		}
 
-		await page.getByRole('checkbox', { name: 'Delete all data and start fresh sync' }).check();
+		await page
+			.getByRole('checkbox', {
+				name: /^Delete (all|selected site) data and start fresh sync$/,
+			})
+			.check();
 		const prepared = page.waitForResponse(async (response) => {
 			const isUnrelatedRequest =
 				!response.url().includes('/elasticpress/v1/sync') ||
@@ -148,7 +152,11 @@ test.describe('Native subsite sync content', { tag: '@group2' }, () => {
 		await page.getByRole('combobox', { name: 'Sites to sync' }).selectOption(siteId);
 		await page.getByRole('button', { name: 'Advanced options' }).click();
 		await page.getByRole('checkbox', { name: 'Site Books', exact: true }).check();
-		await page.getByRole('checkbox', { name: 'Delete all data and start fresh sync' }).check();
+		await page
+			.getByRole('checkbox', {
+				name: /^Delete (all|selected site) data and start fresh sync$/,
+			})
+			.check();
 		await page.getByRole('button', { name: 'Start sync', exact: true }).click();
 		await page.getByRole('button', { name: 'Pause sync', exact: true }).click();
 		await openSyncLog(page);
@@ -157,7 +165,9 @@ test.describe('Native subsite sync content', { tag: '@group2' }, () => {
 		await page.getByRole('button', { name: 'Advanced options' }).click();
 		await expect(page.getByRole('checkbox', { name: 'Site Books', exact: true })).toBeChecked();
 		await expect(
-			page.getByRole('checkbox', { name: 'Delete all data and start fresh sync' }),
+			page.getByRole('checkbox', {
+				name: /^Delete (all|selected site) data and start fresh sync$/,
+			}),
 		).toBeChecked();
 		await page.getByRole('button', { name: 'Resume sync', exact: true }).click();
 		await openSyncLog(page);

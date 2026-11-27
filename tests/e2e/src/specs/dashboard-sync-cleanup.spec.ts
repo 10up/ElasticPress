@@ -28,7 +28,9 @@ test.describe('Inactive network index cleanup', { tag: '@group2' }, () => {
 
 		if (fresh) {
 			await page
-				.getByRole('checkbox', { name: 'Delete all data and start fresh sync' })
+				.getByRole('checkbox', {
+					name: /^Delete (all|selected site) data and start fresh sync$/,
+				})
 				.check();
 		}
 

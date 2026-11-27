@@ -48,6 +48,18 @@ test.describe('Network sync target eligibility', { tag: '@group2' }, () => {
 	}) => {
 		await goToAdminPage(loggedInPage, 'network/admin.php?page=elasticpress-sync');
 		const sites = loggedInPage.getByRole('combobox', { name: 'Sites to sync' });
+		const rebuild = loggedInPage.locator('.ep-sync-delete input');
+		await expect(rebuild).toHaveAccessibleName('Delete all data and start fresh sync');
+		await sites.selectOption(siteId);
+		await expect(rebuild).toHaveAccessibleName(
+			'Delete selected site data and start fresh sync',
+		);
+		await expect(rebuild).toHaveAccessibleDescription(
+			/Other sites and shared network data are not included in this sync/,
+		);
+		await sites.selectOption('');
+		await expect(rebuild).toHaveAccessibleName('Delete all data and start fresh sync');
+		await expect(rebuild).toHaveAccessibleDescription(/All indexed data on ElasticPress/);
 		await sites.selectOption(siteId);
 		await loggedInPage.getByRole('button', { name: 'Start sync', exact: true }).click();
 		await loggedInPage.getByRole('button', { name: 'Pause sync', exact: true }).click();
@@ -56,6 +68,9 @@ test.describe('Network sync target eligibility', { tag: '@group2' }, () => {
 		await loggedInPage.reload();
 		await expect(sites).toHaveValue(siteId);
 		await expect(sites).toBeDisabled();
+		await expect(rebuild).toHaveAccessibleName(
+			'Delete selected site data and start fresh sync',
+		);
 		await loggedInPage.getByRole('button', { name: 'Resume sync', exact: true }).click();
 		await openSyncLog(loggedInPage);
 		await expect(loggedInPage.locator('.ep-sync-progress strong')).toHaveText('Sync complete', {
