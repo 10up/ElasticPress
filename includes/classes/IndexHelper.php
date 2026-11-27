@@ -134,7 +134,8 @@ class IndexHelper {
 		);
 
 		$this->index_meta = [
-			'method'            => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
+			// Hook names use `dashboard`, but `Utils\get_indexing_status()` reports it as `web`, and the next requests continue from that.
+			'method'            => ! empty( $this->args['method'] ) && 'dashboard' !== $this->args['method'] ? $this->args['method'] : 'web',
 			'put_mapping'       => ! empty( $this->args['put_mapping'] ),
 			'offset'            => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
 			'pagination_method' => $pagination_method,
