@@ -66,6 +66,32 @@ class TestElasticsearchErrorInterpreter extends BaseTestCase {
 	}
 
 	/**
+	 * Test that values extracted from the error are escaped in the solution
+	 *
+	 * @since 5.3.6
+	 * @group elasticsearch-error-interpreter
+	 */
+	public function test_maybe_suggest_solution_for_es_escapes_matches() {
+		$error_interpreter = new ElasticsearchErrorInterpreter();
+		$payload           = '<img src=x onerror=alert(1)>';
+
+		$errors = [
+			'no such index [' . $payload . ']',
+			'No mapping found for [' . $payload . '] in order to sort on',
+			'Fielddata is disabled on text fields by default. Set fielddata=true on [' . $payload . ']',
+			'field [' . $payload . '] is of type [text], but only numeric types are supported.',
+			'Alternatively, set fielddata=true on [' . $payload . '] in order to load field data by uninverting the inverted index.',
+		];
+
+		foreach ( $errors as $error ) {
+			$suggested = $error_interpreter->maybe_suggest_solution_for_es( $error );
+
+			$this->assertStringNotContainsString( $payload, $suggested['solution'] );
+			$this->assertStringContainsString( esc_html( $payload ), $suggested['solution'] );
+		}
+	}
+
+	/**
 	 * Test the `maybe_suggest_solution_for_es` method when using the wrong mapping (fielddata error)
 	 *
 	 * @group elasticsearch-error-interpreter

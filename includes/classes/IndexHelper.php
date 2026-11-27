@@ -134,7 +134,8 @@ class IndexHelper {
 		);
 
 		$this->index_meta = [
-			'method'            => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
+			// Hook names use `dashboard`, but `Utils\get_indexing_status()` reports it as `web`, and the next requests continue from that.
+			'method'            => ! empty( $this->args['method'] ) && 'dashboard' !== $this->args['method'] ? $this->args['method'] : 'web',
 			'put_mapping'       => ! empty( $this->args['put_mapping'] ),
 			'offset'            => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
 			'pagination_method' => $pagination_method,
@@ -434,7 +435,21 @@ class IndexHelper {
 			}
 		}
 
-		if ( $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) {
+		/*
+		 * An empty batch means there is nothing left to index, even if the offset did not reach the
+		 * total, e.g., because objects were created or deleted while the sync was running.
+		 */
+		$has_objects = ! empty( $this->current_query['objects'] );
+
+		/*
+		 * The total was counted when the sync started, so it misses objects that became indexable since. Past the
+		 * total, a batch is still indexed if it's below the last one. A batch that keeps coming back the same, e.g.,
+		 * because a filter turned off paging by ID, still ends the sync.
+		 */
+		$last_processed_id = $this->index_meta['current_sync_item']['last_processed_object_id'] ?? null;
+		$is_below_last     = $has_objects && $last_processed_id && end( $this->current_query['objects'] )->ID < $last_processed_id;
+
+		if ( ( $has_objects && $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) || $is_below_last ) {
 			$this->index_next_batch();
 		} else {
 			$this->index_cleanup();
@@ -488,7 +503,8 @@ class IndexHelper {
 
 		$args = [
 			'per_page'   => absint( $per_page ),
-			'ep_sync_id' => uniqid(),
+			// The same for every batch of a sync, so the total is counted once per sync instead of once per batch
+			'ep_sync_id' => $this->index_meta['start_time'],
 		];
 
 		if ( ! $indexable->support_indexing_advanced_pagination || 'offset' === $this->index_meta['pagination_method'] ) {
@@ -640,9 +656,15 @@ class IndexHelper {
 
 					if ( is_object( $return ) && ! empty( $return->error ) ) {
 						if ( ! empty( $return->error->reason ) ) {
-							$failed_objects[ $object->ID ] = (array) $return->error;
+							// Same shape as a bulk response item, which output_index_errors() expects.
+							$failed_objects[ $object_id ] = [
+								'index' => [
+									'_id'   => $object_id,
+									'error' => (array) $return->error,
+								],
+							];
 						} else {
-							$failed_objects[ $object->ID ] = null;
+							$failed_objects[ $object_id ] = null;
 						}
 					}
 
@@ -657,6 +679,7 @@ class IndexHelper {
 					}
 
 					$failed_objects = [];
+					$failed_request = null;
 					foreach ( $bulk_requests as $return ) {
 						/**
 						 * Fires after bulk indexing
@@ -668,7 +691,8 @@ class IndexHelper {
 						do_action( "ep_cli_{$indexable->slug}_bulk_index", $queued_items, $return );
 
 						if ( is_wp_error( $return ) ) {
-							$should_retry = true;
+							$should_retry   = true;
+							$failed_request = $return;
 						}
 						if ( is_array( $return ) && isset( $return['errors'] ) && true === $return['errors'] ) {
 							$failed_objects = array_merge(
@@ -682,6 +706,9 @@ class IndexHelper {
 							);
 						}
 					}
+
+					// The documents of a failed request are not sent again, so the batch failed even if a later request went through.
+					$return = $failed_request ?? $return;
 				}
 
 				// Things worked, we don't need to try again.
@@ -703,7 +730,8 @@ class IndexHelper {
 
 				$this->queue_message( $wp_error_messages, 'warning' );
 			} elseif ( count( $failed_objects ) ) {
-				$errors_output = $this->output_index_errors( $failed_objects );
+				$stack_traces  = [];
+				$errors_output = $this->output_index_errors( $failed_objects, $stack_traces );
 
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items ) - count( $failed_objects );
 
@@ -716,7 +744,7 @@ class IndexHelper {
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
 				$error_type                                       = ! empty( $this->args['stop_on_error'] ) ? 'error' : 'warning';
 
-				$this->queue_message( $errors_output, $error_type );
+				$this->queue_message( $errors_output, $error_type, '', $stack_traces );
 			} else {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
@@ -1022,12 +1050,14 @@ class IndexHelper {
 	 * Output a message.
 	 *
 	 * @since 4.0.0
+	 * @since 5.3.6 Added `$stack_traces`
 	 * @param string|array $message_text Message to be outputted
 	 * @param string       $type         Type of message
 	 * @param string       $context      Context of the output
+	 * @param array        $stack_traces Optional. Stack traces keyed by error message. Default empty array.
 	 * @return void
 	 */
-	protected function output( $message_text, $type = 'info', $context = '' ) {
+	protected function output( $message_text, $type = 'info', $context = '', array $stack_traces = [] ) {
 		if ( $this->index_meta ) {
 			Utils\update_option( 'ep_index_meta', $this->index_meta );
 		} else {
@@ -1043,7 +1073,7 @@ class IndexHelper {
 		];
 
 		if ( in_array( $type, [ 'warning', 'error' ], true ) ) {
-			$message['errors'] = $this->build_message_errors_data( $message_text );
+			$message['errors'] = $this->build_message_errors_data( $message_text, $stack_traces );
 		}
 
 		if ( is_callable( $this->args['output_method'] ) ) {
@@ -1077,15 +1107,22 @@ class IndexHelper {
 	 * Output index errors of failed objects.
 	 *
 	 * @since 4.0.0
+	 * @since 5.3.6 Added `$stack_traces`
 	 * @param array $failed_objects Failed objects
+	 * @param array $stack_traces   Optional. Filled with the stack traces of the errors that have one, keyed by error message.
 	 */
-	protected function output_index_errors( $failed_objects ) {
+	protected function output_index_errors( $failed_objects, array &$stack_traces = [] ) {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
 		$error_text = [];
 
 		foreach ( $failed_objects as $object ) {
-			$error_text[] = ! empty( $object['index'] ) ? $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] : (string) $object;
+			$message      = ! empty( $object['index'] ) ? $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] : (string) $object;
+			$error_text[] = $message;
+
+			if ( ! empty( $object['index']['error']['stack_trace'] ) ) {
+				$stack_traces[ $message ] = $object['index']['error']['stack_trace'];
+			}
 		}
 
 		return $error_text;
@@ -1454,15 +1491,18 @@ class IndexHelper {
 	 * Add a message to the queue
 	 *
 	 * @since 4.7.0
+	 * @since 5.3.6 Added `$stack_traces`
 	 * @param string|array $message_text Message to be outputted
 	 * @param string       $type         Type of message
 	 * @param string       $context      Context of the output
+	 * @param array        $stack_traces Optional. Stack traces keyed by error message. Default empty array.
 	 */
-	protected function queue_message( $message_text, string $type, string $context = '' ) {
+	protected function queue_message( $message_text, string $type, string $context = '', array $stack_traces = [] ) {
 		$this->index_meta['messages_queue'][] = [
-			'text'    => $message_text,
-			'type'    => $type,
-			'context' => $context,
+			'text'         => $message_text,
+			'type'         => $type,
+			'context'      => $context,
+			'stack_traces' => $stack_traces,
 		];
 	}
 
@@ -1487,7 +1527,7 @@ class IndexHelper {
 
 		for ( $i = 0; $i < $messages_count; $i++ ) {
 			$next_message = array_shift( $this->index_meta['messages_queue'] );
-			$this->output( $next_message['text'], $next_message['type'], $next_message['context'] );
+			$this->output( $next_message['text'], $next_message['type'], $next_message['context'], $next_message['stack_traces'] ?? [] );
 		}
 	}
 
@@ -1495,10 +1535,12 @@ class IndexHelper {
 	 * Get data for a given error message(s)
 	 *
 	 * @since 5.0.0
-	 * @param string|array $messages Messages
+	 * @since 5.3.6 Added `$stack_traces`
+	 * @param string|array $messages     Messages
+	 * @param array        $stack_traces Optional. Stack traces keyed by error message. Default empty array.
 	 * @return array
 	 */
-	protected function build_message_errors_data( $messages ): array {
+	protected function build_message_errors_data( $messages, array $stack_traces = [] ): array {
 		$messages          = (array) $messages;
 		$error_interpreter = new \ElasticPress\ElasticsearchErrorInterpreter();
 
@@ -1513,6 +1555,11 @@ class IndexHelper {
 				];
 			} else {
 				++$errors_list[ $error['error'] ]['count'];
+			}
+
+			// Messages can share a key, so keep the first stack trace even if an earlier message had none.
+			if ( empty( $errors_list[ $error['error'] ]['stack_trace'] ) && ! empty( $stack_traces[ $message ] ) ) {
+				$errors_list[ $error['error'] ]['stack_trace'] = $stack_traces[ $message ];
 			}
 		}
 		return $errors_list;

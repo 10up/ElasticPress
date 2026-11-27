@@ -1307,6 +1307,25 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Output the stack traces attached to the errors of a message.
+	 *
+	 * @since 5.3.6
+	 * @param array $message Message data from IndexHelper
+	 * @return void
+	 */
+	protected function output_error_stack_traces( array $message ) {
+		foreach ( $message['errors'] ?? [] as $error => $data ) {
+			if ( empty( $data['stack_trace'] ) ) {
+				continue;
+			}
+
+			/* translators: %s: Error message */
+			WP_CLI::log( sprintf( esc_html__( 'Stack trace for: %s', 'elasticpress' ), $error ) );
+			WP_CLI::log( $data['stack_trace'] );
+		}
+	}
+
+	/**
 	 * Function used to output messages coming from IndexHelper
 	 *
 	 * @param array  $message    Message data
@@ -1328,10 +1347,12 @@ class Command extends WP_CLI_Command {
 				}
 
 				WP_CLI::warning( $message['message'] );
+				$this->output_error_stack_traces( $message );
 				break;
 
 			case 'error':
 				$this->clear_sync();
+				$this->output_error_stack_traces( $message );
 				WP_CLI::error( $message['message'] );
 				break;
 

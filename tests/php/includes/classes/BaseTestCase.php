@@ -172,7 +172,7 @@ class BaseTestCase extends WP_UnitTestCase {
 	 *
 	 * @param array $query ES query
 	 */
-	public function assertDecayEnabled( $query ) {
+	public function assert_decay_enabled( $query ) {
 		$this->assertTrue(
 			isset(
 				$query['function_score'],
@@ -197,7 +197,7 @@ class BaseTestCase extends WP_UnitTestCase {
 	 *
 	 * @param array $query ES query
 	 */
-	public function assertDecayDisabled( $query ) {
+	public function assert_decay_disabled( $query ) {
 		$this->assertFalse(
 			isset(
 				$query,

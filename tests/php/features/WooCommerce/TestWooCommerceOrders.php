@@ -40,7 +40,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function testSearchOnShopOrderAdmin() {
+	public function test_search_on_shop_order_admin() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
@@ -79,7 +79,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function testShopOrderPostTypeQueryOn() {
+	public function test_shop_order_post_type_query_on() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -109,7 +109,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function testShopOrderPostTypeQueryWhenProtectedContentEnable() {
+	public function test_shop_order_post_type_query_when_protected_content_enable() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
@@ -139,7 +139,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function testShopOrderPostTypeQueryWhenEPIntegrateSetFalse() {
+	public function test_shop_order_post_type_query_when_ep_integrate_set_false() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
@@ -168,7 +168,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function testSearchShopOrderById() {
+	public function test_search_shop_order_by_id() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
@@ -202,7 +202,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function testSearchShopOrderByMetaFieldAndId() {
+	public function test_search_shop_order_by_meta_field_and_id() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
@@ -240,7 +240,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function testGetAdminSearchablePostTypes() {
+	public function test_get_admin_searchable_post_types() {
 		$default_post_types = $this->orders->get_admin_searchable_post_types();
 		$this->assertSame( $default_post_types, [ 'shop_order' ] );
 
@@ -263,7 +263,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function testGetSupportedPostTypes() {
+	public function test_get_supported_post_types() {
 		$default_supported = $this->orders->get_supported_post_types();
 		$this->assertSame( $default_supported, [] );
 
@@ -292,21 +292,21 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 *
 	 * @param string $method The method name
 	 * @param array  $args   Method arguments
-	 * @dataProvider ordersAutosuggestMethodsDataProvider
+	 * @dataProvider orders_autosuggest_methods_data_provider
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function testOrdersAutosuggestMethods( $method, $args ) {
+	public function test_orders_autosuggest_methods( $method, $args ) {
 		$this->setExpectedDeprecated( "\ElasticPress\Feature\WooCommerce\WooCommerce\Orders::{$method}" );
 		$this->orders->$method( ...$args );
 	}
 
 	/**
-	 * Data provider for the testOrdersAutosuggestMethods method.
+	 * Data provider for the test_orders_autosuggest_methods method.
 	 *
 	 * @return array
 	 */
-	public function ordersAutosuggestMethodsDataProvider(): array {
+	public function orders_autosuggest_methods_data_provider(): array {
 		return [
 			[ 'after_update_feature', [ 'test', [], [] ] ],
 			[ 'enqueue_admin_assets', [ '' ] ],

@@ -123,6 +123,15 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 	test.afterAll(async () => {
 		await wpCli('elasticpress deactivate-feature woocommerce', true);
 		await wpCli('plugin deactivate woocommerce', true);
+
+		// Remove the Product Search widgets, so other specs do not search for products only.
+		await wpCliEval(`
+			foreach ( get_option( 'widget_block', [] ) as $number => $widget ) {
+				if ( is_array( $widget ) && false !== strpos( $widget['content'], '"post_type":"product"' ) ) {
+					WP_CLI::runcommand( "widget delete block-{$number}" );
+				}
+			}
+		`);
 	});
 
 	test.beforeEach(async ({ loggedInPage }) => {
@@ -251,7 +260,10 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await expect(searchModal).toBeVisible(); // Should be visible immediately
 				await expect(loggedInPage).toHaveURL(/.*search=new/);
 
-				await responsePromise;
+				const response = await responsePromise;
+
+				// No Authorization header should be sent when there are no credentials.
+				expect(await response.request().headerValue('authorization')).toBeNull();
 
 				await expect(searchModal).toContainText('new');
 				// Show the number of results
@@ -298,6 +310,72 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 
 				await loggedInPage.locator('#wp-admin-bar-debug-bar').click();
 				await expect(loggedInPage.locator('#querylist')).toBeVisible();
+			});
+
+			/**
+			 * Test that a dashboard sync saves the search template on single sites.
+			 */
+			test('Saves the search template after a dashboard sync', async ({ loggedInPage }) => {
+				await maybeEnableFeature('instant-results');
+
+				// Delete the template.
+				await wpCliEval(
+					`
+					\\ElasticPress\\Features::factory()->get_registered_feature( 'instant-results' )->epio_delete_search_template();
+					`,
+				);
+
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-sync');
+				await loggedInPage.getByLabel('Delete all data and start fresh sync').check();
+				await loggedInPage.getByRole('button', { name: 'Start sync' }).click();
+				await expect(loggedInPage.locator('.ep-sync-progress strong')).toContainText(
+					'Sync complete',
+					{
+						timeout: getSyncTimeout(),
+					},
+				);
+
+				await loggedInPage.goto('/');
+
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=blog');
+				await searchFor(loggedInPage, 'blog');
+				const response = await responsePromise;
+
+				expect(response.ok()).toBeTruthy();
+
+				const searchModal = loggedInPage.locator('.ep-search-modal');
+				await expect(searchModal.locator('.ep-search-results__title')).toContainText(/\d+/);
+				await expect(searchModal).toContainText('Blog post');
+			});
+
+			test('Does not break with an unknown post type in the URL', async ({
+				loggedInPage,
+			}) => {
+				await maybeEnableFeature('instant-results');
+				await wpCli('elasticpress put-search-template', true);
+
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				const apiResponsePromise = loggedInPage.waitForResponse(
+					'**/wp-json/elasticpress/v1/features*',
+				);
+				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+				await addInstantResultFilter(loggedInPage, 'post type');
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+				await apiResponsePromise;
+
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=new');
+				await loggedInPage.goto(
+					'/?ep-search=new&ep-post_type=post,doesnotexist&ep-relation=or',
+				);
+				await responsePromise;
+
+				const searchModal = loggedInPage.locator('.ep-search-modal');
+				await expect(searchModal).toBeVisible();
+				await expect(searchModal.locator('.ep-search-results__title')).toContainText(/\d+/);
+				await expect(
+					searchModal.getByRole('button', { name: /doesnotexist/ }),
+				).toBeVisible();
 			});
 
 			test('Is possible to filter the number of results', async ({ loggedInPage }) => {
@@ -462,6 +540,8 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await maybeEnableFeature('did-you-mean');
 
 				await wpCli('wp elasticpress sync --setup --yes');
+				// The search right after the sync can run before Elasticsearch refreshes the new index.
+				await refreshIndex('post');
 
 				/**
 				 * Perform a search.

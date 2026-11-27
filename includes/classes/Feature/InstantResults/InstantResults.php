@@ -1020,7 +1020,9 @@ class InstantResults extends Feature {
 	 * @since 5.3.3
 	 */
 	public function on_sync_complete( array $args ): void {
-		$network_wide = isset( $args['network_wide'] ) && ! is_null( $args['network_wide'] );
+		$network_wide = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK
+			&& isset( $args['network_wide'] ) && ! is_null( $args['network_wide'] );
+
 		$this->epio_save_site_search_template( $network_wide );
 	}
 

@@ -53,7 +53,7 @@ class TestSearch extends BaseTestCase {
 	 * @since 2.1
 	 * @group search
 	 */
-	public function testSearchOn() {
+	public function test_search_on() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -80,7 +80,7 @@ class TestSearch extends BaseTestCase {
 	 *
 	 * @group search
 	 */
-	public function testSearchIndexDeleted() {
+	public function test_search_index_deleted() {
 		global $wpdb;
 
 		ElasticPress\Features::factory()->activate_feature( 'search' );
@@ -115,7 +115,7 @@ class TestSearch extends BaseTestCase {
 	 * @since 2.4
 	 * @group search
 	 */
-	public function testDecayingEnabled() {
+	public function test_decaying_enabled() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -151,7 +151,7 @@ class TestSearch extends BaseTestCase {
 		);
 
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertDecayEnabled( $this->fired_actions['ep_formatted_args']['query'] );
+		$this->assert_decay_enabled( $this->fired_actions['ep_formatted_args']['query'] );
 
 		/**
 		 * Test the `ep_is_decaying_enabled` filter
@@ -168,7 +168,7 @@ class TestSearch extends BaseTestCase {
 	 * @since 2.4
 	 * @group search
 	 */
-	public function testDecayingDisabled() {
+	public function test_decaying_disabled() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -203,7 +203,7 @@ class TestSearch extends BaseTestCase {
 		);
 
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertDecayDisabled( $this->fired_actions['ep_formatted_args']['query'] );
+		$this->assert_decay_disabled( $this->fired_actions['ep_formatted_args']['query'] );
 		$this->assertTrue(
 			isset(
 				$this->fired_actions['ep_formatted_args']['query']['bool'],
@@ -217,7 +217,7 @@ class TestSearch extends BaseTestCase {
 	 *
 	 * @group search
 	 */
-	public function testAllowedTags() {
+	public function test_allowed_tags() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -236,7 +236,7 @@ class TestSearch extends BaseTestCase {
 	 *
 	 * @group search
 	 */
-	public function testNotAllowedTags() {
+	public function test_not_allowed_tags() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -255,7 +255,7 @@ class TestSearch extends BaseTestCase {
 	 *
 	 * @group search
 	 */
-	public function testHighlightSetting() {
+	public function test_highlight_setting() {
 
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->setup_features();
@@ -285,7 +285,7 @@ class TestSearch extends BaseTestCase {
 	 *
 	 * @group search
 	 */
-	public function testBadTagSetting() {
+	public function test_bad_tag_setting() {
 
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->setup_features();
@@ -313,7 +313,7 @@ class TestSearch extends BaseTestCase {
 	 *
 	 * @group search
 	 */
-	public function testExcerptSetting() {
+	public function test_excerpt_setting() {
 
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->setup_features();

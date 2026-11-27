@@ -65,8 +65,10 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the class constructor
+	 *
+	 * @group autosuggest
 	 */
-	public function testConstruct() {
+	public function test_construct() {
 		$instance = new ElasticPress\Feature\Autosuggest\Autosuggest();
 		$instance->set_i18n_strings();
 
@@ -76,8 +78,10 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the mapping change in ES 5 method
+	 *
+	 * @group autosuggest
 	 */
-	public function testMappingES5() {
+	public function test_mapping_es5() {
 		$change_es_version = function () {
 			return '5.2';
 		};
@@ -98,8 +102,10 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the mapping change in ES 7 method
+	 *
+	 * @group autosuggest
 	 */
-	public function testMappingES7() {
+	public function test_mapping_es7() {
 		$change_es_version = function () {
 			return '7.0';
 		};
@@ -120,8 +126,10 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the `set_fuzziness` method
+	 *
+	 * @group autosuggest
 	 */
-	public function testSetFuzziness() {
+	public function test_set_fuzziness() {
 		set_current_screen( 'edit.php' );
 		$this->assertequals( 2, $this->get_feature()->set_fuzziness( 2, [], [] ) );
 		$this->assertequals( 2, $this->get_feature()->set_fuzziness( 2, [], [ 's' => 'test' ] ) );
@@ -131,8 +139,10 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the `filter_term_suggest` method
+	 *
+	 * @group autosuggest
 	 */
-	public function testFilterTermSuggest() {
+	public function test_filter_term_suggest() {
 		$post_args = [];
 		$this->assertEquals( [], $this->get_feature()->filter_term_suggest( $post_args ) );
 
@@ -154,8 +164,10 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the `enqueue_scripts` method
+	 *
+	 * @group autosuggest
 	 */
-	public function testEnqueueScripts() {
+	public function test_enqueue_scripts() {
 		$this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
 		$this->get_feature()->enqueue_scripts();
 		$this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
@@ -177,8 +189,10 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the `generate_search_query` method
+	 *
+	 * @group autosuggest
 	 */
-	public function testGenerateSearchQuery() {
+	public function test_generate_search_query() {
 		$query = $this->get_feature()->generate_search_query();
 
 		$this->assertArrayHasKey( 'body', $query );
@@ -188,8 +202,10 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the filters in the `generate_search_query` method
+	 *
+	 * @group autosuggest
 	 */
-	public function testGenerateSearchQueryFilters() {
+	public function test_generate_search_query_filters() {
 		/**
 		 * Test the `ep_autosuggest_query_placeholder` filter.
 		 */
@@ -241,15 +257,19 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the filters in the `return_empty_posts` method
+	 *
+	 * @group autosuggest
 	 */
-	public function testReturnEmptyPosts() {
+	public function test_return_empty_posts() {
 		$this->assertEmpty( $this->get_feature()->return_empty_posts() );
 	}
 
 	/**
 	 * Test the filters in the `apply_autosuggest_weighting` method
+	 *
+	 * @group autosuggest
 	 */
-	public function testApplyAutosuggestWeighting() {
+	public function test_apply_autosuggest_weighting() {
 		$filter = function () {
 			return [ 'hello' => 'world' ];
 		};
@@ -264,8 +284,10 @@ class TestAutosuggest extends BaseTestCase {
 
 	/**
 	 * Test the filters in the `requirements_status` method
+	 *
+	 * @group autosuggest
 	 */
-	public function testRequirementsStatus() {
+	public function test_requirements_status() {
 		$status = $this->get_feature()->requirements_status();
 
 		$this->assertEquals( 1, $status->get_code() );

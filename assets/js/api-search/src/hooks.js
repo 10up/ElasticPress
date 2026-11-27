@@ -44,8 +44,11 @@ export const useFetchResults = (
 
 		const headers = {
 			Accept: 'application/json',
-			Authorization,
 		};
+
+		if (Authorization) {
+			headers.Authorization = Authorization;
+		}
 
 		const requestId = generateRequestId(requestIdBase);
 

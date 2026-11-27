@@ -18,7 +18,7 @@ class TestFacetTypePostTypeRenderer extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testRenderer() {
+	public function test_renderer() {
 		$this->markTestIncomplete();
 	}
 
@@ -27,7 +27,7 @@ class TestFacetTypePostTypeRenderer extends BaseTestCase {
 	 *
 	 * @group facets
 	 */
-	public function testGetPostTypeValueHtml() {
+	public function test_get_post_type_value_html() {
 		$renderer = new Renderer();
 
 		/**

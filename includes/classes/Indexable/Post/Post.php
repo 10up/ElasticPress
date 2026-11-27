@@ -201,6 +201,9 @@ class Post extends Indexable {
 			]
 		);
 
+		// In the same order every time: later batches already have ep_indexing_last_processed_object_id
+		ksort( $normalized_query_args );
+
 		$cache_key = md5( get_current_blog_id() . wp_json_encode( $normalized_query_args ) );
 
 		if ( ! isset( $object_counts[ $cache_key ] ) ) {

@@ -74,7 +74,7 @@ class FailedQueries extends Report {
 			$fields = [
 				'error'                => [
 					'label' => __( 'Error', 'elasticpress' ),
-					'value' => $error,
+					'value' => esc_html( $error ),
 				],
 				'recommended_solution' => [
 					'label' => __( 'Recommended Solution', 'elasticpress' ),
@@ -86,6 +86,11 @@ class FailedQueries extends Report {
 				// Already outputted in the title
 				if ( in_array( $field, [ 'wp_url', 'timestamp' ], true ) ) {
 					continue;
+				}
+
+				// Strings not starting with `{` are rendered as HTML, so they need escaping
+				if ( is_string( $value ) && 0 !== strpos( $value, '{' ) ) {
+					$value = esc_html( $value );
 				}
 
 				$fields[ $field ] = [

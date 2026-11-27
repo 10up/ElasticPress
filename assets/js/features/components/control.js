@@ -37,7 +37,7 @@ import { useFeatureSettings } from '../provider';
  * @param {boolean|string} props.syncedValue Setting value at last sync.
  * @param {string} props.type Control type.
  * @param {boolean|string} props.value Setting value.
- * @param {object} props.values The feature's current setting values, saved or not (since 5.4.0).
+ * @param {object} props.values The feature's current setting values, saved or not (since 5.3.6).
  * @returns {WPElement} Reports component.
  */
 const Control = ({
@@ -199,7 +199,7 @@ const Control = ({
 					 * add its own field type. Return null to use the ElasticPress control.
 					 *
 					 * @filter ep.Features.Control
-					 * @since 5.4.0
+					 * @since 5.3.6
 					 *
 					 * @param {Function|null} component Component. Default null.
 					 * @param {string} type Field type.

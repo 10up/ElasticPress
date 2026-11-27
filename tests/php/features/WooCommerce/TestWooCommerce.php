@@ -21,7 +21,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	 * @since 2.1
 	 * @group woocommerce
 	 */
-	public function testSearchOnAllFrontEnd() {
+	public function test_search_on_all_front_end() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -43,7 +43,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	 * @since 4.4.1
 	 * @group woocommerce
 	 */
-	public function testSearchQueryForCoupon() {
+	public function test_search_query_for_coupon() {
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
@@ -84,7 +84,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	 * @since 4.4.1
 	 * @group woocommerce
 	 */
-	public function testSearchQueryForCouponWhenProtectedContentIsEnable() {
+	public function test_search_query_for_coupon_when_protected_content_is_enable() {
 
 		set_current_screen( 'dashboard' );
 		$this->assertTrue( is_admin() );
@@ -119,7 +119,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	 * @since 4.4.1
 	 * @group woocommerce
 	 */
-	public function testSearchQueryForCouponWhenProtectedContentIsNotEnable() {
+	public function test_search_query_for_coupon_when_protected_content_is_not_enable() {
 
 		set_current_screen( 'dashboard' );
 		$this->assertTrue( is_admin() );
@@ -155,7 +155,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @expectedDeprecated ElasticPress\Feature\WooCommerce\WooCommerce::is_orders_autosuggest_available
 	 */
-	public function testIsOrdersAutosuggestAvailable() {
+	public function test_is_orders_autosuggest_available() {
 		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
 
 		$this->assertSame( $woocommerce_feature->is_orders_autosuggest_available(), \ElasticPress\Utils\is_epio() );
@@ -177,7 +177,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @expectedDeprecated ElasticPress\Feature\WooCommerce\WooCommerce::is_orders_autosuggest_enabled
 	 */
-	public function testIsOrdersAutosuggestEnabled() {
+	public function test_is_orders_autosuggest_enabled() {
 		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
 
 		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_enabled() );
@@ -234,7 +234,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @expectedDeprecated ElasticPress\Feature\WooCommerce\WooCommerce::add_variations_skus_meta
 	 */
-	public function testAddVariationsSkusMeta() {
+	public function test_add_variations_skus_meta() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -272,7 +272,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @expectedDeprecated ElasticPress\Feature\WooCommerce\WooCommerce::translate_args_admin_products_list
 	 */
-	public function testTranslateArgsAdminProductsList() {
+	public function test_translate_args_admin_products_list() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
@@ -315,7 +315,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	 * @group woocommerce
 	 * @expectedDeprecated ElasticPress\Feature\WooCommerce\WooCommerce::translate_args_admin_products_list
 	 */
-	public function testEPWoocommerceAdminProductsListSearchFields() {
+	public function test_ep_woocommerce_admin_products_list_search_fields() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();

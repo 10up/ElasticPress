@@ -31,3 +31,21 @@
 	display: block;
 	font-size: 12px;
 }
+
+.ep-sync-errors__stack-trace {
+	font-size: 12px;
+	margin-top: 8px;
+
+	& summary {
+		cursor: pointer;
+	}
+
+	& pre {
+		background: var(--ep-sync-color-white);
+		max-height: 300px;
+		overflow: auto;
+		overflow-wrap: anywhere;
+		padding: 8px;
+		white-space: pre-wrap;
+	}
+}

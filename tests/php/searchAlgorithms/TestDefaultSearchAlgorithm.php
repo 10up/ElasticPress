@@ -17,9 +17,9 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	/**
 	 * Test get_slug
 	 *
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
-	public function testGetSlug() {
+	public function test_get_slug() {
 		$default = new DefaultAlgorithm();
 
 		$this->assertSame( 'default', $default->get_slug() );
@@ -28,9 +28,9 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	/**
 	 * Test default query
 	 *
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
-	public function testGetQuery() {
+	public function test_get_query() {
 		$default = new DefaultAlgorithm();
 
 		$search_term   = 'search_term';
@@ -38,7 +38,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $default->get_query( 'indexable', $search_term, $search_fields, [] );
 
-		$model = $this->getModel( $search_term, $search_fields );
+		$model = $this->get_model( $search_term, $search_fields );
 
 		$this->assertEquals( $model, $query );
 	}
@@ -46,9 +46,9 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	/**
 	 * Test filters
 	 *
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
-	public function testFilters() {
+	public function test_filters() {
 		$default = new DefaultAlgorithm();
 
 		$search_term   = 'search_term';
@@ -93,9 +93,9 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * As posts also apply the legacy filters, these tests assure code honors the value of the newer filters
 	 *
 	 * @see https://github.com/10up/ElasticPress/issues/3033
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
-	public function testPostFilters() {
+	public function test_post_filters() {
 		$default = new DefaultAlgorithm();
 
 		$search_term   = 'search_term';
@@ -140,9 +140,9 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @expectedDeprecated ep_match_phrase_boost
 	 * @expectedDeprecated ep_match_boost
 	 * @expectedDeprecated ep_fuzziness_arg
-	 * @group searchAlgorithms
+	 * @group search-algorithms
 	 */
-	public function testLegacyFilters() {
+	public function test_legacy_filters() {
 		$default = new DefaultAlgorithm();
 
 		$search_term   = 'search_term';
@@ -188,7 +188,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @param array  $search_fields Search fields
 	 * @return array
 	 */
-	protected function getModel( string $search_term, array $search_fields ): array {
+	protected function get_model( string $search_term, array $search_fields ): array {
 		return [
 			'bool' => [
 				'should' => [
